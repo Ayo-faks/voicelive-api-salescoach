@@ -92,6 +92,15 @@
       "pathfinderLearnOtelEnabled": {
         "value": "${PATHFINDER_LEARN_OTEL_ENABLED=true}"
       },
+      "pathfinderVoiceliveEnabled": {
+        "value": "${PATHFINDER_VOICELIVE_ENABLED=true}"
+      },
+      "pathfinderVoiceEnabled": {
+        "value": "${PATHFINDER_VOICE_ENABLED=true}"
+      },
+      "pathfinderAssistantLlmEnabled": {
+        "value": "${PATHFINDER_ASSISTANT_LLM_ENABLED=true}"
+      },
       "enableAgentMeshObservabilityCron": {
         "value": "${ENABLE_AGENT_MESH_OBSERVABILITY_CRON=false}"
       },

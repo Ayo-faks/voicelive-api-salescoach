@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.37.4.10188",
-      "templateHash": "968312350380226578"
+      "templateHash": "5891876161455118220"
     }
   },
   "parameters": {
@@ -195,6 +195,27 @@
       "defaultValue": "true",
       "metadata": {
         "description": "Set PATHFINDER_LEARN_OTEL_ENABLED for the backend runtime."
+      }
+    },
+    "pathfinderVoiceliveEnabled": {
+      "type": "string",
+      "defaultValue": "true",
+      "metadata": {
+        "description": "Set PATHFINDER_VOICELIVE_ENABLED for the backend runtime (Pathfinder VoiceLive realtime path)."
+      }
+    },
+    "pathfinderVoiceEnabled": {
+      "type": "string",
+      "defaultValue": "true",
+      "metadata": {
+        "description": "Set PATHFINDER_VOICE_ENABLED for the backend runtime (Pathfinder voice features)."
+      }
+    },
+    "pathfinderAssistantLlmEnabled": {
+      "type": "string",
+      "defaultValue": "true",
+      "metadata": {
+        "description": "Set PATHFINDER_ASSISTANT_LLM_ENABLED for the backend runtime (model-backed assistant provider)."
       }
     },
     "enableAgentMeshObservabilityCron": {
@@ -532,6 +553,15 @@
           "pathfinderLearnOtelEnabled": {
             "value": "[parameters('pathfinderLearnOtelEnabled')]"
           },
+          "pathfinderVoiceliveEnabled": {
+            "value": "[parameters('pathfinderVoiceliveEnabled')]"
+          },
+          "pathfinderVoiceEnabled": {
+            "value": "[parameters('pathfinderVoiceEnabled')]"
+          },
+          "pathfinderAssistantLlmEnabled": {
+            "value": "[parameters('pathfinderAssistantLlmEnabled')]"
+          },
           "enableAgentMeshObservabilityCron": {
             "value": "[parameters('enableAgentMeshObservabilityCron')]"
           },
@@ -621,7 +651,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.37.4.10188",
-              "templateHash": "17515088511550429639"
+              "templateHash": "8060150522825609004"
             }
           },
           "parameters": {
@@ -817,6 +847,27 @@
               "defaultValue": "true",
               "metadata": {
                 "description": "Set PATHFINDER_LEARN_OTEL_ENABLED for the backend runtime."
+              }
+            },
+            "pathfinderVoiceliveEnabled": {
+              "type": "string",
+              "defaultValue": "true",
+              "metadata": {
+                "description": "Set PATHFINDER_VOICELIVE_ENABLED for the backend runtime (Pathfinder VoiceLive realtime path)."
+              }
+            },
+            "pathfinderVoiceEnabled": {
+              "type": "string",
+              "defaultValue": "true",
+              "metadata": {
+                "description": "Set PATHFINDER_VOICE_ENABLED for the backend runtime (Pathfinder voice features)."
+              }
+            },
+            "pathfinderAssistantLlmEnabled": {
+              "type": "string",
+              "defaultValue": "true",
+              "metadata": {
+                "description": "Set PATHFINDER_ASSISTANT_LLM_ENABLED for the backend runtime (model-backed assistant provider)."
               }
             },
             "enableRalphLrs": {
@@ -10774,7 +10825,7 @@
                             "mountPath": "/var/lib/agent-mesh"
                           }
                         ],
-                        "env": "[concat(createArray(createObject('name', 'APPLICATIONINSIGHTS_CONNECTION_STRING', 'value', reference(resourceId('Microsoft.Resources/deployments', 'monitoring'), '2022-09-01').outputs.applicationInsightsConnectionString.value), createObject('name', 'APPLICATIONINSIGHTS_RESOURCE_ID', 'value', reference(resourceId('Microsoft.Resources/deployments', 'monitoring'), '2022-09-01').outputs.applicationInsightsResourceId.value), createObject('name', 'AZURE_CLIENT_ID', 'value', reference(resourceId('Microsoft.Resources/deployments', 'voicelabidentity'), '2022-09-01').outputs.clientId.value), createObject('name', 'AZURE_OPENAI_ENDPOINT', 'value', reference(resourceId('Microsoft.CognitiveServices/accounts', format('aifoundry-voicelab-{0}', variables('resourceToken'))), '2024-10-01').endpoint), createObject('name', 'PROJECT_ENDPOINT', 'value', format('{0}api/projects/default-project', reference(resourceId('Microsoft.CognitiveServices/accounts', format('aifoundry-voicelab-{0}', variables('resourceToken'))), '2024-10-01').endpoint)), createObject('name', 'MODEL_DEPLOYMENT_NAME', 'value', parameters('gptDeploymentName')), createObject('name', 'AZURE_OPENAI_EMBEDDING_DEPLOYMENT', 'value', 'text-embedding-3-small'), createObject('name', 'PATHFINDER_RAG_EMBEDDINGS_ENABLED', 'value', '1'), createObject('name', 'AZURE_SPEECH_KEY', 'secretRef', 'speech-api-key'), createObject('name', 'AZURE_SPEECH_REGION', 'value', 'swedencentral'), createObject('name', 'AZURE_AI_RESOURCE_NAME', 'value', format('aifoundry-voicelab-{0}', variables('resourceToken'))), createObject('name', 'AZURE_AI_REGION', 'value', 'swedencentral'), createObject('name', 'SUBSCRIPTION_ID', 'value', subscription().subscriptionId), createObject('name', 'RESOURCE_GROUP_NAME', 'value', resourceGroup().name), createObject('name', 'USE_AZURE_AI_AGENTS', 'value', if(parameters('useFoundryAgents'), 'true', 'false')), createObject('name', 'PORT', 'value', '8000'), createObject('name', 'HOST', 'value', '0.0.0.0'), createObject('name', 'AZD_ENV_NAME', 'value', parameters('environmentName')), createObject('name', 'PUBLIC_APP_URL', 'value', if(not(empty(parameters('publicAppUrl'))), parameters('publicAppUrl'), if(not(empty(variables('customRedirectHost'))), variables('customRedirectHost'), format('https://voicelab.{0}', reference(resourceId('Microsoft.Resources/deployments', 'container-apps-environment'), '2022-09-01').outputs.defaultDomain.value)))), createObject('name', 'DATABASE_BACKEND', 'value', parameters('databaseBackend')), createObject('name', 'DATABASE_RUN_MIGRATIONS_ON_STARTUP', 'value', if(parameters('databaseRunMigrationsOnStartup'), 'true', 'false')), createObject('name', 'DATABASE_MIGRATION_ALLOWED_ENVIRONMENTS', 'value', parameters('databaseMigrationAllowedEnvironments')), createObject('name', 'PATHFINDER_LEARN_OBSERVABILITY_ENABLED', 'value', parameters('pathfinderLearnObservabilityEnabled')), createObject('name', 'PATHFINDER_LEARN_PROMETHEUS_ENABLED', 'value', parameters('pathfinderLearnPrometheusEnabled')), createObject('name', 'PATHFINDER_LEARN_OTEL_ENABLED', 'value', parameters('pathfinderLearnOtelEnabled')), createObject('name', 'PATHFINDER_B2C_ONBOARDING_ENABLED', 'value', 'true'), createObject('name', 'PATHFINDER_LEARNER_ONBOARDING_ENABLED', 'value', 'true'), createObject('name', 'STORAGE_PATH', 'value', '/tmp/wulo.db'), createObject('name', 'BLOB_BACKUP_ACCOUNT_NAME', 'value', format('{0}{1}data', variables('abbrs').storageStorageAccounts, variables('resourceToken'))), createObject('name', 'AGENT_MESH_HISTORY_PATH', 'value', '/var/lib/agent-mesh/history.jsonl'), createObject('name', 'COPILOT_CLI_PATH', 'value', if(empty(parameters('copilotCliPath')), '/usr/local/bin/copilot', parameters('copilotCliPath'))), createObject('name', 'VOICE_LIVE_MODEL', 'value', if(empty(parameters('voiceLiveModel')), parameters('gptDeploymentName'), parameters('voiceLiveModel'))), createObject('name', 'AZURE_INPUT_TRANSCRIPTION_MODEL', 'value', if(empty(parameters('inputTranscriptionModel')), 'azure-speech', parameters('inputTranscriptionModel'))), createObject('name', 'COPILOT_PLANNER_MODEL', 'value', if(empty(parameters('copilotPlannerModel')), parameters('gptDeploymentName'), parameters('copilotPlannerModel'))), createObject('name', 'COPILOT_PLANNER_REASONING_EFFORT', 'value', parameters('copilotPlannerReasoningEffort')), createObject('name', 'COPILOT_AZURE_API_VERSION', 'value', if(empty(parameters('copilotAzureApiVersion')), '2024-10-21', parameters('copilotAzureApiVersion'))), createObject('name', 'AZURE_COMMUNICATION_SERVICES_SENDER_ADDRESS', 'value', parameters('azureCommunicationServicesSenderAddress')), createObject('name', 'AZURE_COMMUNICATION_SERVICES_SENDER_DISPLAY_NAME', 'value', parameters('azureCommunicationServicesSenderDisplayName')), createObject('name', 'ADMIN_EMAIL', 'value', parameters('safeguardingAdminEmail')), createObject('name', 'ADMIN_SMS_TO', 'value', parameters('safeguardingAdminSmsTo')), createObject('name', 'TWILIO_FROM_NUMBER', 'value', parameters('twilioFromNumber')), createObject('name', 'AZURE_CONTENT_SAFETY_ENDPOINT', 'value', parameters('azureContentSafetyEndpoint')), createObject('name', 'SAFEGUARDING_SHADOW_MODE', 'value', if(parameters('safeguardingShadowMode'), '1', '0'))), if(parameters('enablePostgresPersistence'), createArray(createObject('name', 'DATABASE_URL', 'secretRef', 'postgres-database-url'), createObject('name', 'DATABASE_ADMIN_URL', 'secretRef', 'postgres-admin-database-url')), createArray()), if(not(empty(parameters('copilotGithubToken'))), createArray(createObject('name', 'COPILOT_GITHUB_TOKEN', 'secretRef', 'copilot-github-token')), createArray()), if(not(empty(parameters('microsoftProviderClientSecret'))), createArray(createObject('name', 'MICROSOFT_PROVIDER_AUTHENTICATION_SECRET', 'secretRef', 'microsoft-provider-auth-secret')), createArray()), if(not(empty(parameters('googleProviderClientSecret'))), createArray(createObject('name', 'GOOGLE_PROVIDER_AUTHENTICATION_SECRET', 'secretRef', 'google-provider-auth-secret')), createArray()), if(or(not(empty(parameters('azureCommunicationServicesConnectionString'))), parameters('enableAzureCommunicationServicesEmail')), createArray(createObject('name', 'AZURE_COMMUNICATION_SERVICES_CONNECTION_STRING', 'secretRef', 'azure-communication-services-connection-string')), createArray()), if(not(empty(parameters('twilioAuthToken'))), createArray(createObject('name', 'TWILIO_ACCOUNT_SID', 'secretRef', 'twilio-account-sid'), createObject('name', 'TWILIO_AUTH_TOKEN', 'secretRef', 'twilio-auth-token')), createArray()), if(not(empty(parameters('azureContentSafetyKey'))), createArray(createObject('name', 'AZURE_CONTENT_SAFETY_KEY', 'secretRef', 'azure-content-safety-key')), createArray()))]"
+                        "env": "[concat(createArray(createObject('name', 'APPLICATIONINSIGHTS_CONNECTION_STRING', 'value', reference(resourceId('Microsoft.Resources/deployments', 'monitoring'), '2022-09-01').outputs.applicationInsightsConnectionString.value), createObject('name', 'APPLICATIONINSIGHTS_RESOURCE_ID', 'value', reference(resourceId('Microsoft.Resources/deployments', 'monitoring'), '2022-09-01').outputs.applicationInsightsResourceId.value), createObject('name', 'AZURE_CLIENT_ID', 'value', reference(resourceId('Microsoft.Resources/deployments', 'voicelabidentity'), '2022-09-01').outputs.clientId.value), createObject('name', 'AZURE_OPENAI_ENDPOINT', 'value', reference(resourceId('Microsoft.CognitiveServices/accounts', format('aifoundry-voicelab-{0}', variables('resourceToken'))), '2024-10-01').endpoint), createObject('name', 'PROJECT_ENDPOINT', 'value', format('{0}api/projects/default-project', reference(resourceId('Microsoft.CognitiveServices/accounts', format('aifoundry-voicelab-{0}', variables('resourceToken'))), '2024-10-01').endpoint)), createObject('name', 'MODEL_DEPLOYMENT_NAME', 'value', parameters('gptDeploymentName')), createObject('name', 'AZURE_OPENAI_EMBEDDING_DEPLOYMENT', 'value', 'text-embedding-3-small'), createObject('name', 'PATHFINDER_RAG_EMBEDDINGS_ENABLED', 'value', '1'), createObject('name', 'AZURE_SPEECH_KEY', 'secretRef', 'speech-api-key'), createObject('name', 'AZURE_SPEECH_REGION', 'value', 'swedencentral'), createObject('name', 'AZURE_SPEECH_ENDPOINT', 'value', reference(resourceId('Microsoft.CognitiveServices/accounts', format('speech-voicelab-{0}', variables('resourceToken'))), '2024-10-01').endpoint), createObject('name', 'AZURE_AI_RESOURCE_NAME', 'value', format('aifoundry-voicelab-{0}', variables('resourceToken'))), createObject('name', 'AZURE_AI_REGION', 'value', 'swedencentral'), createObject('name', 'SUBSCRIPTION_ID', 'value', subscription().subscriptionId), createObject('name', 'RESOURCE_GROUP_NAME', 'value', resourceGroup().name), createObject('name', 'USE_AZURE_AI_AGENTS', 'value', if(parameters('useFoundryAgents'), 'true', 'false')), createObject('name', 'PORT', 'value', '8000'), createObject('name', 'HOST', 'value', '0.0.0.0'), createObject('name', 'AZD_ENV_NAME', 'value', parameters('environmentName')), createObject('name', 'PUBLIC_APP_URL', 'value', if(not(empty(parameters('publicAppUrl'))), parameters('publicAppUrl'), if(not(empty(variables('customRedirectHost'))), variables('customRedirectHost'), format('https://voicelab.{0}', reference(resourceId('Microsoft.Resources/deployments', 'container-apps-environment'), '2022-09-01').outputs.defaultDomain.value)))), createObject('name', 'DATABASE_BACKEND', 'value', parameters('databaseBackend')), createObject('name', 'DATABASE_RUN_MIGRATIONS_ON_STARTUP', 'value', if(parameters('databaseRunMigrationsOnStartup'), 'true', 'false')), createObject('name', 'DATABASE_MIGRATION_ALLOWED_ENVIRONMENTS', 'value', parameters('databaseMigrationAllowedEnvironments')), createObject('name', 'PATHFINDER_LEARN_OBSERVABILITY_ENABLED', 'value', parameters('pathfinderLearnObservabilityEnabled')), createObject('name', 'PATHFINDER_LEARN_PROMETHEUS_ENABLED', 'value', parameters('pathfinderLearnPrometheusEnabled')), createObject('name', 'PATHFINDER_LEARN_OTEL_ENABLED', 'value', parameters('pathfinderLearnOtelEnabled')), createObject('name', 'PATHFINDER_VOICELIVE_ENABLED', 'value', parameters('pathfinderVoiceliveEnabled')), createObject('name', 'PATHFINDER_VOICE_ENABLED', 'value', parameters('pathfinderVoiceEnabled')), createObject('name', 'PATHFINDER_ASSISTANT_LLM_ENABLED', 'value', parameters('pathfinderAssistantLlmEnabled')), createObject('name', 'PATHFINDER_B2C_ONBOARDING_ENABLED', 'value', 'true'), createObject('name', 'PATHFINDER_LEARNER_ONBOARDING_ENABLED', 'value', 'true'), createObject('name', 'PATHFINDER_GOAL_INTAKE_ENABLED', 'value', 'true'), createObject('name', 'STORAGE_PATH', 'value', '/tmp/wulo.db'), createObject('name', 'BLOB_BACKUP_ACCOUNT_NAME', 'value', format('{0}{1}data', variables('abbrs').storageStorageAccounts, variables('resourceToken'))), createObject('name', 'AGENT_MESH_HISTORY_PATH', 'value', '/var/lib/agent-mesh/history.jsonl'), createObject('name', 'COPILOT_CLI_PATH', 'value', if(empty(parameters('copilotCliPath')), '/usr/local/bin/copilot', parameters('copilotCliPath'))), createObject('name', 'VOICE_LIVE_MODEL', 'value', if(empty(parameters('voiceLiveModel')), parameters('gptDeploymentName'), parameters('voiceLiveModel'))), createObject('name', 'AZURE_INPUT_TRANSCRIPTION_MODEL', 'value', if(empty(parameters('inputTranscriptionModel')), 'azure-speech', parameters('inputTranscriptionModel'))), createObject('name', 'COPILOT_PLANNER_MODEL', 'value', if(empty(parameters('copilotPlannerModel')), parameters('gptDeploymentName'), parameters('copilotPlannerModel'))), createObject('name', 'COPILOT_PLANNER_REASONING_EFFORT', 'value', parameters('copilotPlannerReasoningEffort')), createObject('name', 'COPILOT_AZURE_API_VERSION', 'value', if(empty(parameters('copilotAzureApiVersion')), '2024-10-21', parameters('copilotAzureApiVersion'))), createObject('name', 'AZURE_COMMUNICATION_SERVICES_SENDER_ADDRESS', 'value', parameters('azureCommunicationServicesSenderAddress')), createObject('name', 'AZURE_COMMUNICATION_SERVICES_SENDER_DISPLAY_NAME', 'value', parameters('azureCommunicationServicesSenderDisplayName')), createObject('name', 'ADMIN_EMAIL', 'value', parameters('safeguardingAdminEmail')), createObject('name', 'ADMIN_SMS_TO', 'value', parameters('safeguardingAdminSmsTo')), createObject('name', 'TWILIO_FROM_NUMBER', 'value', parameters('twilioFromNumber')), createObject('name', 'AZURE_CONTENT_SAFETY_ENDPOINT', 'value', parameters('azureContentSafetyEndpoint')), createObject('name', 'SAFEGUARDING_SHADOW_MODE', 'value', if(parameters('safeguardingShadowMode'), '1', '0')), createObject('name', 'SAFEGUARDING_CLASSIFIER_MODEL', 'value', parameters('gptDeploymentName'))), if(parameters('enablePostgresPersistence'), createArray(createObject('name', 'DATABASE_URL', 'secretRef', 'postgres-database-url'), createObject('name', 'DATABASE_ADMIN_URL', 'secretRef', 'postgres-admin-database-url')), createArray()), if(not(empty(parameters('copilotGithubToken'))), createArray(createObject('name', 'COPILOT_GITHUB_TOKEN', 'secretRef', 'copilot-github-token')), createArray()), if(not(empty(parameters('microsoftProviderClientSecret'))), createArray(createObject('name', 'MICROSOFT_PROVIDER_AUTHENTICATION_SECRET', 'secretRef', 'microsoft-provider-auth-secret')), createArray()), if(not(empty(parameters('googleProviderClientSecret'))), createArray(createObject('name', 'GOOGLE_PROVIDER_AUTHENTICATION_SECRET', 'secretRef', 'google-provider-auth-secret')), createArray()), if(or(not(empty(parameters('azureCommunicationServicesConnectionString'))), parameters('enableAzureCommunicationServicesEmail')), createArray(createObject('name', 'AZURE_COMMUNICATION_SERVICES_CONNECTION_STRING', 'secretRef', 'azure-communication-services-connection-string')), createArray()), if(not(empty(parameters('twilioAuthToken'))), createArray(createObject('name', 'TWILIO_ACCOUNT_SID', 'secretRef', 'twilio-account-sid'), createObject('name', 'TWILIO_AUTH_TOKEN', 'secretRef', 'twilio-auth-token')), createArray()), if(not(empty(parameters('azureContentSafetyKey'))), createArray(createObject('name', 'AZURE_CONTENT_SAFETY_KEY', 'secretRef', 'azure-content-safety-key')), createArray()))]"
                       }
                     ]
                   },

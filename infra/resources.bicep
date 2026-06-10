@@ -88,6 +88,15 @@ param pathfinderLearnPrometheusEnabled string = 'true'
 @description('Set PATHFINDER_LEARN_OTEL_ENABLED for the backend runtime.')
 param pathfinderLearnOtelEnabled string = 'true'
 
+@description('Set PATHFINDER_VOICELIVE_ENABLED for the backend runtime (Pathfinder VoiceLive realtime path).')
+param pathfinderVoiceliveEnabled string = 'true'
+
+@description('Set PATHFINDER_VOICE_ENABLED for the backend runtime (Pathfinder voice features).')
+param pathfinderVoiceEnabled string = 'true'
+
+@description('Set PATHFINDER_ASSISTANT_LLM_ENABLED for the backend runtime (model-backed assistant provider).')
+param pathfinderAssistantLlmEnabled string = 'true'
+
 @description('Enable optional Ralph LRS container app for Pathfinder Learn xAPI replay.')
 param enableRalphLrs bool = false
 
@@ -1006,6 +1015,18 @@ module voicelab 'br/public:avm/res/app/container-app:0.8.0' = {
             {
               name: 'PATHFINDER_LEARN_OTEL_ENABLED'
               value: pathfinderLearnOtelEnabled
+            }
+            {
+              name: 'PATHFINDER_VOICELIVE_ENABLED'
+              value: pathfinderVoiceliveEnabled
+            }
+            {
+              name: 'PATHFINDER_VOICE_ENABLED'
+              value: pathfinderVoiceEnabled
+            }
+            {
+              name: 'PATHFINDER_ASSISTANT_LLM_ENABLED'
+              value: pathfinderAssistantLlmEnabled
             }
             {
               name: 'PATHFINDER_B2C_ONBOARDING_ENABLED'

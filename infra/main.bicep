@@ -90,6 +90,15 @@ param pathfinderLearnPrometheusEnabled string = 'true'
 @description('Set PATHFINDER_LEARN_OTEL_ENABLED for the backend runtime.')
 param pathfinderLearnOtelEnabled string = 'true'
 
+@description('Set PATHFINDER_VOICELIVE_ENABLED for the backend runtime (Pathfinder VoiceLive realtime path).')
+param pathfinderVoiceliveEnabled string = 'true'
+
+@description('Set PATHFINDER_VOICE_ENABLED for the backend runtime (Pathfinder voice features).')
+param pathfinderVoiceEnabled string = 'true'
+
+@description('Set PATHFINDER_ASSISTANT_LLM_ENABLED for the backend runtime (model-backed assistant provider).')
+param pathfinderAssistantLlmEnabled string = 'true'
+
 @description('Gate 2 (agent-mesh observability cron). DARK BY DEFAULT: when false the scheduled Job is not provisioned at all.')
 param enableAgentMeshObservabilityCron bool = false
 
@@ -255,6 +264,9 @@ module resources 'resources.bicep' = {
     pathfinderLearnObservabilityEnabled: pathfinderLearnObservabilityEnabled
     pathfinderLearnPrometheusEnabled: pathfinderLearnPrometheusEnabled
     pathfinderLearnOtelEnabled: pathfinderLearnOtelEnabled
+    pathfinderVoiceliveEnabled: pathfinderVoiceliveEnabled
+    pathfinderVoiceEnabled: pathfinderVoiceEnabled
+    pathfinderAssistantLlmEnabled: pathfinderAssistantLlmEnabled
     enableAgentMeshObservabilityCron: enableAgentMeshObservabilityCron
     agentMeshObservabilityCron: agentMeshObservabilityCron
     agentMeshObservabilityEnabled: agentMeshObservabilityEnabled
