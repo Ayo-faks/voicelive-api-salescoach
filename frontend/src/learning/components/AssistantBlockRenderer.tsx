@@ -158,6 +158,29 @@ function stripSourceMarkers(text: string): string {
     .trim()
 }
 
+/**
+ * Renders a short, single-line piece of learner-facing text (a question stem,
+ * prompt, etc.) with inline Markdown emphasis (`*frugal*` → frugal) and the
+ * same LaTeX/source-marker cleanup the prose path uses. The block wrapper is
+ * collapsed to a `<span>` so it stays inline inside the card's own `<p>`.
+ * This is display-only — the spoken `speak` field is normalized separately and
+ * must never be routed through here.
+ */
+export function InlineMarkdown({ text }: { text: string }): JSX.Element {
+  return (
+    <ReactMarkdown
+      remarkPlugins={[remarkGfm]}
+      components={{
+        p: ({ children }) => <>{children}</>,
+        em: ({ children }) => <em>{children}</em>,
+        strong: ({ children }) => <strong>{children}</strong>,
+      }}
+    >
+      {stripSourceMarkers(text)}
+    </ReactMarkdown>
+  )
+}
+
 const useStyles = makeStyles({
   prose: {
     display: 'flex',

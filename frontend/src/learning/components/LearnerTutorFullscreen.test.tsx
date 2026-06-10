@@ -105,7 +105,9 @@ describe('LearnerTutorFullscreen', () => {
       },
     })
     expect(sentBodies).toContainEqual({ type: 'response.create' })
-    expect(recorderMock.toggleRecording).toHaveBeenCalledTimes(1)
+    // The mic no longer auto-starts: the learner taps to talk, so the recorder
+    // is not toggled as part of session bootstrap.
+    expect(recorderMock.toggleRecording).not.toHaveBeenCalled()
   })
 
   it('threads the Dig-Deeper focus item into the websocket URL', async () => {
@@ -199,29 +201,28 @@ describe('LearnerTutorFullscreen', () => {
     expect(audioPlayerMock.playAudio).toHaveBeenCalledTimes(2)
   })
 
-  it('falls back and closes after microphone permission is denied', async () => {
-    vi.useFakeTimers()
+  it('shows the listen-on-cards fallback when microphone permission is denied', async () => {
     recorderMock.toggleRecording.mockRejectedValue(new Error('denied'))
     const onClose = vi.fn()
     render(
       <LearnerTutorFullscreen open={true} onClose={onClose} childId="stu-1" />
     )
+    await waitFor(() => expect(FakeWebSocket.instances).toHaveLength(1))
 
-    await act(async () => {
-      await Promise.resolve()
-    })
+    // Mic is manual now: permission is only requested when the learner taps it.
+    expect(recorderMock.toggleRecording).not.toHaveBeenCalled()
+
+    fireEvent.click(screen.getByTestId('learner-tutor-mic'))
 
     expect(
-      screen.getByText(
+      await screen.findByText(
         'Tutor needs your microphone to listen. Tap 🔊 Listen on cards instead.'
       )
     ).toBeTruthy()
 
-    act(() => {
-      vi.advanceTimersByTime(4000)
-    })
-
-    expect(onClose).toHaveBeenCalledTimes(1)
+    // Denying mid-session must not yank the learner out of the tutor — they can
+    // still tap card options or use Listen on cards.
+    expect(onClose).not.toHaveBeenCalled()
   })
 
   it('shows a visible connection error when the websocket fails before any content', async () => {

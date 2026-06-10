@@ -531,19 +531,52 @@ export function AskPathfinder({
     saveThread(childId, transcript)
   }, [childId, transcript])
 
-  // Keep the newest reply in view: as soon as a turn is appended (or the
-  // assistant starts thinking) pin the transcript to the bottom so the learner
-  // never has to drag the scrollbar to read the response.
+  // Keep the newest reply in view. A one-shot scroll on append isn't enough:
+  // the assistant's answer types in (typewriter) and the "thinking" dots appear
+  // *after* the effect runs, so the container keeps growing past the initial
+  // scroll and the reply lands below the fold. We pin to the bottom on every
+  // new turn, then a ResizeObserver follows the streaming text as it expands —
+  // unless the learner has scrolled up to re-read, in which case we stop
+  // yanking them back down.
   const turnCount = transcript.length
+  const stickToBottomRef = useRef(true)
   useEffect(() => {
+    // Re-run (and re-observe) whenever a turn is appended or the thinking state
+    // toggles, so the new streaming block is tracked.
     void turnCount
     void busy
     const node = transcriptScrollRef.current
     if (!node) return
-    if (typeof node.scrollTo === 'function') {
-      node.scrollTo({ top: node.scrollHeight, behavior: 'smooth' })
-    } else {
-      node.scrollTop = node.scrollHeight
+    const scrollToBottom = () => {
+      if (typeof node.scrollTo === 'function') {
+        node.scrollTo({ top: node.scrollHeight, behavior: 'auto' })
+      } else {
+        node.scrollTop = node.scrollHeight
+      }
+    }
+    const onScroll = () => {
+      const distance = node.scrollHeight - node.scrollTop - node.clientHeight
+      stickToBottomRef.current = distance < 96
+    }
+    node.addEventListener('scroll', onScroll, { passive: true })
+    // A brand-new turn should always reveal itself, even if the learner had
+    // scrolled up during the previous answer.
+    stickToBottomRef.current = true
+    scrollToBottom()
+    const observer =
+      typeof ResizeObserver !== 'undefined'
+        ? new ResizeObserver(() => {
+            if (stickToBottomRef.current) scrollToBottom()
+          })
+        : null
+    if (observer) {
+      for (const child of Array.from(node.children)) {
+        observer.observe(child)
+      }
+    }
+    return () => {
+      node.removeEventListener('scroll', onScroll)
+      observer?.disconnect()
     }
   }, [turnCount, busy])
 

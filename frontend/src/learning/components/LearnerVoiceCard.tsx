@@ -1,5 +1,6 @@
 import { makeStyles } from '@fluentui/react-components'
 import type { LearnerVoiceCard } from '../api'
+import { InlineMarkdown } from './AssistantBlockRenderer'
 
 const useStyles = makeStyles({
   card: {
@@ -144,7 +145,9 @@ export function LearnerVoiceCardRenderer({
       ) : null}
       {card.kind === 'mcq-tap' ? (
         <>
-          <p className={styles.stem}>{card.stem}</p>
+          <p className={styles.stem}>
+            <InlineMarkdown text={card.stem} />
+          </p>
           <div className={styles.options}>
             {card.options.map(option => (
               <button
@@ -156,7 +159,9 @@ export function LearnerVoiceCardRenderer({
                 data-testid={`practice-option-${option.id}`}
               >
                 <span className={styles.optionLabel}>{option.label}</span>
-                <span>{option.text}</span>
+                <span>
+                  <InlineMarkdown text={option.text} />
+                </span>
               </button>
             ))}
           </div>
@@ -199,7 +204,9 @@ export function LearnerVoiceCardRenderer({
       ) : null}
       {card.kind === 'mark-known' ? (
         <>
-          <p className={styles.stem}>{card.prompt}</p>
+          <p className={styles.stem}>
+            <InlineMarkdown text={card.prompt} />
+          </p>
           <button
             type="button"
             className={styles.primaryAction}
