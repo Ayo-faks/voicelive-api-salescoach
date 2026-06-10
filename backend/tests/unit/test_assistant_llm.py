@@ -268,7 +268,9 @@ def test_turn_cap_short_circuits_before_model() -> None:
         {"focus_item": {"stem": "x", "scored": True}, "thread": thread, "memory_allowed": False},
     )
     assert client.calls == []
-    assert "pause here" in reply["answer"]
+    assert "new chat" in reply["answer"]
+    # Deliberate pause, not a grounding failure — must not show the defer badge.
+    assert reply["smalltalk"] is True
 
 
 # ---------------------------------------------------------------------------

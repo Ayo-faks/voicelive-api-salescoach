@@ -52,7 +52,13 @@ ASSISTANT_MAX_TURNS_ENV = "PATHFINDER_ASSISTANT_MAX_TURNS"
 # which keeps using the shared model_deployment_name.
 ASSISTANT_MODEL_ENV = "PATHFINDER_ASSISTANT_MODEL_DEPLOYMENT"
 
-_DEFAULT_MAX_TURNS = 12
+# Per-thread cap on learner (user) turns. This is a cost guard (each turn
+# resends the whole thread, so spend grows superlinearly with length) and a
+# pedagogy nudge back toward practice cards — not a hard safety gate. The
+# thread persists in localStorage across sessions, so the cap is per saved
+# conversation, reset by "New conversation". Override via
+# PATHFINDER_ASSISTANT_MAX_TURNS.
+_DEFAULT_MAX_TURNS = 20
 _DEFAULT_TEMPERATURE = 0.3
 _DEFAULT_MAX_TOKENS = 600
 
@@ -85,8 +91,9 @@ _DEFER_MESSAGE = (
 )
 
 _TURN_CAP_MESSAGE = (
-    "We've covered a lot in this chat. Let's pause here so it sticks — try a "
-    "quick practice card on this topic, then come back and ask me the next thing."
+    "We've covered a lot, so this chat is full now — pausing helps it stick. "
+    "Try a quick practice card on this topic, or tap the + button up top to "
+    "start a new chat and keep asking."
 )
 
 # Greetings / social chit-chat that a learner opens with. These never need
@@ -327,7 +334,15 @@ class ModelAssistantProvider:
             if isinstance(t, Mapping) and str(t.get("role") or "").lower() == "user"
         )
         if user_turns >= self.max_turns:
-            return {"answer": _TURN_CAP_MESSAGE, "citations": [], "grounded": False}
+            # `smalltalk: True` marks this as a deliberate, deterministic reply —
+            # the UI suppresses the "No grounded source" badge, which would
+            # otherwise make an intentional pause read like a retrieval failure.
+            return {
+                "answer": _TURN_CAP_MESSAGE,
+                "citations": [],
+                "grounded": False,
+                "smalltalk": True,
+            }
 
         # Social opener (greeting / thanks / "what can you do") — answer warmly
         # and steer to study instead of demanding grounded sources. Only when no
