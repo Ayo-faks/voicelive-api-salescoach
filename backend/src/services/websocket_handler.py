@@ -1110,7 +1110,16 @@ class VoiceProxyHandler:
         # fields (stem/prompt/option text) are left untouched.
         self._normalize_result_speech(result)
 
-        output = json.dumps(result, separators=(",", ":"))
+        # The realtime model voices WHATEVER JSON we hand it. Even with a clean
+        # ``speak``, the full result still carries display-only fields
+        # (``text``/``stem``/``options``/``citations``) full of raw Markdown and
+        # LaTeX — the model reads those and says "back slash frac", "asterisk
+        # asterisk", "S1" aloud. Send Azure a speech-safe projection (normalized
+        # ``speak`` only); the CLIENT below still gets the full result so the
+        # drawer renders Markdown visually.
+        output = json.dumps(
+            self._azure_safe_tool_output(result), separators=(",", ":")
+        )
         await azure_conn.send(
             {
                 "type": "conversation.item.create",
@@ -1204,6 +1213,63 @@ class VoiceProxyHandler:
                             block["speak"] = normalize_for_tts(speak)
                     elif speak.strip():
                         block["speak"] = normalize_for_tts(speak)
+
+    def _speech_safe_node(self, node: Dict[str, Any]) -> Dict[str, Any]:
+        """Project a card/block down to ONLY speech-safe fields.
+
+        The realtime model narrates from the JSON we send it, so display-only
+        fields (``text``/``stem``/``options``/``citations``) carrying raw
+        Markdown or LaTeX must never reach Azure — otherwise they are voiced
+        verbatim ("back slash frac", "asterisk asterisk"). Keep the already
+        TTS-normalized ``speak`` plus a couple of harmless scalar identifiers.
+        """
+        speak = node.get("speak")
+        if isinstance(speak, str) and speak.strip():
+            safe_speak = speak
+        else:
+            # No spoken text survived normalization — give the model a clean,
+            # normalized fallback built from display fields so it still has
+            # something speech-safe to read instead of raw markup.
+            parts: List[str] = []
+            for key in ("prompt", "stem", "title", "headline", "text"):
+                value = node.get(key)
+                if isinstance(value, str) and value.strip():
+                    parts.append(value.strip())
+            safe_speak = normalize_for_tts(" ".join(parts)) if parts else ""
+        safe: Dict[str, Any] = {"speak": safe_speak}
+        for key in ("kind", "card_id"):
+            value = node.get(key)
+            if isinstance(value, (str, int, bool)):
+                safe[key] = value
+        return safe
+
+    def _azure_safe_tool_output(self, result: Dict[str, Any]) -> Dict[str, Any]:
+        """Project a tool result down to a speech-safe payload for Azure.
+
+        Mirrors the structure (``card``/``blocks``/``session_complete``) but
+        replaces every card/block with its speech-safe projection so the
+        realtime model can only voice normalized ``speak`` text. The client
+        still receives the full, Markdown-bearing ``result`` for display.
+        """
+        safe: Dict[str, Any] = {}
+        card = result.get("card")
+        if isinstance(card, dict):
+            safe["card"] = self._speech_safe_node(card)
+        blocks = result.get("blocks")
+        if isinstance(blocks, list):
+            safe["blocks"] = [
+                self._speech_safe_node(block)
+                for block in blocks
+                if isinstance(block, dict)
+            ]
+        # No recognizable card/blocks (e.g. an ``{"error": ...}`` result): pass
+        # the already speak-normalized result through unchanged so we never
+        # starve the model of context.
+        if "card" not in safe and "blocks" not in safe:
+            return result
+        if "session_complete" in result:
+            safe["session_complete"] = bool(result.get("session_complete"))
+        return safe
 
     def _build_profile_tool_response_create(self, profile: AgentProfile) -> Dict[str, Any]:
         if profile.id == "learner":

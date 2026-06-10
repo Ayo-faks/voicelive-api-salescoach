@@ -1,5 +1,7 @@
 import { makeStyles, mergeClasses } from '@fluentui/react-components'
 import { useEffect, useRef, useState } from 'react'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import type {
   AssistantBlock,
   AssistantConfirmationBlock,
@@ -178,7 +180,25 @@ const useStyles = makeStyles({
   },
   proseText: {
     margin: 0,
-    whiteSpace: 'pre-wrap',
+    display: 'grid',
+    gap: '8px',
+  },
+  markdownParagraph: {
+    margin: 0,
+  },
+  markdownList: {
+    marginTop: 0,
+    marginBottom: 0,
+    paddingLeft: '20px',
+    display: 'grid',
+    gap: '5px',
+  },
+  markdownListItem: {
+    paddingLeft: '2px',
+  },
+  markdownStrong: {
+    fontWeight: 800,
+    color: 'var(--scrim-fg-strong)',
   },
   caret: {
     display: 'inline-block',
@@ -446,12 +466,33 @@ function ProseBlockView({ block }: { block: AssistantProseBlock }): JSX.Element 
           No grounded source
         </span>
       ) : null}
-      <p className={styles.proseText}>
-        {shown}
+      <div className={styles.proseText}>
+        <ReactMarkdown
+          remarkPlugins={[remarkGfm]}
+          components={{
+            p: ({ children }) => (
+              <p className={styles.markdownParagraph}>{children}</p>
+            ),
+            ul: ({ children }) => (
+              <ul className={styles.markdownList}>{children}</ul>
+            ),
+            ol: ({ children }) => (
+              <ol className={styles.markdownList}>{children}</ol>
+            ),
+            li: ({ children }) => (
+              <li className={styles.markdownListItem}>{children}</li>
+            ),
+            strong: ({ children }) => (
+              <strong className={styles.markdownStrong}>{children}</strong>
+            ),
+          }}
+        >
+          {shown}
+        </ReactMarkdown>
         {!done ? (
           <span className={styles.caret} aria-hidden="true" />
         ) : null}
-      </p>
+      </div>
       {block.citations.length > 0 ? (
         <div className={styles.citations}>
           <span

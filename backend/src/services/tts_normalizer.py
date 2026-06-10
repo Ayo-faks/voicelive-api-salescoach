@@ -176,6 +176,21 @@ _SUPERSCRIPT_DIGITS: Dict[str, str] = {
     "\u207f": "n",
 }
 
+# Unicode subscript characters -> their plain-digit equivalents. For speech,
+# chemical equations like C₆H₁₂O₆ are clearer without subscript glyphs.
+_SUBSCRIPT_DIGITS: Dict[str, str] = {
+    "\u2080": "0",
+    "\u2081": "1",
+    "\u2082": "2",
+    "\u2083": "3",
+    "\u2084": "4",
+    "\u2085": "5",
+    "\u2086": "6",
+    "\u2087": "7",
+    "\u2088": "8",
+    "\u2089": "9",
+}
+
 # Unicode maths operators -> spoken words (Azure can voice these inconsistently).
 _UNICODE_MATH_OPERATORS: Dict[str, str] = {
     "\u00d7": " times ",  # ×
@@ -186,6 +201,9 @@ _UNICODE_MATH_OPERATORS: Dict[str, str] = {
     "\u2265": " greater than or equal to ",  # ≥
     "\u2260": " not equal to ",  # ≠
     "\u2248": " approximately ",  # ≈
+    "\u2192": " yields ",  # →
+    "\u21d2": " implies ",  # ⇒
+    "\u2190": " comes from ",  # ←
 }
 
 _FRAC_PATTERN = re.compile(r"\\[dt]?frac\s*\{([^{}]*)\}\s*\{([^{}]*)\}")
@@ -194,7 +212,17 @@ _CARET_BRACED = re.compile(r"\^\{([^{}]+)\}")
 _CARET_SIMPLE = re.compile(r"\^(-?\w+)")
 _LATEX_COMMAND_PATTERN = re.compile(r"\\([A-Za-z]+)")
 _SUPERSCRIPT_RUN = re.compile("[" + "".join(_SUPERSCRIPT_DIGITS) + "]+")
+_SUBSCRIPT_RUN = re.compile("[" + "".join(_SUBSCRIPT_DIGITS) + "]+")
 _BACKSLASH_RUN = re.compile(r"\\+")
+_SOURCE_MARKER_PATTERN = re.compile(r"\s*[([]\s*S\d+(?:\s*,\s*S\d+)*\s*[)\]]", re.IGNORECASE)
+_MARKDOWN_FENCE_PATTERN = re.compile(r"```[a-zA-Z0-9_-]*\n?|```")
+_MARKDOWN_LINK_PATTERN = re.compile(r"!?\[([^\]]*)\]\(([^)]*)\)")
+_MARKDOWN_HEADING_PATTERN = re.compile(r"(?m)^\s{0,3}#{1,6}\s+")
+_MARKDOWN_BLOCKQUOTE_PATTERN = re.compile(r"(?m)^\s{0,3}>\s?")
+_MARKDOWN_LIST_MARKER_PATTERN = re.compile(r"(?m)^\s*(?:[-*+]\s+|\d+[.)]\s+)")
+_MARKDOWN_EMPHASIS_PATTERN = re.compile(r"(?<!\w)(?:\*\*|__)(.*?)(?:\*\*|__)(?!\w)")
+_MARKDOWN_ITALIC_PATTERN = re.compile(r"(?<!\w)(?:\*|_)(.*?)(?:\*|_)(?!\w)")
+_MARKDOWN_INLINE_CODE_PATTERN = re.compile(r"`([^`]*)`")
 _MULTISPACE = re.compile(r"[ \t]{2,}")
 
 
@@ -238,6 +266,10 @@ def _normalize_math_for_speech(text: str) -> str:
         text,
     )
 
+    # Unicode subscript runs: H₂O -> H2O. This avoids TTS engines voicing
+    # subscript metadata or pausing oddly inside common chemistry formulas.
+    text = _SUBSCRIPT_RUN.sub(lambda m: "".join(_SUBSCRIPT_DIGITS[ch] for ch in m.group(0)), text)
+
     # Remaining LaTeX commands: mapped phrase, else strip the backslash.
     def _command(match: re.Match[str]) -> str:
         name = match.group(1)
@@ -254,6 +286,32 @@ def _normalize_math_for_speech(text: str) -> str:
     # Drop any stray backslashes so the word "backslash" is never voiced.
     text = _BACKSLASH_RUN.sub(" ", text)
     return _MULTISPACE.sub(" ", text)
+
+
+def _normalize_markdown_for_speech(text: str) -> str:
+    """Remove display-only Markdown syntax from spoken text.
+
+    The drawer renders Markdown visually, but TTS engines can read the raw
+    punctuation aloud. Keep the words and discard only presentation syntax.
+    """
+    if not text:
+        return text
+
+    text = _MARKDOWN_FENCE_PATTERN.sub(" ", text)
+    text = _MARKDOWN_LINK_PATTERN.sub(lambda match: match.group(1) or match.group(2), text)
+    text = _MARKDOWN_HEADING_PATTERN.sub("", text)
+    text = _MARKDOWN_BLOCKQUOTE_PATTERN.sub("", text)
+    text = _MARKDOWN_LIST_MARKER_PATTERN.sub("", text)
+    text = _MARKDOWN_INLINE_CODE_PATTERN.sub(lambda match: match.group(1), text)
+    text = _SOURCE_MARKER_PATTERN.sub("", text)
+
+    previous = None
+    while previous != text:
+        previous = text
+        text = _MARKDOWN_EMPHASIS_PATTERN.sub(lambda match: match.group(1), text)
+        text = _MARKDOWN_ITALIC_PATTERN.sub(lambda match: match.group(1), text)
+
+    return text
 
 
 def _escape_xml(value: str) -> str:
@@ -345,7 +403,11 @@ def normalize_for_tts(
             replacement = _wrap_ssml_phoneme(key)
         rewritten = pattern.sub(replacement, rewritten)
 
-    # Third sweep: make maths / LaTeX fragments speakable so Azure never voices
+    # Third sweep: remove Markdown markers so TTS never voices display syntax
+    # such as "asterisk asterisk" or list bullets from grounded answers.
+    rewritten = _normalize_markdown_for_speech(rewritten)
+
+    # Fourth sweep: make maths / LaTeX fragments speakable so Azure never voices
     # literal control sequences ("back slash times") or caret/Unicode exponents.
     rewritten = _normalize_math_for_speech(rewritten)
 

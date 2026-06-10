@@ -189,6 +189,34 @@ describe('AskPathfinder — unified assistant surface', () => {
     expect(citation.getAttribute('title')).toContain('Simplifying fractions')
   })
 
+  it('renders grounded Markdown as formatted prose instead of raw markers', async () => {
+    fetchMock.mockResolvedValueOnce(
+      turnResponse([
+        prose(
+          '**Photosynthesis** is how plants make food.\n\n**Quick breakdown:**\n- Plants use **sunlight**.\n- They release oxygen.',
+          {
+            grounded: true,
+            citations: [{ label: 'Photosynthesis', topic_id: 'wiki-2' }],
+          }
+        ),
+      ])
+    )
+    renderDrawer()
+
+    await ask('what is photosynthesis?')
+
+    const boldTerm = await screen.findByText('Photosynthesis')
+    expect(boldTerm.tagName.toLowerCase()).toBe('strong')
+    expect(screen.queryByText(/\*\*Photosynthesis\*\*/)).toBeNull()
+    expect(
+      screen.getByText((_content, element) =>
+        element?.tagName.toLowerCase() === 'li' &&
+        element.textContent === 'Plants use sunlight.'
+      )
+    ).toBeTruthy()
+    expect(screen.getByText('sunlight').tagName.toLowerCase()).toBe('strong')
+  })
+
   it('omits focus_item and learner_setup when none are anchored', async () => {
     fetchMock.mockResolvedValueOnce(turnResponse([prose('ok')]))
     renderDrawer()

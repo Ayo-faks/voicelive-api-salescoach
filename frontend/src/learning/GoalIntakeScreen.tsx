@@ -394,7 +394,10 @@ export function GoalIntakeScreen({
         const prose = result.blocks.find(b => b.kind === 'prose') as
           | { speak?: string; text?: string }
           | undefined
-        if (prose) speak(prose.speak || prose.text || '')
+        // Speak ONLY the speech-safe ``speak`` field. Never fall back to
+        // ``text`` — that is display Markdown/LaTeX and TTS would read it as
+        // "asterisk asterisk" / "back slash frac".
+        if (prose?.speak) speak(prose.speak)
         setPhase('results')
       } catch {
         setError('Could not get recommendations just now. You can skip for now.')

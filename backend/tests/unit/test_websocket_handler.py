@@ -1,5 +1,6 @@
 """Tests for the websocket_handler module."""
 
+import json
 import os
 from unittest.mock import AsyncMock, Mock, patch
 
@@ -547,6 +548,71 @@ class TestVoiceProxyHandler:
         )
 
     @pytest.mark.asyncio
+    async def test_learner_ask_tool_call_sends_speech_safe_output_to_azure(self):
+        """Azure's function_call_output is speech-safe even when display text has markup.
+
+        Regression: the tutor voiced raw Markdown/LaTeX ("back slash frac") because
+        the full result — including display ``text``/``citations`` — was serialized
+        into ``function_call_output``. Azure must receive only normalized speak; the
+        client block must still keep its Markdown for the drawer.
+        """
+        handler = VoiceProxyHandler(Mock())
+        handler._send_message = AsyncMock()
+        azure_conn = Mock()
+        azure_conn.send = AsyncMock()
+        handled_call_ids: set[str] = set()
+        event = {
+            "type": "response.function_call_arguments.done",
+            "name": "ask_pathfinder",
+            "call_id": "call-ask-safe",
+            "arguments": '{"question":"photosynthesis"}',
+        }
+        client_ws = Mock()
+
+        profile = Mock()
+        profile.id = "learner_ask"
+        profile.tool_handlers = {"ask_pathfinder": Mock()}
+        profile.handle_tool_call.return_value = {
+            "blocks": [
+                {
+                    "kind": "prose",
+                    "text": r"**Photosynthesis** uses \frac{1}{2} and CO\u2082. (S1)",
+                    "speak": "Photosynthesis is how plants make food.",
+                    "citations": [{"label": "Source", "node_title": "Notes (S1)"}],
+                }
+            ],
+            "session_complete": False,
+        }
+
+        with patch.object(
+            VoiceProxyHandler,
+            "_screen_assistant_blocks",
+            side_effect=lambda blocks, _ctx: [dict(b) for b in blocks],
+        ):
+            handled = await handler._maybe_handle_profile_tool_call(
+                event,
+                azure_conn,
+                client_ws,
+                profile,
+                AgentProfileContext(scope="learner_ask"),
+                handled_call_ids,
+            )
+
+        assert handled is True
+        # What Azure voices: only normalized speak, no raw markup leaks.
+        azure_output = azure_conn.send.await_args.args[0]["item"]["output"]
+        assert "\\" not in azure_output
+        assert "**" not in azure_output
+        assert "frac" not in azure_output
+        assert "(S1)" not in azure_output
+        assert "citations" not in azure_output
+        assert "Photosynthesis is how plants make food." in azure_output
+        # What the client renders: the Markdown display text is preserved.
+        client_block = handler._send_message.await_args.args[1]["payload"]["block"]
+        assert "**Photosynthesis**" in client_block["text"]
+        assert client_block["speak"] == "Photosynthesis is how plants make food."
+
+    @pytest.mark.asyncio
     async def test_learner_ask_tool_call_drops_all_screened_blocks(self):
         """If outbound screening drops every block, nothing is emitted to the client."""
         handler = VoiceProxyHandler(Mock())
@@ -644,7 +710,73 @@ class TestVoiceProxyHandler:
         assert "\\" not in result["blocks"][1]["speak"]
         assert "over" in result["blocks"][1]["speak"]
 
-    def test_profile_instruction_block_omits_focus_when_absent(self):
+    def test_azure_safe_tool_output_strips_display_markup_from_blocks(self):
+        """Azure only ever sees normalized speak — never raw block.text/citations.
+
+        Regression: the realtime model voices whatever JSON it is handed, so the
+        full result (with Markdown/LaTeX display ``text`` and ``citations``)
+        leaking into ``function_call_output`` made the tutor say "back slash".
+        """
+        handler = VoiceProxyHandler(Mock())
+        result = {
+            "blocks": [
+                {
+                    "kind": "prose",
+                    "text": r"**Photosynthesis** uses \frac{1}{2} and CO\u2082. (S1)",
+                    "speak": "Photosynthesis is how plants make food.",
+                    "citations": [{"label": "Source", "node_title": "Photosynthesis (S1)"}],
+                }
+            ],
+            "session_complete": False,
+        }
+        handler._normalize_result_speech(result)
+
+        safe = handler._azure_safe_tool_output(result)
+        serialized = json.dumps(safe, separators=(",", ":"))
+
+        # The Azure-bound payload carries only the normalized speak (+ kind).
+        assert safe["blocks"][0]["speak"] == "Photosynthesis is how plants make food."
+        assert "\\" not in serialized
+        assert "**" not in serialized
+        assert "frac" not in serialized
+        assert "(S1)" not in serialized
+        assert "citations" not in serialized
+        assert "node_title" not in serialized
+        # The original result keeps its display Markdown for the drawer.
+        assert "**Photosynthesis**" in result["blocks"][0]["text"]
+
+    def test_azure_safe_tool_output_strips_display_markup_from_card(self):
+        """Learner-card tool output projects to speak-only for Azure."""
+        handler = VoiceProxyHandler(Mock())
+        result = {
+            "card": {
+                "kind": "mcq-tap",
+                "stem": r"Solve \frac{1}{2}x = 3",
+                "speak": "",
+                "options": [r"6x \cdot 4", "other"],
+            },
+            "session_complete": True,
+        }
+        handler._normalize_result_speech(result)
+
+        safe = handler._azure_safe_tool_output(result)
+        serialized = json.dumps(safe, separators=(",", ":"))
+
+        # Empty speak became a normalized fallback built from the stem.
+        assert safe["card"]["speak"].strip() != ""
+        assert "\\" not in serialized
+        assert "options" not in serialized
+        assert "stem" not in serialized
+        assert safe["session_complete"] is True
+        # Display fields survive on the original result for rendering.
+        assert result["card"]["options"] == [r"6x \cdot 4", "other"]
+
+    def test_azure_safe_tool_output_passes_error_results_through(self):
+        """A bare ``{"error": ...}`` result has no card/blocks — pass it through."""
+        handler = VoiceProxyHandler(Mock())
+        assert handler._azure_safe_tool_output({"error": "boom"}) == {"error": "boom"}
+
+
         """Without a focus item the learner instructions have no Dig-Deeper block."""
         handler = VoiceProxyHandler(Mock())
         block = handler._build_profile_instruction_block(

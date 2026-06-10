@@ -136,10 +136,44 @@ class TestHelpers:
 
 
 class TestMathSpeechNormalisation:
+    def test_markdown_formatting_removed_from_spoken_answer(self):
+        out = normalize_for_tts(
+            "**Photosynthesis** makes food.\n\n"
+            "**Quick breakdown:**\n"
+            "- Plants use **sunlight**.\n"
+            "1. Memorize `carbon dioxide + water`.",
+            mode="plain",
+        )
+        assert "**" not in out
+        assert "`" not in out
+        assert "- Plants" not in out
+        assert "1. Memorize" not in out
+        assert "Photosynthesis" in out
+        assert "Quick breakdown:" in out
+        assert "Plants use sunlight." in out
+
+    def test_markdown_links_keep_label_for_speech(self):
+        out = normalize_for_tts("Read [photosynthesis](https://example.test) today", mode="plain")
+        assert "photosynthesis" in out
+        assert "https://" not in out
+
+    def test_source_markers_removed_from_spoken_answer(self):
+        out = normalize_for_tts("Plants use light energy (S1). See also [S2].", mode="plain")
+        assert "S1" not in out
+        assert "S2" not in out
+        assert "Plants use light energy." in out
+
     def test_latex_backslash_command_not_voiced_literally(self):
         out = normalize_for_tts(r"y = 3 \times x")
         assert "\\" not in out
         assert "times" in out
+
+    def test_markdown_and_latex_are_both_speech_safe(self):
+        out = normalize_for_tts(r"**Equation:** 6CO_2 + 6H_2O \to C_6H_12O_6 + 6O_2", mode="plain")
+        assert "**" not in out
+        assert "\\" not in out
+        assert "Equation:" in out
+        assert "to" in out
 
     def test_frac_reads_as_over(self):
         out = normalize_for_tts(r"\frac{1}{2} of the class")
@@ -166,6 +200,13 @@ class TestMathSpeechNormalisation:
         assert "divided by" in out
         assert "times" in out
         assert "\u00f7" not in out and "\u00d7" not in out
+
+    def test_chemistry_equation_symbols_read_as_plain_speech(self):
+        out = normalize_for_tts("6CO\u2082 + 6H\u2082O \u2192 C\u2086H\u2081\u2082O\u2086 + 6O\u2082")
+        assert "\u2082" not in out
+        assert "\u2192" not in out
+        assert "yields" in out
+        assert "CO2" in out
 
     def test_stray_backslash_removed(self):
         out = normalize_for_tts(r"answer is a \ b")
