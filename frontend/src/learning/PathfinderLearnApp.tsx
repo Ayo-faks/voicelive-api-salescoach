@@ -68,6 +68,7 @@ import {
 import { pathfinderTokens as t } from './theme/pathfinder-tokens'
 import { usePathfinderThemeStyles } from './theme/pathfinderThemeStyles'
 import AskPathfinder from './AskPathfinder'
+import { AskSurfaceProvider } from './contexts/AskSurfaceContext'
 import {
   LearnerContext,
   defaultLearnerContext,
@@ -1904,6 +1905,7 @@ function PathfinderLearnAppShell() {
       className={styles.provider}
       data-theme={mode}
     >
+      <AskSurfaceProvider>
       <OnboardingRuntime
         role={authSession?.role ?? null}
         userMode="workspace"
@@ -2166,6 +2168,9 @@ function PathfinderLearnAppShell() {
                     }
                     onSelectLearner={setSelectedLearnerId}
                     onChildCreated={handleParentChildCreated}
+                    onAskAboutResults={
+                      chatLauncherVisible ? () => setChatOpen(true) : undefined
+                    }
                   />
                 )}
               />
@@ -2258,6 +2263,14 @@ function PathfinderLearnAppShell() {
           <LearnerContext.Provider value={askPathfinderContextValue}>
             <AskPathfinder
               voiceLiveEnabled={!!appConfig?.pathfinder_voicelive_enabled}
+              // On the activated home the intent chips + voice entry card are
+              // the Ask entry points — the floating launcher would be a third,
+              // redundant one. Everywhere else it stays: it is the only Ask
+              // entry on those routes. Drawer behaviour is unchanged.
+              hideLauncher={
+                featureFlags.pathfinder_home_chips_enabled &&
+                location.pathname === '/home'
+              }
             />
           </LearnerContext.Provider>
         )}
@@ -2372,6 +2385,7 @@ function PathfinderLearnAppShell() {
         </div>
       </div>
       </OnboardingRuntime>
+      </AskSurfaceProvider>
     </FluentProvider>
   )
 }

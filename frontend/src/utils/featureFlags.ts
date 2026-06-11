@@ -35,6 +35,23 @@ export interface FeatureFlags {
    * `/home`.
    */
   pathfinder_goal_intake_enabled: boolean
+  /**
+   * When true, the learner home (and parent dashboard) render a row of
+   * intent chips beneath the greeting that deep-link into existing flows
+   * (practice, plan, Ask Wulo). Default false — current home unchanged.
+   */
+  pathfinder_home_chips_enabled: boolean
+  /**
+   * When true, the weekly stat tiles upgrade to the
+   * `{number} → {meaning} → {CTA}` actionable-card pattern. Default false —
+   * current passive tiles unchanged.
+   */
+  pathfinder_actionable_stats_enabled: boolean
+  /**
+   * When true (and learner voice is available), the learner home shows a
+   * first-class voice entry card above the stats grid. Default false.
+   */
+  pathfinder_voice_entry_card_enabled: boolean
 }
 
 export const featureFlags: FeatureFlags = Object.freeze({
@@ -48,6 +65,18 @@ export const featureFlags: FeatureFlags = Object.freeze({
   ),
   pathfinder_goal_intake_enabled: _readBool(
     import.meta.env.VITE_PATHFINDER_GOAL_INTAKE_ENABLED,
+    false
+  ),
+  pathfinder_home_chips_enabled: _readBool(
+    import.meta.env.VITE_PATHFINDER_HOME_CHIPS_ENABLED,
+    false
+  ),
+  pathfinder_actionable_stats_enabled: _readBool(
+    import.meta.env.VITE_PATHFINDER_ACTIONABLE_STATS_ENABLED,
+    false
+  ),
+  pathfinder_voice_entry_card_enabled: _readBool(
+    import.meta.env.VITE_PATHFINDER_VOICE_ENTRY_CARD_ENABLED,
     false
   ),
 })

@@ -99,3 +99,40 @@ def test_foreign_student_id_forbidden(client: FlaskClient):
         "/api/learning/weekly-stats?student_id=not-my-child", headers=headers
     )
     assert response.status_code == 403
+
+
+def _bootstrap_parent(
+    client: FlaskClient,
+    user_id: str = "parent-weekly-1",
+    email: str = "parent-weekly@example.com",
+) -> dict[str, str]:
+    headers = _auth_headers(user_id, email, name="Parent")
+    session = client.get("/api/auth/session", headers=headers)
+    assert session.status_code == 200
+    app_module.storage_service.update_user_role(user_id, "parent")
+    return headers
+
+
+def test_parent_can_read_owned_child_stats(client: FlaskClient):
+    """Family-dashboard stat cards: parents read stats for owned children."""
+    headers = _bootstrap_parent(client)
+    response = client.get(
+        f"/api/learning/weekly-stats?student_id={_STUDENT_ID}", headers=headers
+    )
+    assert response.status_code == 200, response.get_data(as_text=True)
+    body = response.get_json()
+    assert body["sessions"]["target"] == 5
+
+
+def test_parent_foreign_child_forbidden(client: FlaskClient):
+    headers = _bootstrap_parent(client)
+    response = client.get(
+        "/api/learning/weekly-stats?student_id=not-my-child", headers=headers
+    )
+    assert response.status_code == 403
+
+
+def test_parent_still_forbidden_on_learner_plan(client: FlaskClient):
+    """Widening is weekly-stats only; other learner endpoints stay learner-gated."""
+    headers = _bootstrap_parent(client)
+    assert client.get("/api/learning/learner/plan", headers=headers).status_code == 403

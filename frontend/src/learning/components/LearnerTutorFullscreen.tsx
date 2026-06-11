@@ -8,6 +8,10 @@ import {
 } from '@heroicons/react/24/outline'
 import type { LearnerFocusItem } from '../contexts/LearnerContext'
 import {
+  clearPendingExercise,
+  savePendingExercise,
+} from '../lib/pendingExercise'
+import {
   type TutorState,
   type TutorVoiceSnapshot,
   useLearnerVoiceSession,
@@ -321,8 +325,20 @@ export function LearnerTutorFullscreen({
   })
 
   const handleClose = useCallback(() => {
+    // "Pick up where you left off": closing mid-exercise saves a per-child
+    // resume marker (48h expiry); finishing the session clears it so a done
+    // exercise never resurfaces as the home's headline CTA.
+    if (sessionComplete) {
+      clearPendingExercise(childId)
+    } else if (card?.kind === 'mcq-tap') {
+      savePendingExercise(childId, {
+        cardId: card.card_id,
+        stem: card.stem,
+        skillId: card.skill_id ?? null,
+      })
+    }
     close()
-  }, [close])
+  }, [card, sessionComplete, childId, close])
 
   const floating = mode === 'floating'
 

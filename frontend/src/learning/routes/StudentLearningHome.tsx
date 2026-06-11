@@ -42,11 +42,21 @@ import { useLearnerProfile } from '../hooks/useLearnerProfile'
 import { useDisclosureState } from '../hooks/useDisclosureState'
 import { useWeeklyStats } from '../hooks/useWeeklyStats'
 import { logEvent } from '../lib/telemetry'
+import {
+  deriveActionableStatCards,
+  type ActionableStatCard,
+} from '../lib/actionableStats'
+import { deriveHomeChips, type HomeChip } from '../lib/homeChips'
+import {
+  loadPendingExercise,
+  type PendingExercise,
+} from '../lib/pendingExercise'
+import { useAskSurface } from '../contexts/AskSurfaceContext'
 import { copyParentSummary, shareParentSummary } from '../lib/parent-share'
 import { featureFlags } from '../../utils/featureFlags'
 import { useOnboarding } from '../../onboarding/context'
 import { requestReplayTour } from '../../onboarding/bus'
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { api } from '../../services/api'
 import type { SafetyConfig } from '../../types'
 
@@ -744,6 +754,138 @@ const useStyles = makeStyles({
     border: 'var(--pf-hairline)',
     backgroundColor: 'var(--pf-surface)',
     boxShadow: 'var(--pf-shadow-card)',
+  },
+  // Actionable stat cards (flagged): four `number → meaning → CTA` cards.
+  statCardGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+    gap: 'var(--pf-space-md)',
+    '@media (max-width: 720px)': { gridTemplateColumns: '1fr' },
+  },
+  statCardCta: {
+    appearance: 'none',
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '6px',
+    justifySelf: 'start',
+    marginTop: 'var(--pf-space-xs)',
+    minHeight: '32px',
+    paddingRight: '12px',
+    paddingLeft: '12px',
+    borderRadius: t.radius.pill,
+    border: 'var(--pf-hairline)',
+    backgroundColor: 'var(--pf-surface)',
+    color: 'var(--pf-text)',
+    cursor: 'pointer',
+    font: 'inherit',
+    fontSize: '0.78rem',
+    fontWeight: 700,
+    transition:
+      'background-color var(--pf-motion-fast), box-shadow var(--pf-motion-fast)',
+    ':hover': { backgroundColor: 'var(--pf-surface-muted)' },
+    ':focus-visible': {
+      outlineStyle: 'solid',
+      outlineWidth: '2px',
+      outlineColor: 'var(--pf-focus-ring)',
+      outlineOffset: '2px',
+    },
+  },
+  // Intent chips (flagged): calm pills under the greeting. Design system:
+  // no hover transforms — colour/contrast change only; ≥44px touch target.
+  chipRow: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: 'var(--pf-space-sm)',
+  },
+  intentChip: {
+    appearance: 'none',
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '8px',
+    minHeight: '44px',
+    paddingRight: '16px',
+    paddingLeft: '14px',
+    borderRadius: t.radius.pill,
+    border: 'var(--pf-hairline)',
+    backgroundColor: 'var(--pf-surface)',
+    color: 'var(--pf-text)',
+    boxShadow: 'var(--pf-shadow-card)',
+    cursor: 'pointer',
+    font: 'inherit',
+    fontSize: '0.85rem',
+    fontWeight: 600,
+    transition:
+      'background-color var(--pf-motion-fast), border-color var(--pf-motion-fast), box-shadow var(--pf-motion-fast)',
+    ':hover': { backgroundColor: 'var(--pf-surface-muted)' },
+    ':focus-visible': {
+      outlineStyle: 'solid',
+      outlineWidth: '2px',
+      outlineColor: 'var(--pf-focus-ring)',
+      outlineOffset: '2px',
+    },
+  },
+  intentChipIcon: { width: '18px', height: '18px', flexShrink: 0 },
+  // Voice entry card (flagged): a first-class "talk it through" entry point.
+  voiceEntryCard: {
+    display: 'grid',
+    gridTemplateColumns: 'auto minmax(0, 1fr) auto',
+    alignItems: 'center',
+    gap: 'var(--pf-space-md)',
+    padding: 'var(--pf-space-lg)',
+    borderRadius: t.radius.sm,
+    border: 'var(--pf-hairline)',
+    backgroundColor: 'var(--pf-surface)',
+    boxShadow: 'var(--pf-shadow-card)',
+    '@media (max-width: 640px)': {
+      gridTemplateColumns: 'auto minmax(0, 1fr)',
+    },
+  },
+  voiceEntryIcon: {
+    width: '44px',
+    height: '44px',
+    borderRadius: t.radius.pill,
+    display: 'grid',
+    placeItems: 'center',
+    backgroundColor: 'var(--pf-ink)',
+    color: 'var(--pf-on-ink)',
+  },
+  voiceEntryCopy: { display: 'grid', gap: '2px' },
+  voiceEntryHint: {
+    margin: 0,
+    fontSize: '0.85rem',
+    color: 'var(--pf-text-secondary)',
+    lineHeight: 1.5,
+  },
+  voiceEntryButton: {
+    appearance: 'none',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '8px',
+    minHeight: '44px',
+    paddingRight: '18px',
+    paddingLeft: '18px',
+    borderRadius: t.radius.pill,
+    border: '1px solid var(--pf-ink)',
+    backgroundColor: 'var(--pf-ink)',
+    color: 'var(--pf-on-ink)',
+    cursor: 'pointer',
+    font: 'inherit',
+    fontSize: '0.85rem',
+    fontWeight: 700,
+    transition:
+      'filter var(--pf-motion-fast), box-shadow var(--pf-motion-fast)',
+    ':hover': { filter: 'brightness(1.06)' },
+    ':focus-visible': {
+      outlineStyle: 'solid',
+      outlineWidth: '2px',
+      outlineColor: 'var(--pf-focus-ring)',
+      outlineOffset: '3px',
+    },
+    '@media (max-width: 640px)': {
+      gridColumn: '1 / -1',
+      justifySelf: 'stretch',
+    },
   },
   heroWorkGrid: {
     display: 'grid',
@@ -2036,6 +2178,16 @@ type StudentLearningHomeProps = {
   pushConsentDeferred?: boolean
 }
 
+// Leading glyph for each intent chip (F1.2). Falls back to SparklesIcon.
+const chipIcons: Record<string, typeof SparklesIcon> = {
+  'study-with-wulo': BookOpenIcon,
+  'how-am-i-doing': ChartBarIcon,
+  'ask-wulo': SparklesIcon,
+  'talk-it-through': MicrophoneIcon,
+  'first-goal': AcademicCapIcon,
+  'quick-quiz': CalculatorIcon,
+}
+
 export default function StudentLearningHome({
   studentId,
   learnerTutorEnabled = true,
@@ -2175,12 +2327,26 @@ export default function StudentLearningHome({
   const [weakTopicProfile, setWeakTopicProfile] = useState<WeakTopic[]>(
     fallbackWeakTopicProfile
   )
+  // The server's real plan items (empty until fetched). Intent chips derive
+  // warm/cold from these — never from the demo fallback `todaysPath`, which
+  // would fabricate a "Continue my plan" chip for a learner with no plan.
+  const [serverPlanItems, setServerPlanItems] = useState<
+    Array<{ skillId: string; label: string }>
+  >([])
   useEffect(() => {
     if (!featureFlags.pathfinder_learner_onboarding_enabled) return
     let cancelled = false
     fetchLearnerPlan(studentId ? { student_id: studentId } : {})
       .then(plan => {
         if (cancelled) return
+        setServerPlanItems(
+          plan.today
+            .filter(item => item.skill_id)
+            .map(item => ({
+              skillId: item.skill_id as string,
+              label: item.title,
+            }))
+        )
         if (plan.today.length > 0) {
           setTodaysPath(
             plan.today.map(item => ({
@@ -2455,6 +2621,195 @@ export default function StudentLearningHome({
     onboarding.patch({ tours_seen: next })
   }, [tourSeenAt, tourSeen, onboarding])
 
+  // --- Home activation (PRD: intent chips · actionable stats · voice card) --
+  // Everything below derives from data already on this surface — zero new
+  // API calls. Each feature is independently flag-gated; flags off keeps the
+  // home pixel-identical to today.
+  const askSurface = useAskSurface()
+  const navigate = useNavigate()
+  const chipsEnabled = featureFlags.pathfinder_home_chips_enabled
+  const actionableStatsEnabled = featureFlags.pathfinder_actionable_stats_enabled
+  const voiceCardEnabled = featureFlags.pathfinder_voice_entry_card_enabled
+  const voiceAvailable =
+    Boolean(voiceConfig?.enabled) && !safetyConfig?.learner_voice_disabled
+  const weeklyStatsData =
+    weekly.status === 'ready' ? (weekly.stats ?? null) : null
+  const homeChips = useMemo<HomeChip[]>(() => {
+    if (!chipsEnabled) return []
+    // Under the onboarding flag the only honest plan source is the server's;
+    // flag-off (demo) builds may use the deterministic fallback path.
+    const planItems = onboardingFlagOn
+      ? serverPlanItems
+      : todaysPath
+          .filter(item => item.skillId)
+          .map(item => ({
+            skillId: item.skillId as string,
+            label: item.title,
+          }))
+    return deriveHomeChips({
+      stats: weeklyStatsData,
+      weakTopics: weakTopicProfile.map(topic => ({
+        skillId: topic.skillId,
+        label: topic.label,
+      })),
+      planItems,
+      askAvailable: Boolean(askSurface),
+      voiceAvailable,
+    })
+  }, [
+    chipsEnabled,
+    onboardingFlagOn,
+    serverPlanItems,
+    weeklyStatsData,
+    weakTopicProfile,
+    todaysPath,
+    askSurface,
+    voiceAvailable,
+  ])
+  const actionableCards = useMemo<ActionableStatCard[]>(() => {
+    if (!actionableStatsEnabled || !weeklyStatsData) return []
+    const examLabel =
+      `${learnerSetup.exam} ${learnerSetup.subject}`.trim() || undefined
+    return deriveActionableStatCards({
+      stats: weeklyStatsData,
+      weakTopics: weakTopicProfile.map(topic => ({
+        skillId: topic.skillId,
+        label: topic.label,
+      })),
+      examLabel,
+    })
+  }, [
+    actionableStatsEnabled,
+    weeklyStatsData,
+    weakTopicProfile,
+    learnerSetup.exam,
+    learnerSetup.subject,
+  ])
+  // Scroll target for the "How am I doing?" chip — the "This week" card.
+  const weeklyCardRef = useRef<HTMLElement | null>(null)
+  // The voice entry card is a first-class entry: flag + voice config + safety
+  // gate + a mounted Ask surface, all required. Impression logged once per
+  // mount, not per re-render.
+  const voiceCardVisible =
+    voiceCardEnabled && voiceAvailable && Boolean(askSurface)
+  const voiceCardImpressionRef = useRef(false)
+  useEffect(() => {
+    if (!voiceCardVisible || voiceCardImpressionRef.current) return
+    voiceCardImpressionRef.current = true
+    logEvent('voice_card_impression', { persona: 'learner' })
+  }, [voiceCardVisible])
+  // A tutor exercise the learner closed partway through (≤48h old). When
+  // present it takes priority over the dismissed-voice-chat resume — it is
+  // the more concrete "pick up where you left off". Re-read whenever the
+  // tutor closes so the card reflects the latest session.
+  const [pendingExercise, setPendingExercise] =
+    useState<PendingExercise | null>(null)
+  useEffect(() => {
+    if (!studentId || tutorOpen) return
+    setPendingExercise(loadPendingExercise(studentId))
+  }, [studentId, tutorOpen])
+  const resumableExercise = learnerTutorEnabled ? pendingExercise : null
+
+  function openPracticeFrom(entryPoint: string, skillId: string | null) {
+    setForcedPracticeSkill(skillId)
+    setPracticeOpen(true)
+    logEvent('practice_opened', { entry_point: entryPoint })
+  }
+
+  // Opens the Wulo tutor hub, optionally anchored on a focus item (the chip's
+  // focus skill, or a pending exercise being resumed). When the tutor feature
+  // is off, falls back to the same demo diagnostic the old panel button used.
+  function startStudySession(
+    focus: LearnerFocusItem | null,
+    entryPoint: string
+  ) {
+    if (!learnerTutorEnabled) {
+      startDemoDiagnostic()
+      return
+    }
+    setDemoActive(false)
+    setDemoCompleted(false)
+    setCheckInActive(false)
+    setCompleted(false)
+    setTutorFocusItem(focus)
+    setTutorInitialMode('fullscreen')
+    setTutorOpen(true)
+    logEvent('tutor_opened', { entry_point: entryPoint })
+  }
+
+  function handleChipClick(chip: HomeChip) {
+    logEvent('home_chip_click', { persona: 'learner', chip_id: chip.id })
+    switch (chip.action.kind) {
+      case 'study':
+        startStudySession(
+          chip.action.skillId && chip.action.skillLabel
+            ? {
+                stem: `A focused practice session on ${chip.action.skillLabel}`,
+                skillId: chip.action.skillId,
+                scored: false,
+              }
+            : null,
+          'chip'
+        )
+        break
+      case 'quiz':
+        openPracticeFrom('chip', null)
+        break
+      case 'stats': {
+        const reduceMotion = window.matchMedia?.(
+          '(prefers-reduced-motion: reduce)'
+        ).matches
+        weeklyCardRef.current?.scrollIntoView?.({
+          behavior: reduceMotion ? 'auto' : 'smooth',
+          block: 'start',
+        })
+        break
+      }
+      case 'ask':
+        askSurface?.openAsk(chip.action.mode)
+        break
+      case 'goal':
+        navigate(
+          featureFlags.pathfinder_goal_intake_enabled ? '/goals' : '/welcome'
+        )
+        break
+    }
+  }
+
+  function handleStatCardCta(card: ActionableStatCard) {
+    if (!card.cta) return
+    logEvent('stat_card_cta_click', {
+      persona: 'learner',
+      card_id: card.id,
+      value_band: card.band,
+    })
+    if (card.cta.action.kind === 'practice') {
+      openPracticeFrom('stat_card', card.cta.action.skillId)
+    }
+  }
+
+  function startVoiceFromCard() {
+    logEvent('voice_card_start', { entry: 'home_card', persona: 'learner' })
+    askSurface?.openAsk('voice')
+  }
+
+  function resumeExerciseFromCard() {
+    if (!pendingExercise) return
+    logEvent('voice_card_start', {
+      entry: 'home_card',
+      persona: 'learner',
+      resume: 'exercise',
+    })
+    startStudySession(
+      {
+        stem: pendingExercise.stem,
+        skillId: pendingExercise.skillId ?? undefined,
+        scored: false,
+      },
+      'resume_card'
+    )
+  }
+
   function startCheckIn(skillId?: string, subject?: string) {
     setDemoActive(false)
     setDemoCompleted(false)
@@ -2500,17 +2855,7 @@ export default function StudentLearningHome({
   }
 
   function startStudyWithWulo() {
-    if (!learnerTutorEnabled) {
-      startDemoDiagnostic()
-      return
-    }
-    setDemoActive(false)
-    setDemoCompleted(false)
-    setCheckInActive(false)
-    setCompleted(false)
-    setTutorFocusItem(null)
-    setTutorInitialMode('fullscreen')
-    setTutorOpen(true)
+    startStudySession(null, 'panel')
   }
 
   function saveDemoLocally(answers: DemoAnswer[], stepCount: number) {
@@ -2775,15 +3120,117 @@ export default function StudentLearningHome({
                 </div>
               </div>
 
-              <div className={styles.heroMetricGrid}>
-                {resolvedWeeklyTiles.map(tile => (
-                  <div key={tile.label} className={styles.heroMetricCard}>
-                    <span className={styles.weekLabel}>{tile.label}</span>
-                    <span className={styles.weekValue}>{tile.value}</span>
-                    <span className={styles.weekDelta}>{tile.delta}</span>
+              {chipsEnabled && homeChips.length > 0 && (
+                <div
+                  className={styles.chipRow}
+                  data-testid="home-intent-chips"
+                >
+                  {homeChips.map(chip => {
+                    const ChipIcon = chipIcons[chip.id] ?? SparklesIcon
+                    return (
+                      <button
+                        key={chip.id}
+                        type="button"
+                        className={styles.intentChip}
+                        onClick={() => handleChipClick(chip)}
+                        aria-label={chip.ariaLabel}
+                        data-testid={`home-chip-${chip.id}`}
+                      >
+                        <ChipIcon
+                          className={styles.intentChipIcon}
+                          aria-hidden="true"
+                        />
+                        <span>{chip.label}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
+
+              {voiceCardVisible && (
+                <section
+                  className={styles.voiceEntryCard}
+                  aria-label="Talk it through with Wulo"
+                  data-testid="voice-entry-card"
+                >
+                  <span className={styles.voiceEntryIcon} aria-hidden="true">
+                    <MicrophoneIcon style={{ width: 22, height: 22 }} />
+                  </span>
+                  <div className={styles.voiceEntryCopy}>
+                    <Text className={styles.cardTitle}>
+                      {resumableExercise || askSurface?.voiceSessionDismissed
+                        ? 'Pick up where you left off'
+                        : 'Talk it through with Wulo'}
+                    </Text>
+                    <p className={styles.voiceEntryHint}>
+                      {resumableExercise
+                        ? `You stopped mid-exercise — jump back into “${resumableExercise.stem.length > 90 ? `${resumableExercise.stem.slice(0, 90)}…` : resumableExercise.stem}”.`
+                        : askSurface?.voiceSessionDismissed
+                          ? 'Your last voice session is saved — resume any time.'
+                          : 'Stuck on something? Say it out loud and work through it together.'}
+                    </p>
                   </div>
-                ))}
-              </div>
+                  <button
+                    type="button"
+                    className={styles.voiceEntryButton}
+                    onClick={
+                      resumableExercise
+                        ? resumeExerciseFromCard
+                        : startVoiceFromCard
+                    }
+                    data-testid="voice-entry-start"
+                  >
+                    {resumableExercise
+                      ? 'Resume exercise'
+                      : askSurface?.voiceSessionDismissed
+                        ? 'Resume session'
+                        : 'Start talking'}
+                  </button>
+                </section>
+              )}
+
+              {actionableStatsEnabled && actionableCards.length > 0 ? (
+                <div
+                  className={styles.statCardGrid}
+                  data-testid="actionable-stats"
+                >
+                  {actionableCards.map(card => (
+                    <div
+                      key={card.id}
+                      className={styles.heroMetricCard}
+                      data-testid={`stat-card-${card.id}`}
+                    >
+                      <span className={styles.weekLabel}>{card.label}</span>
+                      <span className={styles.weekValue}>{card.value}</span>
+                      <span className={styles.weekDelta}>{card.meaning}</span>
+                      {card.cta && (
+                        <button
+                          type="button"
+                          className={styles.statCardCta}
+                          onClick={() => handleStatCardCta(card)}
+                          data-testid={`stat-card-cta-${card.id}`}
+                        >
+                          {card.cta.label}
+                          <ArrowRightIcon
+                            style={{ width: 14, height: 14 }}
+                            aria-hidden="true"
+                          />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className={styles.heroMetricGrid}>
+                  {resolvedWeeklyTiles.map(tile => (
+                    <div key={tile.label} className={styles.heroMetricCard}>
+                      <span className={styles.weekLabel}>{tile.label}</span>
+                      <span className={styles.weekValue}>{tile.value}</span>
+                      <span className={styles.weekDelta}>{tile.delta}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
 
               <div className={styles.heroWorkGrid}>
                 <section className={styles.heroPanel}>
@@ -2824,34 +3271,39 @@ export default function StudentLearningHome({
                       </button>
                     ))}
                   </div>
-                  <div className={styles.heroActions}>
-                    <button
-                      type="button"
-                      className={styles.tutorMiniButton}
-                      onClick={startStudyWithWulo}
-                      data-testid={
-                        learnerTutorEnabled
-                          ? 'start-learner-tutor'
-                          : 'start-checkin'
-                      }
-                    >
-                      <span
-                        className={styles.studyActionContent}
+                  {/* The "Study with Wulo" panel button is superseded by the
+                      hero chip when intent chips are on — one flagship entry,
+                      not two. Flag-off builds keep the legacy button. */}
+                  {!chipsEnabled && (
+                    <div className={styles.heroActions}>
+                      <button
+                        type="button"
+                        className={styles.tutorMiniButton}
+                        onClick={startStudyWithWulo}
                         data-testid={
-                          learnerTutorEnabled ? 'start-checkin' : undefined
+                          learnerTutorEnabled
+                            ? 'start-learner-tutor'
+                            : 'start-checkin'
                         }
                       >
-                        <span className={styles.tutorOrb} aria-hidden="true">
-                          <span className={styles.tutorOrbHalo} />
+                        <span
+                          className={styles.studyActionContent}
+                          data-testid={
+                            learnerTutorEnabled ? 'start-checkin' : undefined
+                          }
+                        >
+                          <span className={styles.tutorOrb} aria-hidden="true">
+                            <span className={styles.tutorOrbHalo} />
+                          </span>
+                          <span>Study with Wulo</span>
+                          <ArrowRightIcon
+                            style={{ width: 16, height: 16 }}
+                            aria-hidden="true"
+                          />
                         </span>
-                        <span>Study with Wulo</span>
-                        <ArrowRightIcon
-                          style={{ width: 16, height: 16 }}
-                          aria-hidden="true"
-                        />
-                      </span>
-                    </button>
-                  </div>
+                      </button>
+                    </div>
+                  )}
                 </section>
 
                 <section className={styles.heroPanel}>
@@ -3428,7 +3880,10 @@ export default function StudentLearningHome({
                     <button
                       type="button"
                       className={styles.openPracticeButton}
-                      onClick={() => setPracticeOpen(true)}
+                      onClick={() => {
+                        logEvent('practice_opened', { entry_point: 'plan' })
+                        setPracticeOpen(true)
+                      }}
                       aria-label={`Open practice: ${item.title}`}
                       data-testid={`open-practice-${item.id}`}
                     >
@@ -3588,7 +4043,11 @@ export default function StudentLearningHome({
           </div>
         </article>
 
-        <article className={styles.card}>
+        <article
+          ref={weeklyCardRef}
+          className={styles.card}
+          data-testid="weekly-stats-card"
+        >
           <div className={styles.cardHeader}>
             <Text className={styles.cardTitle}>This week</Text>
             <Text className={styles.cardCaption}>

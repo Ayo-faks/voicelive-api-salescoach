@@ -311,4 +311,71 @@ describe('LearnerTutorFullscreen', () => {
     expect(sentBodies.some(body => body.type === 'response.create')).toBe(true)
   })
 
+  it('saves a pending-exercise marker when closed mid-exercise, and clears it when the session completed', async () => {
+    window.localStorage.removeItem('pathfinder-pending-exercise:stu-1')
+    const { unmount } = render(
+      <LearnerTutorFullscreen open={true} onClose={() => {}} childId="stu-1" />
+    )
+    await waitFor(() => expect(FakeWebSocket.instances).toHaveLength(1))
+
+    act(() => {
+      FakeWebSocket.instances[0].emit({
+        type: 'wulo.learner_card',
+        payload: {
+          card: {
+            card_id: 'mcq-9',
+            kind: 'mcq-tap',
+            speak: 'Pick the derivative.',
+            stem: 'Differentiate x squared.',
+            skill_id: 'differentiation',
+            options: [
+              { id: 'a', label: 'A', text: 'x' },
+              { id: 'b', label: 'B', text: '2x' },
+            ],
+          },
+          session_complete: false,
+        },
+      })
+    })
+    await screen.findByTestId('practice-card')
+
+    // Close mid-exercise → marker saved for the home's resume card.
+    fireEvent.click(screen.getByTestId('learner-tutor-close'))
+    const saved = JSON.parse(
+      window.localStorage.getItem('pathfinder-pending-exercise:stu-1') ?? '{}'
+    )
+    expect(saved).toMatchObject({
+      cardId: 'mcq-9',
+      stem: 'Differentiate x squared.',
+      skillId: 'differentiation',
+    })
+    unmount()
+
+    // Reopen and finish the session → marker cleared, nothing to resume.
+    render(
+      <LearnerTutorFullscreen open={true} onClose={() => {}} childId="stu-1" />
+    )
+    await waitFor(() => expect(FakeWebSocket.instances).toHaveLength(2))
+    act(() => {
+      FakeWebSocket.instances[1].emit({
+        type: 'wulo.learner_card',
+        payload: {
+          card: {
+            card_id: 'progress-1',
+            kind: 'progress',
+            speak: 'All done!',
+            completed: 3,
+            total: 3,
+          },
+          session_complete: true,
+        },
+      })
+    })
+    await screen.findByTestId('practice-card')
+    fireEvent.click(screen.getByTestId('learner-tutor-close'))
+    expect(
+      window.localStorage.getItem('pathfinder-pending-exercise:stu-1')
+    ).toBeNull()
+  })
+
 })

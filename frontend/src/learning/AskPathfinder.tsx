@@ -50,6 +50,7 @@ import {
   type LearnerVoiceSocket,
 } from './api'
 import { AssistantBlockRenderer } from './components/AssistantBlockRenderer'
+import { useAskSurface } from './contexts/AskSurfaceContext'
 import { useLearnerContext } from './contexts/LearnerContext'
 import { useAskPathfinderVoice } from './hooks/useAskPathfinderVoice'
 
@@ -597,9 +598,11 @@ function ThinkingIndicator(): JSX.Element {
 
 export function AskPathfinder({
   voiceLiveEnabled = false,
-}: { voiceLiveEnabled?: boolean } = {}) {
+  hideLauncher = false,
+}: { voiceLiveEnabled?: boolean; hideLauncher?: boolean } = {}) {
   const styles = useStyles()
   const learner = useLearnerContext()
+  const askSurface = useAskSurface()
   const [open, setOpen] = useState(false)
   const [mode, setMode] = useState<Mode>('text')
   const [draft, setDraft] = useState('')
@@ -1043,6 +1046,11 @@ export function AskPathfinder({
   }, [closeSocket, stopListening])
 
   const closeSurface = useCallback(() => {
+    // A drawer dismissed mid voice conversation powers the home voice entry
+    // card's "Resume session" variant.
+    if (mode === 'voice' && transcriptRef.current.length > 0) {
+      askSurface?.setVoiceSessionDismissed(true)
+    }
     setOpen(false)
     setMode('text')
     stopListening()
@@ -1050,7 +1058,24 @@ export function AskPathfinder({
     // Reopening remounts the whole transcript; nothing in it is "fresh" then.
     liveIdsRef.current.clear()
     if (typeof window !== 'undefined') window.speechSynthesis?.cancel()
-  }, [closeSocket, stopListening])
+  }, [askSurface, closeSocket, mode, stopListening])
+
+  // Programmatic opens from home-surface affordances (intent chips, the voice
+  // entry card). Each request carries a fresh nonce; the ref de-dupes so a
+  // re-render never re-fires an already-handled request.
+  const askOpenRequest = askSurface?.openRequest ?? null
+  const setVoiceSessionDismissed = askSurface?.setVoiceSessionDismissed
+  const lastOpenNonceRef = useRef(0)
+  useEffect(() => {
+    if (!askOpenRequest || askOpenRequest.nonce === lastOpenNonceRef.current) {
+      return
+    }
+    lastOpenNonceRef.current = askOpenRequest.nonce
+    setOpen(true)
+    setVoiceSessionDismissed?.(false)
+    if (askOpenRequest.mode === 'voice') enterVoiceMode()
+    else enterTextMode()
+  }, [askOpenRequest, enterTextMode, enterVoiceMode, setVoiceSessionDismissed])
 
   // Start a fresh thread: clear the live transcript and its saved copy. The
   // save effect mirrors the empty state (which removes the storage key). A new
@@ -1178,11 +1203,14 @@ export function AskPathfinder({
 
   return (
     <>
-      {!open && (
+      {!open && !hideLauncher && (
         <button
           type="button"
           className={styles.fab}
-          onClick={() => setOpen(true)}
+          onClick={() => {
+            setOpen(true)
+            askSurface?.setVoiceSessionDismissed(false)
+          }}
           aria-label="Open Ask Wulo Academy"
           data-testid="ask-pathfinder-fab"
         >

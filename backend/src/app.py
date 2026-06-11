@@ -2058,6 +2058,22 @@ def _require_learner_user() -> Tuple[Optional[Dict[str, Any]], Optional[Tuple[An
     return user, None
 
 
+def _require_learner_or_parent_user() -> Tuple[Optional[Dict[str, Any]], Optional[Tuple[Any, int]]]:
+    """Learner roles plus parents.
+
+    Used by read-only learner endpoints that a parent may view for an owned
+    child (e.g. weekly stats on the family dashboard). Ownership of the
+    requested student is still enforced by `_learner_request_student_id`,
+    which 403s any student id outside `_learning_student_ids_for_user`.
+    """
+    user, guard_response = _require_authenticated()
+    if guard_response is not None or user is None:
+        return None, guard_response
+    if str(user.get("role") or "") not in {ROLE_LEARNER, ROLE_KID, ROLE_STUDENT, ROLE_PARENT}:
+        return None, (jsonify({"error": "Learner or parent role required"}), HTTP_FORBIDDEN)
+    return user, None
+
+
 def _learner_request_student_id(user: Mapping[str, Any]) -> Tuple[Optional[str], Optional[Tuple[Any, int]]]:
     payload = _learning_payload()
     requested_student_id = str(payload.get("student_id") or payload.get("actor_id") or "").strip()
@@ -2210,7 +2226,9 @@ def learner_goal_recommend():
 def learner_weekly_stats():
     if not _flag_enabled(LEARNER_ONBOARDING_FLAG):
         return jsonify({"error": "Not found"}), HTTP_NOT_FOUND
-    user, guard_response = _require_learner_user()
+    # Parents may read weekly stats for children they own (family dashboard
+    # stat cards); `_learner_request_student_id` enforces that ownership.
+    user, guard_response = _require_learner_or_parent_user()
     if guard_response is not None or user is None:
         return guard_response
     student_id, student_guard = _learner_request_student_id(user)
