@@ -65,6 +65,10 @@ start_backend() {
     export PATHFINDER_ASSISTANT_LLM_ENABLED=1
     export PATHFINDER_VOICE_ENABLED=1
     export PATHFINDER_VOICELIVE_ENABLED=true
+    # Learner-onboarding routes (weekly-stats, careers, onboarding) must match
+    # the frontend's VITE_PATHFINDER_LEARNER_ONBOARDING_ENABLED=true below,
+    # otherwise the home stats/actionable-stats surfaces 404.
+    export PATHFINDER_LEARNER_ONBOARDING_ENABLED=true
     # Dense (semantic) RAG stage so the tutor grounds on misspelled / phonetic
     # queries (e.g. "homsteasis" -> homeostasis) instead of deferring. Opt-in
     # by design; uses the same Azure OpenAI creds as chat, embedding deployment
@@ -95,7 +99,13 @@ start_frontend() {
   free_port "$FRONTEND_PORT"
   sleep 1
   log "starting frontend (vite, proxies /api+/ws -> :$BACKEND_PORT) -> $FE_LOG"
-  ( cd "$FRONTEND_DIR" && nohup npm run dev -- --host 0.0.0.0 --port "$FRONTEND_PORT" ) > "$FE_LOG" 2>&1 &
+  ( cd "$FRONTEND_DIR" && \
+    VITE_PATHFINDER_LEARNER_ONBOARDING_ENABLED=true \
+    VITE_PATHFINDER_GOAL_INTAKE_ENABLED=true \
+    VITE_PATHFINDER_HOME_CHIPS_ENABLED=true \
+    VITE_PATHFINDER_ACTIONABLE_STATS_ENABLED=true \
+    VITE_PATHFINDER_VOICE_ENTRY_CARD_ENABLED=true \
+    nohup npm run dev -- --host 0.0.0.0 --port "$FRONTEND_PORT" ) > "$FE_LOG" 2>&1 &
   log "frontend pid $!"
   local code; code="$(wait_http "http://127.0.0.1:$FRONTEND_PORT/" 30 || true)"
   if [ "$code" = "200" ]; then log "frontend healthy (200) -> http://localhost:$FRONTEND_PORT"; else err "frontend not healthy (got $code) — tail $FE_LOG:"; tail -n 20 "$FE_LOG" >&2 || true; fi
@@ -116,6 +126,15 @@ status() {
   printf 'backend  :%s -> %s\nfrontend :%s -> %s\n' "$BACKEND_PORT" "$be" "$FRONTEND_PORT" "$fe"
   # Quick provider sanity check (should be grounded=True, not the template):
   if [ "$be" = "200" ]; then
+    # Flag-gated route check: 404 here means the backend was started WITHOUT
+    # PATHFINDER_LEARNER_ONBOARDING_ENABLED (home stats silently vanish).
+    local ws
+    ws="$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:$BACKEND_PORT/api/learning/weekly-stats" 2>/dev/null || echo 000)"
+    if [ "$ws" = "404" ]; then
+      err "weekly-stats 404 — backend is missing PATHFINDER_LEARNER_ONBOARDING_ENABLED; restart it with: bash scripts/run-dev.sh backend"
+    else
+      log "weekly-stats route OK ($ws) — learner-onboarding flag active"
+    fi
     log "assistant smoke test (expect a real grounded answer, not a template):"
     curl -s -X POST "http://127.0.0.1:$BACKEND_PORT/api/learning/assistant/ask" \
       -H 'Content-Type: application/json' -b 'pf_dev=1' \
