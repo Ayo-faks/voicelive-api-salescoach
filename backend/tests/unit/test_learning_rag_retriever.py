@@ -368,3 +368,122 @@ def test_circuit_breaker_classifies_429_and_timeouts() -> None:
     assert _classify_embedding_error(_RateLimit()) == "rate_limited"
     assert _classify_embedding_error(_ConnectTimeoutError()) == "timeout"
     assert _classify_embedding_error(ValueError("boom")) == "error"
+
+
+# ---------- dense stage: persisted corpus vectors (index once, load forever) ----------
+#
+# Contract under test: corpus vectors are embedded once, persisted to disk, and
+# loaded on a cold start instead of re-embedded. The file is bound to the
+# (deployment, exact corpus text) fingerprint, so a content change invalidates
+# it. Embedders without a cache_namespace (test fakes) never touch disk.
+
+
+class _NamespacedEmbedder:
+    """Embedder fake that opts into the persisted-vector cache via a namespace."""
+
+    def __init__(self, namespace: str = "text-embedding-3-small") -> None:
+        self.calls: List[List[str]] = []
+        self.last_failure_reason: str | None = None
+        self.cache_namespace = namespace
+
+    def __call__(self, texts: List[str]) -> List[List[float]]:
+        self.calls.append(list(texts))
+        # Distinct unit vectors per node so a round-trip mismatch would show.
+        return [[1.0, 0.0] if (len(texts) > 1 and i % 2 == 0) else [0.0, 1.0] for i, _ in enumerate(texts)]
+
+    @property
+    def batch_calls(self) -> int:
+        return sum(1 for c in self.calls if len(c) > 1)
+
+
+def _persist_retriever(embedder, breaker) -> RagRetriever:
+    corpus = WikiCorpus(
+        [
+            _node(node_id="n.frac", title="Simplifying fractions", body="numerator denominator gcd"),
+            _node(node_id="n.alg", title="Linear equations", body="move terms with x to one side"),
+        ]
+    )
+    return RagRetriever(corpus, embedder=embedder, circuit_breaker=breaker)
+
+
+def test_warm_writes_vectors_to_disk(tmp_path, monkeypatch) -> None:
+    from src.learning.rag import reset_embedding_runtime
+
+    monkeypatch.setenv("PATHFINDER_RAG_VECTOR_CACHE_DIR", str(tmp_path))
+    reset_embedding_runtime()
+    embedder = _NamespacedEmbedder()
+    retriever = _persist_retriever(embedder, EmbeddingCircuitBreaker(60.0, clock=_FakeClock()))
+    assert retriever.warm() is True
+    written = list(tmp_path.glob("*.vec"))
+    assert len(written) == 1, "warmup should persist exactly one vector cache file"
+
+
+def test_cold_start_loads_persisted_vectors_without_re_embedding(tmp_path, monkeypatch) -> None:
+    from src.learning.rag import reset_embedding_runtime
+
+    monkeypatch.setenv("PATHFINDER_RAG_VECTOR_CACHE_DIR", str(tmp_path))
+    reset_embedding_runtime()
+    # First process: embed + persist.
+    warm_embedder = _NamespacedEmbedder()
+    _persist_retriever(warm_embedder, EmbeddingCircuitBreaker(60.0, clock=_FakeClock())).warm()
+    assert warm_embedder.batch_calls >= 1
+
+    # Simulate a fresh process: drop in-memory shared vectors, new embedder.
+    reset_embedding_runtime()
+    cold_embedder = _NamespacedEmbedder()
+    cold = _persist_retriever(cold_embedder, EmbeddingCircuitBreaker(60.0, clock=_FakeClock()))
+    assert cold.warm() is True
+    # The whole point: a cold start makes ZERO corpus-embedding API calls.
+    assert cold_embedder.batch_calls == 0
+    # And the loaded vectors actually drive the dense stage. The fake query
+    # vector is [0,1], matching n.alg's persisted node vector (cosine 1.0).
+    hits = cold.retrieve("photosynthesis chlorophyll plants")
+    assert hits and hits[0].node.node_id == "n.alg"
+
+
+def test_corpus_change_invalidates_persisted_vectors(tmp_path, monkeypatch) -> None:
+    from src.learning.rag import reset_embedding_runtime
+
+    monkeypatch.setenv("PATHFINDER_RAG_VECTOR_CACHE_DIR", str(tmp_path))
+    reset_embedding_runtime()
+    _persist_retriever(_NamespacedEmbedder(), EmbeddingCircuitBreaker(60.0, clock=_FakeClock())).warm()
+
+    # A different corpus → different fingerprint → must re-embed, not reuse.
+    reset_embedding_runtime()
+    changed_embedder = _NamespacedEmbedder()
+    changed_corpus = WikiCorpus(
+        [
+            _node(node_id="n.frac", title="Simplifying fractions", body="numerator denominator gcd"),
+            _node(node_id="n.geo", title="Triangles", body="the angles sum to 180 degrees"),
+        ]
+    )
+    changed = RagRetriever(
+        changed_corpus,
+        embedder=changed_embedder,
+        circuit_breaker=EmbeddingCircuitBreaker(60.0, clock=_FakeClock()),
+    )
+    assert changed.warm() is True
+    assert changed_embedder.batch_calls >= 1, "changed corpus must not reuse the stale cache"
+
+
+def test_persisted_vector_round_trip_is_exact(tmp_path) -> None:
+    from src.learning.rag import (
+        _corpus_fingerprint,
+        _load_persisted_vectors,
+        _vector_cache_path,
+        _write_persisted_vectors,
+    )
+
+    namespace = "text-embedding-3-small"
+    texts = ["alpha beta", "gamma delta"]
+    fp = _corpus_fingerprint(namespace, texts)
+    path = _vector_cache_path(namespace, fp, directory=tmp_path)
+    vectors = [[0.6, 0.8], [0.0, 1.0]]
+    assert _write_persisted_vectors(path, namespace, fp, vectors) is True
+    loaded = _load_persisted_vectors(path, namespace, fp, expected_count=2)
+    assert loaded is not None
+    for got, want in zip(loaded, vectors):
+        assert got == pytest.approx(want, abs=1e-6)
+    # Wrong fingerprint or count → reject (forces a re-embed).
+    assert _load_persisted_vectors(path, namespace, "deadbeef", expected_count=2) is None
+    assert _load_persisted_vectors(path, namespace, fp, expected_count=3) is None

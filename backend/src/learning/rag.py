@@ -22,13 +22,17 @@ touching the public API.
 from __future__ import annotations
 
 import difflib
+import hashlib
 import json
 import logging
 import math
 import os
 import re
+import struct
+import sys
 import threading
 import time
+from array import array
 from collections import OrderedDict
 from dataclasses import dataclass
 from pathlib import Path
@@ -93,6 +97,10 @@ EMBED_RETRIES_ENV = "PATHFINDER_RAG_EMBEDDING_RETRIES"
 EMBED_BREAKER_SECONDS_ENV = "PATHFINDER_RAG_EMBEDDING_CIRCUIT_BREAKER_SECONDS"
 # Per-call timeout for a corpus warmup batch (off the request path).
 NODE_EMBED_TIMEOUT_MS_ENV = "PATHFINDER_RAG_NODE_EMBEDDING_TIMEOUT_MS"
+# Directory holding precomputed corpus vectors. When set (or when the default
+# data dir exists) warmup loads vectors from disk instead of re-embedding the
+# whole corpus on every process start. Written by scripts/precompute_rag_vectors.py.
+VECTOR_CACHE_DIR_ENV = "PATHFINDER_RAG_VECTOR_CACHE_DIR"
 
 _DEFAULT_EMBED_TIMEOUT_MS = 1500
 _DEFAULT_EMBED_RETRIES = 0
@@ -186,6 +194,136 @@ def reset_embedding_runtime() -> None:
     _SHARED_BREAKER.reset()
     with _SHARED_NODE_VECTORS_LOCK:
         _SHARED_NODE_VECTORS.clear()
+
+
+# ---------------------------------------------------------------------------
+# Persisted corpus vectors (the "index once, load forever" layer)
+# ---------------------------------------------------------------------------
+# Corpus embeddings are a pure function of (embedding deployment, corpus text),
+# so they only need to be computed once — not on every cold start. These
+# helpers persist the L2-normalised node vectors to a small, dependency-free
+# binary file (a JSON header + raw float32 payload) keyed by a STABLE
+# fingerprint over the deployment name and the exact embedded text. warmup()
+# loads that file instead of calling the embedding API; it only re-embeds when
+# the fingerprint misses (deployment change or curriculum edit) — which is also
+# precisely the signal that scripts/eval_rag_grounding.py must be re-run.
+_VECTOR_CACHE_MAGIC = b"WRAGVEC1"
+
+
+def _default_vector_cache_dir() -> Path:
+    override = os.getenv(VECTOR_CACHE_DIR_ENV, "").strip()
+    if override:
+        return Path(override)
+    module_path = Path(__file__).resolve()
+    for base in (module_path.parents[3], module_path.parents[2]):
+        candidate = base / "data" / "learning"
+        if candidate.exists():
+            return candidate / "wiki_vectors"
+    return module_path.parents[2] / "data" / "learning" / "wiki_vectors"
+
+
+def _corpus_fingerprint(namespace: str, texts: Sequence[str]) -> str:
+    """Stable (cross-process) digest binding vectors to deployment + corpus.
+
+    Unlike the in-process shared cache key (which uses the salted builtin
+    ``hash``), this must be reproducible across runs/machines so a file written
+    by the precompute script is trusted by a freshly booted container.
+    """
+    digest = hashlib.sha256()
+    digest.update(namespace.encode("utf-8"))
+    digest.update(b"\x00")
+    for text in texts:
+        digest.update(text.encode("utf-8"))
+        digest.update(b"\x00")
+    return digest.hexdigest()
+
+
+def _vector_cache_path(
+    namespace: str, fingerprint: str, *, directory: Optional[Path] = None
+) -> Path:
+    directory = directory if directory is not None else _default_vector_cache_dir()
+    safe_ns = re.sub(r"[^A-Za-z0-9._-]", "_", namespace)
+    return directory / f"{safe_ns}.{fingerprint[:16]}.vec"
+
+
+def _load_persisted_vectors(
+    path: Path, namespace: str, fingerprint: str, expected_count: int
+) -> Optional[List[List[float]]]:
+    """Load and validate persisted vectors; return None on any mismatch.
+
+    Validation is strict: magic, namespace, full fingerprint and node count
+    must all match the live corpus, otherwise we ignore the file and re-embed.
+    Endianness is recorded in the header and corrected on read so a file baked
+    on one architecture loads correctly on another.
+    """
+    if not path.exists():
+        return None
+    try:
+        data = path.read_bytes()
+        if data[:8] != _VECTOR_CACHE_MAGIC:
+            return None
+        (header_len,) = struct.unpack(">I", data[8:12])
+        header = json.loads(data[12 : 12 + header_len].decode("utf-8"))
+        if header.get("namespace") != namespace or header.get("fingerprint") != fingerprint:
+            return None
+        count = int(header["count"])
+        dim = int(header["dim"])
+        if count != expected_count:
+            return None
+        flat = array("f")
+        flat.frombytes(data[12 + header_len :])
+        if header.get("byteorder") != sys.byteorder:
+            flat.byteswap()
+        if len(flat) != count * dim:
+            return None
+        return [list(flat[i * dim : (i + 1) * dim]) for i in range(count)]
+    except Exception:  # noqa: BLE001 — a corrupt cache must degrade to re-embed
+        logger.warning("wulo.rag.embedding vector_cache_load_failed path=%s", path.name, exc_info=True)
+        return None
+
+
+def _write_persisted_vectors(
+    path: Path, namespace: str, fingerprint: str, vectors: Sequence[Sequence[float]]
+) -> bool:
+    """Atomically persist normalised corpus vectors. Best-effort (never raises)."""
+    if not vectors:
+        return False
+    try:
+        dim = len(vectors[0])
+        flat = array("f")
+        for vec in vectors:
+            if len(vec) != dim:
+                logger.warning("wulo.rag.embedding vector_cache_ragged skip_write")
+                return False
+            flat.extend(vec)
+        header = json.dumps(
+            {
+                "namespace": namespace,
+                "fingerprint": fingerprint,
+                "count": len(vectors),
+                "dim": dim,
+                "byteorder": sys.byteorder,
+            },
+            separators=(",", ":"),
+        ).encode("utf-8")
+        path.parent.mkdir(parents=True, exist_ok=True)
+        tmp = path.with_name(path.name + ".tmp")
+        with open(tmp, "wb") as handle:
+            handle.write(_VECTOR_CACHE_MAGIC)
+            handle.write(struct.pack(">I", len(header)))
+            handle.write(header)
+            handle.write(flat.tobytes())
+        os.replace(tmp, path)
+        logger.info(
+            "wulo.rag.embedding vector_cache_write nodes=%d dim=%d path=%s",
+            len(vectors),
+            dim,
+            path.name,
+        )
+        return True
+    except Exception:  # noqa: BLE001 — persistence is an optimisation, not a contract
+        logger.warning("wulo.rag.embedding vector_cache_write_failed path=%s", path.name, exc_info=True)
+        return False
 
 
 def _classify_embedding_error(exc: BaseException) -> str:
@@ -547,6 +685,34 @@ class RagRetriever:
                 if cached is not None:
                     self._node_vectors = cached
                     return True
+            # Disk-persisted vectors: when the embedder declares a namespace
+            # (the real Azure embedder), corpus vectors precomputed offline by
+            # scripts/precompute_rag_vectors.py (or written by a previous warm)
+            # are loaded here instead of re-embedding the whole corpus. The
+            # fingerprint binds the file to BOTH the deployment and the exact
+            # corpus text, so any curriculum/model change misses the cache and
+            # forces a fresh embed — the same signal to re-run the grounding
+            # eval. Test fakes have no namespace, so they never touch disk.
+            namespace = getattr(self._embedder, "cache_namespace", None)
+            fingerprint: Optional[str] = None
+            cache_path: Optional[Path] = None
+            if namespace:
+                fingerprint = _corpus_fingerprint(str(namespace), texts)
+                cache_path = _vector_cache_path(str(namespace), fingerprint)
+                persisted = _load_persisted_vectors(
+                    cache_path, str(namespace), fingerprint, len(texts)
+                )
+                if persisted is not None:
+                    self._node_vectors = persisted
+                    if cache_key is not None:
+                        with _SHARED_NODE_VECTORS_LOCK:
+                            _SHARED_NODE_VECTORS[cache_key] = persisted
+                    logger.info(
+                        "wulo.rag.embedding vector_cache_hit nodes=%d path=%s",
+                        len(persisted),
+                        cache_path.name,
+                    )
+                    return True
             started = time.perf_counter()
             vectors: List[List[float]] = []
             failures = 0
@@ -581,6 +747,12 @@ class RagRetriever:
             if cache_key is not None:
                 with _SHARED_NODE_VECTORS_LOCK:
                     _SHARED_NODE_VECTORS[cache_key] = vectors
+            # Persist for the next cold start. Ephemeral containers won't keep
+            # this across restarts (that's what the precompute script + image
+            # bake are for), but it makes a second warm in the same filesystem
+            # free, and lets the precompute script reuse this exact code path.
+            if cache_path is not None and fingerprint is not None:
+                _write_persisted_vectors(cache_path, str(namespace), fingerprint, vectors)
             logger.info(
                 "wulo.rag.embedding warmup_complete nodes=%d total_ms=%d failures=%d",
                 len(texts),
