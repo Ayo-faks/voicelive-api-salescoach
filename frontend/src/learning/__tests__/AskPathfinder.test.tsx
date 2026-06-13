@@ -258,7 +258,7 @@ describe('AskPathfinder — unified assistant surface', () => {
     })
   })
 
-  it('morphs to voice mode and shows the mic stage', async () => {
+  it('engages voice in place from the composer mic, keeping the message bar', async () => {
     class FakeWebSocket {
       static OPEN = 1
       readyState = 1
@@ -269,12 +269,24 @@ describe('AskPathfinder — unified assistant surface', () => {
       send() {}
       close() {}
     }
+    class FakeRecognition {
+      lang = ''
+      continuous = false
+      interimResults = false
+      onresult: ((e: unknown) => void) | null = null
+      onerror: ((e: unknown) => void) | null = null
+      onend: (() => void) | null = null
+      start() {}
+      stop() {}
+    }
     vi.stubGlobal('WebSocket', FakeWebSocket)
+    vi.stubGlobal('SpeechRecognition', FakeRecognition)
     renderDrawer()
 
-    fireEvent.click(screen.getByTestId('ask-pathfinder-mode-voice'))
-    expect(screen.getByTestId('ask-pathfinder-mic')).toBeTruthy()
-    expect(screen.queryByTestId('ask-pathfinder-input')).toBeNull()
+    fireEvent.click(screen.getByTestId('ask-pathfinder-mic'))
+    // The mic engages voice in place: the message bar (text input) stays
+    // visible — voice is an input, not a separate screen.
+    expect(screen.queryByTestId('ask-pathfinder-input')).not.toBeNull()
     expect(
       screen.getByTestId('ask-pathfinder-drawer').getAttribute('data-mode')
     ).toBe('voice')

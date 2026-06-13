@@ -31,17 +31,18 @@ function renderDrawer(overrides: Partial<LearnerContextValue> = {}) {
 }
 
 describe('AskPathfinder VoiceLive mode', () => {
-  it('uses the VoiceLive mic flow when flag is enabled', async () => {
+  it('engages live voice from the composer mic, keeping the message bar', async () => {
     renderDrawer()
 
-    fireEvent.click(screen.getByTestId('ask-pathfinder-mode-voice'))
     const mic = screen.getByTestId('ask-pathfinder-mic')
-    expect(mic).toBeTruthy()
-
     fireEvent.click(mic)
-    expect(toggleRecordingMock).toHaveBeenCalledTimes(1)
+    // Voice engages in place: the drawer flips to voice but the message bar
+    // (text input) stays — no separate orb screen.
+    expect(
+      screen.getByTestId('ask-pathfinder-drawer').getAttribute('data-mode')
+    ).toBe('voice')
+    expect(screen.queryByTestId('ask-pathfinder-input')).not.toBeNull()
     expect(screen.getByText('Tap to talk.')).toBeTruthy()
-    expect(screen.queryByTestId('ask-pathfinder-input')).toBeNull()
   })
 
   it('renders assistant blocks emitted by VoiceLive hook callbacks', async () => {
@@ -65,7 +66,7 @@ describe('AskPathfinder VoiceLive mode', () => {
     })
 
     renderDrawer()
-    fireEvent.click(screen.getByTestId('ask-pathfinder-mode-voice'))
+    fireEvent.click(screen.getByTestId('ask-pathfinder-mic'))
 
     act(() => {
       onBlockCb?.(block, false)

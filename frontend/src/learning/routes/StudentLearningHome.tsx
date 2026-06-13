@@ -2655,6 +2655,7 @@ export default function StudentLearningHome({
       planItems,
       askAvailable: Boolean(askSurface),
       voiceAvailable,
+      unified: featureFlags.pathfinder_unified_assistant_enabled,
     })
   }, [
     chipsEnabled,
@@ -2723,6 +2724,17 @@ export default function StudentLearningHome({
     focus: LearnerFocusItem | null,
     entryPoint: string
   ) {
+    // Unified surface: a study session is just a practice intent handed to the
+    // one presentation-aware assistant, which morphs into its tutor view.
+    if (featureFlags.pathfinder_unified_assistant_enabled && askSurface) {
+      logEvent('tutor_opened', { entry_point: entryPoint, surface: 'unified' })
+      askSurface.openAsk('text', {
+        kind: 'study',
+        skillId: focus?.skillId ?? null,
+        skillLabel: focus?.stem ?? null,
+      })
+      return
+    }
     if (!learnerTutorEnabled) {
       startDemoDiagnostic()
       return
@@ -2821,6 +2833,17 @@ export default function StudentLearningHome({
   }
 
   function openTutorForPathItem(item: Activity) {
+    // Unified surface: route the learning-path item through the one assistant
+    // as a study intent so it opens in the focused tutor presentation.
+    if (featureFlags.pathfinder_unified_assistant_enabled && askSurface) {
+      logEvent('tutor_opened', { entry_point: 'path_item', surface: 'unified' })
+      askSurface.openAsk('text', {
+        kind: 'study',
+        skillId: item.skillId ?? null,
+        skillLabel: item.title ?? null,
+      })
+      return
+    }
     if (!learnerTutorEnabled) {
       startCheckIn(item.skillId, item.subject)
       return

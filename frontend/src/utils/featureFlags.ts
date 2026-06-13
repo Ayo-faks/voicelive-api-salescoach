@@ -52,6 +52,13 @@ export interface FeatureFlags {
    * first-class voice entry card above the stats grid. Default false.
    */
   pathfinder_voice_entry_card_enabled: boolean
+  /**
+   * When true, the Tutor and Ask Wulo surfaces merge into one
+   * presentation-aware assistant: chrome is derived from the latest reply
+   * block (tutor cards render a focused tutor view, prose/profile/plan render
+   * the Ask drawer). Default false — the standalone tutor + ask entries stay.
+   */
+  pathfinder_unified_assistant_enabled: boolean
 }
 
 export const featureFlags: FeatureFlags = Object.freeze({
@@ -77,6 +84,10 @@ export const featureFlags: FeatureFlags = Object.freeze({
   ),
   pathfinder_voice_entry_card_enabled: _readBool(
     import.meta.env.VITE_PATHFINDER_VOICE_ENTRY_CARD_ENABLED,
+    false
+  ),
+  pathfinder_unified_assistant_enabled: _readBool(
+    import.meta.env.VITE_PATHFINDER_UNIFIED_ASSISTANT_ENABLED,
     false
   ),
 })

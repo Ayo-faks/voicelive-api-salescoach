@@ -102,4 +102,28 @@ describe('deriveHomeChips', () => {
       expect(chip.ariaLabel.length).toBeGreaterThan(chip.label.length - 1)
     }
   })
+
+  it('drops the standalone text ask chip when the unified surface is active', () => {
+    const chips = deriveHomeChips({ ...base, unified: true })
+    expect(chips.map(c => c.id)).toEqual([
+      'study-with-wulo',
+      'how-am-i-doing',
+      'talk-it-through',
+    ])
+    expect(chips.find(c => c.id === 'ask-wulo')).toBeUndefined()
+  })
+
+  it('keeps only study + voice as Wulo entries on a cold start when unified', () => {
+    const chips = deriveHomeChips({
+      stats: null,
+      weakTopics: [],
+      planItems: [],
+      askAvailable: true,
+      voiceAvailable: true,
+      unified: true,
+    })
+    expect(chips.find(c => c.id === 'ask-wulo')).toBeUndefined()
+    expect(chips.find(c => c.id === 'study-with-wulo')).toBeDefined()
+    expect(chips.find(c => c.id === 'talk-it-through')).toBeDefined()
+  })
 })

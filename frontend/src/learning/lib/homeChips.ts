@@ -31,6 +31,13 @@ export type HomeChipInputs = {
   askAvailable: boolean
   /** Learner voice fully available (flag + config + safety gate). */
   voiceAvailable: boolean
+  /**
+   * Unified assistant surface active. When true, the standalone text "Ask
+   * Wulo" chip is dropped: the one morphing surface (reached via Study with
+   * Wulo / voice) already opens with a text composer, so a separate typed
+   * entry is redundant clutter. Voice keeps its own chip. Default false.
+   */
+  unified?: boolean
 }
 
 function hasStatsEvidence(stats: LearnerWeeklyStatsResponse | null): boolean {
@@ -44,7 +51,14 @@ function hasStatsEvidence(stats: LearnerWeeklyStatsResponse | null): boolean {
 
 /** Fixed, predictable order (no behaviour-based reshuffling for children). */
 export function deriveHomeChips(inputs: HomeChipInputs): HomeChip[] {
-  const { stats, weakTopics, planItems, askAvailable, voiceAvailable } = inputs
+  const {
+    stats,
+    weakTopics,
+    planItems,
+    askAvailable,
+    voiceAvailable,
+    unified = false,
+  } = inputs
   const chips: HomeChip[] = []
   const warm = hasStatsEvidence(stats) || weakTopics.length > 0 || planItems.length > 0
 
@@ -91,12 +105,17 @@ export function deriveHomeChips(inputs: HomeChipInputs): HomeChip[] {
   }
 
   if (askAvailable) {
-    chips.push({
-      id: 'ask-wulo',
-      label: 'Ask Wulo something',
-      ariaLabel: 'Ask Wulo a question by typing',
-      action: { kind: 'ask', mode: 'text' },
-    })
+    // Unified surface folds free-form typed asking into the one morphing
+    // surface (it opens with a composer), so the standalone text chip is
+    // dropped to cut clutter; Study with Wulo + voice remain the entries.
+    if (!unified) {
+      chips.push({
+        id: 'ask-wulo',
+        label: 'Ask Wulo something',
+        ariaLabel: 'Ask Wulo a question by typing',
+        action: { kind: 'ask', mode: 'text' },
+      })
+    }
     if (voiceAvailable) {
       chips.push({
         id: 'talk-it-through',

@@ -17,13 +17,33 @@ import {
 
 export type AskSurfaceMode = 'text' | 'voice'
 
-export type AskOpenRequest = { mode: AskSurfaceMode; nonce: number }
+/**
+ * An optional study intent carried by an open request. When present, the Ask
+ * surface seeds a practice turn on open so the assistant returns a tutor card
+ * and the surface renders in its focused "tutor" presentation — the unified
+ * replacement for the standalone LearnerTutorFullscreen entry point.
+ */
+export type AskStudyIntent = {
+  kind: 'study'
+  skillId: string | null
+  skillLabel: string | null
+}
+
+export type AskOpenRequest = {
+  mode: AskSurfaceMode
+  nonce: number
+  intent?: AskStudyIntent
+}
 
 export type AskSurfaceValue = {
   /** Latest programmatic open request; the drawer effects on `nonce`. */
   openRequest: AskOpenRequest | null
-  /** Open the Ask Wulo surface in the given mode (defaults to text). */
-  openAsk: (mode?: AskSurfaceMode) => void
+  /**
+   * Open the Ask Wulo surface in the given mode (defaults to text). Pass a
+   * study `intent` to seed a tutor session — the surface dispatches a practice
+   * turn on open and morphs into its focused tutor presentation.
+   */
+  openAsk: (mode?: AskSurfaceMode, intent?: AskStudyIntent) => void
   /**
    * True when the drawer was dismissed mid voice conversation. Drives the
    * voice entry card's "Resume session" variant (F3.4). Reset on reopen.
@@ -39,10 +59,13 @@ export function AskSurfaceProvider({ children }: { children: ReactNode }) {
   const [voiceSessionDismissed, setVoiceSessionDismissed] = useState(false)
   const nonceRef = useRef(0)
 
-  const openAsk = useCallback((mode: AskSurfaceMode = 'text') => {
-    nonceRef.current += 1
-    setOpenRequest({ mode, nonce: nonceRef.current })
-  }, [])
+  const openAsk = useCallback(
+    (mode: AskSurfaceMode = 'text', intent?: AskStudyIntent) => {
+      nonceRef.current += 1
+      setOpenRequest({ mode, nonce: nonceRef.current, intent })
+    },
+    []
+  )
 
   const value = useMemo(
     () => ({
