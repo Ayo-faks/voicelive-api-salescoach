@@ -57,6 +57,7 @@ import { useWebRTC } from '../hooks/useWebRTC'
 import { getBackToPracticeRoute } from './dashboardRouteHelpers'
 import { api, parseAvatarValue, type AuthSession } from '../services/api'
 import { bootstrapAppInsights } from '../services/appInsights'
+import { setClarityChildMode } from '../cookieconsent-config'
 import type {
   Assessment,
   AppConfig,
@@ -1197,6 +1198,12 @@ export default function App() {
     authUser?.role === 'therapist' || authUser?.role === 'admin'
   const requiresOnboarding = isTherapist
   const isChildMode = userMode === 'child' && !isDashboardRoute
+  // Child-safety seal: never let Microsoft Clarity record a minor's session.
+  // Suspends any consented-but-running Clarity instance while in child mode
+  // and resumes it (subject to consent) when control returns to the adult.
+  useEffect(() => {
+    setClarityChildMode(isChildMode)
+  }, [isChildMode])
   const onboardingUiState = useUiState({
     disabled: userMode === 'child' || authStatus !== 'authenticated',
     authenticated: authStatus === 'authenticated',
