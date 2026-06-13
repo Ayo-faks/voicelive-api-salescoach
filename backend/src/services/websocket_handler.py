@@ -24,6 +24,7 @@ from azure.ai.voicelive.models import (
     AudioEchoCancellation,
     AudioNoiseReduction,
     AvatarConfig,
+    AzureSemanticDetection,
     AzureSemanticVad,
     AzureSemanticVadEn,
     AzureStandardVoice,
@@ -178,6 +179,38 @@ def _build_conversational_turn_detection() -> AzureSemanticVadEn:
         silence_duration_ms=int(config.get("semantic_vad_silence_duration_ms", 600)),
         interrupt_response=True,
         create_response=True,
+    )
+
+
+def _build_learner_turn_detection() -> AzureSemanticVad:
+    """Patient end-of-turn detection for child learners.
+
+    Kids stutter, pause to think, and trail off mid-sentence. A bare silence VAD
+    commits the turn on the first gap and cuts them off. This builder adds two
+    things on top of the default semantic VAD:
+
+    * a longer ``silence_duration_ms`` window, so a brief hesitation is not
+      treated as the end of the turn; and
+    * Azure semantic *end-of-utterance* detection, where the model decides the
+      thought is actually finished rather than just that the audio went quiet --
+      the same idea that lets ChatGPT voice wait through ``"um..."`` pauses.
+      ``threshold_level`` defaults to ``high`` (patient: keep waiting unless the
+      model is confident the child has finished) and ``timeout_ms`` caps how
+      long we will hold before committing anyway.
+
+    ``remove_filler_words`` keeps "um"/"erm" out of the transcribed question.
+    Every value is config-overridable for per-deployment tuning.
+    """
+    return AzureSemanticVad(
+        type=DEFAULT_TURN_DETECTION_TYPE,
+        threshold=float(config.get("learner_vad_threshold", 0.5)),
+        prefix_padding_ms=int(config.get("learner_vad_prefix_padding_ms", 300)),
+        silence_duration_ms=int(config.get("learner_vad_silence_duration_ms", 900)),
+        remove_filler_words=bool(config.get("learner_vad_remove_filler_words", True)),
+        end_of_utterance_detection=AzureSemanticDetection(
+            threshold_level=str(config.get("learner_eou_threshold_level", "high")),
+            timeout_ms=int(config.get("learner_eou_timeout_ms", 3000)),
+        ),
     )
 
 
@@ -523,8 +556,13 @@ class VoiceProxyHandler:
         profile_context = profile_context or AgentProfileContext(scope=profile.id)
         custom_lexicon_url = str(config.get("azure_custom_lexicon_url") or "").strip() or None
 
-        if _is_conversational_mic_enabled():
-            turn_detection: Any = _build_conversational_turn_detection()
+        # Child learners need a patient end-of-turn gate (semantic EOU + a longer
+        # silence window) so stutters and thinking pauses don't fire the turn
+        # early; other profiles keep the existing detection.
+        if profile.id in LEARNER_VOICE_PROFILE_IDS:
+            turn_detection: Any = _build_learner_turn_detection()
+        elif _is_conversational_mic_enabled():
+            turn_detection = _build_conversational_turn_detection()
         else:
             turn_detection = AzureSemanticVad(type=DEFAULT_TURN_DETECTION_TYPE)
 

@@ -27,7 +27,6 @@ import {
   AcademicCapIcon,
   ChatBubbleLeftRightIcon,
   ClockIcon,
-  MicrophoneIcon,
   PaperAirplaneIcon,
   PlusIcon,
   SparklesIcon,
@@ -496,6 +495,54 @@ const useStyles = makeStyles({
   },
   voiceHint: { color: 'var(--pf-text-secondary)', fontSize: '13px', textAlign: 'center' },
   voiceError: { color: 'var(--pf-status-critical-fg)', fontSize: '13px', textAlign: 'center' },
+  // Conspicuous "Wulo is thinking" badge for voice mode. Unlike the muted text
+  // hint, this is a high-contrast ink pill with a breathing glow ring and
+  // bouncing dots so it reads as "working on it" from across the room.
+  voiceThinkingPill: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '10px',
+    padding: '9px 18px',
+    borderRadius: '999px',
+    background: 'var(--pf-ink)',
+    color: 'var(--pf-on-ink)',
+    fontSize: '14px',
+    fontWeight: 600,
+    letterSpacing: '0.01em',
+    animationName: {
+      '0%': { boxShadow: '0 0 0 0 var(--pf-focus-ring)', transform: 'scale(1)' },
+      '60%': { boxShadow: '0 0 0 14px rgba(0, 0, 0, 0)', transform: 'scale(1.015)' },
+      '100%': { boxShadow: '0 0 0 0 rgba(0, 0, 0, 0)', transform: 'scale(1)' },
+    },
+    animationDuration: '1.8s',
+    animationIterationCount: 'infinite',
+    animationTimingFunction: 'ease-out',
+    '@media (prefers-reduced-motion: reduce)': {
+      animationName: 'none',
+    },
+  },
+  voiceThinkingDots: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '5px',
+  },
+  voiceThinkingDot: {
+    width: '8px',
+    height: '8px',
+    borderRadius: '50%',
+    background: 'var(--pf-on-ink)',
+    animationName: {
+      '0%, 80%, 100%': { opacity: 0.3, transform: 'translateY(0)' },
+      '40%': { opacity: 1, transform: 'translateY(-5px)' },
+    },
+    animationDuration: '1.2s',
+    animationIterationCount: 'infinite',
+    animationTimingFunction: 'ease-in-out',
+    '@media (prefers-reduced-motion: reduce)': {
+      animationName: 'none',
+      opacity: 0.7,
+    },
+  },
   composer: {
     display: 'flex',
     alignItems: 'flex-end',
@@ -544,7 +591,51 @@ const useStyles = makeStyles({
     ':hover:not(:disabled)': { background: 'var(--pf-ink)' },
   },
   iconGlyph: { width: '18px', height: '18px' },
+  // ChatGPT-style "End" pill shown in the composer while a voice session is
+  // live — one tap leaves voice and returns to typing.
+  endBtn: {
+    height: '36px',
+    padding: '0 16px',
+    borderRadius: '999px',
+    border: 'none',
+    cursor: 'pointer',
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '6px',
+    fontFamily: 'inherit',
+    fontSize: '14px',
+    fontWeight: 600,
+    letterSpacing: '-0.01em',
+    background: 'var(--pf-ink)',
+    color: 'var(--pf-on-ink)',
+    whiteSpace: 'nowrap',
+    ':hover:not(:disabled)': { background: 'var(--pf-ink)' },
+    ':disabled': { opacity: 0.45, cursor: 'not-allowed' },
+  },
+  endGlyph: { width: '16px', height: '16px' },
 })
+
+// ChatGPT-style voice "soundwave" glyph used as the composer's enter-voice
+// affordance, in place of a plain microphone. Four rounded bars of varying
+// height read as audio at any size; it inherits `currentColor`.
+function VoiceWaveIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      aria-hidden="true"
+    >
+      <line x1="5" y1="9.5" x2="5" y2="14.5" />
+      <line x1="9.5" y1="6" x2="9.5" y2="18" />
+      <line x1="14.5" y1="4" x2="14.5" y2="20" />
+      <line x1="19" y1="9.5" x2="19" y2="14.5" />
+    </svg>
+  )
+}
 
 // Staged copy shown while Wulo works on an answer. Purely presentational — the
 // timings approximate the real pipeline (retrieval → generation → safety
@@ -691,42 +782,71 @@ export function AskPathfinder({
   // yanking them back down.
   const turnCount = transcript.length
   const stickToBottomRef = useRef(true)
+  const prevTurnCountRef = useRef(turnCount)
   useEffect(() => {
-    // Re-run (and re-observe) whenever a turn is appended or the thinking state
-    // toggles, so the new streaming block is tracked.
-    void turnCount
+    // Re-run whenever a turn is appended or the thinking state toggles, so the
+    // new streaming block is pinned and re-observed.
     void busy
     const node = transcriptScrollRef.current
     if (!node) return
+    const distanceFromBottom = () =>
+      node.scrollHeight - node.scrollTop - node.clientHeight
     const scrollToBottom = () => {
-      if (typeof node.scrollTo === 'function') {
-        node.scrollTo({ top: node.scrollHeight, behavior: 'auto' })
-      } else {
-        node.scrollTop = node.scrollHeight
-      }
+      node.scrollTop = node.scrollHeight
     }
+    // The learner stays pinned to the latest line only while they are already
+    // resting near the bottom; the scrollbar then tracks the stream naturally.
     const onScroll = () => {
-      const distance = node.scrollHeight - node.scrollTop - node.clientHeight
-      stickToBottomRef.current = distance < 96
+      stickToBottomRef.current = distanceFromBottom() < 96
+    }
+    // Wheel/touch up is a stronger signal than the scroll position: release the
+    // pin on the very first upward nudge so the streaming text can't yank the
+    // learner back down before they clear the 96px threshold. This is what made
+    // the scrollbar feel stuck — it would not budge until you hit the end.
+    const onWheel = (event: WheelEvent) => {
+      if (event.deltaY < 0) stickToBottomRef.current = false
+    }
+    const onTouchStart = () => {
+      stickToBottomRef.current = distanceFromBottom() < 96
     }
     node.addEventListener('scroll', onScroll, { passive: true })
+    node.addEventListener('wheel', onWheel, { passive: true })
+    node.addEventListener('touchstart', onTouchStart, { passive: true })
     // A brand-new turn should always reveal itself, even if the learner had
-    // scrolled up during the previous answer.
-    stickToBottomRef.current = true
-    scrollToBottom()
+    // scrolled up during the previous answer. Streaming updates to the *same*
+    // turn (busy toggles) must NOT re-pin — otherwise scrolling up to re-read
+    // mid-answer keeps snapping back to the bottom.
+    const isNewTurn = turnCount > prevTurnCountRef.current
+    prevTurnCountRef.current = turnCount
+    if (isNewTurn) stickToBottomRef.current = true
+    // Defer past layout so the freshly-appended block has measured its height
+    // before we scroll; a second frame catches the thinking dots that mount
+    // just after the commit.
+    const raf = requestAnimationFrame(() => {
+      if (!stickToBottomRef.current) return
+      scrollToBottom()
+      requestAnimationFrame(scrollToBottom)
+    })
+    // A MutationObserver follows the streaming answer as it types in (text-node
+    // edits) and any block appended asynchronously over the voice socket,
+    // keeping the newest content in view — unless the learner has scrolled up
+    // to re-read, in which case we stop yanking them back down.
     const observer =
-      typeof ResizeObserver !== 'undefined'
-        ? new ResizeObserver(() => {
+      typeof MutationObserver !== 'undefined'
+        ? new MutationObserver(() => {
             if (stickToBottomRef.current) scrollToBottom()
           })
         : null
-    if (observer) {
-      for (const child of Array.from(node.children)) {
-        observer.observe(child)
-      }
-    }
+    observer?.observe(node, {
+      childList: true,
+      subtree: true,
+      characterData: true,
+    })
     return () => {
+      cancelAnimationFrame(raf)
       node.removeEventListener('scroll', onScroll)
+      node.removeEventListener('wheel', onWheel)
+      node.removeEventListener('touchstart', onTouchStart)
       observer?.disconnect()
     }
   }, [turnCount, busy])
@@ -741,7 +861,7 @@ export function AskPathfinder({
         skill_id: w.skillId,
         label: w.label,
       })),
-      daily_plan: learner.dailyPlan.map(d => ({ id: d.id, title: d.title })),
+      daily_plan: learner.dailyPlan.map(d => ({ id: d.id, title: d.title, skill_id: d.skillId })),
       career_fits: learner.careerFits,
       last_wrong_answer: learner.lastWrongAnswer
         ? {
@@ -1314,12 +1434,12 @@ export function AskPathfinder({
         : liveVoiceState === 'connecting'
           ? 'Connecting…'
           : micActive
-            ? 'Listening… tap to mute.'
+            ? 'Listening… tap End to stop.'
             : 'Tap to talk.'
     : !speechSupported
       ? 'Voice input is not supported here — switch to the keyboard to type.'
       : listening
-        ? 'Listening… tap to stop.'
+        ? 'Listening… tap End to stop.'
         : busy
           ? voiceThinkingLabel
           : 'Tap to talk.'
@@ -1553,6 +1673,26 @@ export function AskPathfinder({
             >
               {voiceError ? (
                 <span className={styles.voiceError}>{voiceError}</span>
+              ) : voiceThinking ? (
+                <span
+                  className={styles.voiceThinkingPill}
+                  aria-live="polite"
+                  aria-label="Wulo Academy is thinking"
+                  data-testid="ask-pathfinder-voice-thinking"
+                >
+                  <span className={styles.voiceThinkingDots} aria-hidden="true">
+                    <span className={styles.voiceThinkingDot} />
+                    <span
+                      className={styles.voiceThinkingDot}
+                      style={{ animationDelay: '0.18s' }}
+                    />
+                    <span
+                      className={styles.voiceThinkingDot}
+                      style={{ animationDelay: '0.36s' }}
+                    />
+                  </span>
+                  {voiceThinkingLabel}
+                </span>
               ) : (
                 <span className={styles.voiceHint}>{voiceHint}</span>
               )}
@@ -1574,28 +1714,31 @@ export function AskPathfinder({
               rows={1}
               data-testid="ask-pathfinder-input"
             />
-            <button
-              type="button"
-              className={mergeClasses(
-                styles.iconBtn,
-                micActive && styles.iconBtnMicActive
-              )}
-              onClick={handleMicToggle}
-              disabled={micDisabled}
-              aria-pressed={micActive}
-              aria-label={micActive ? 'Stop talking' : 'Talk to Wulo Academy'}
-              title={micActive ? 'Stop talking' : 'Talk to Wulo Academy'}
-              data-testid="ask-pathfinder-mic"
-            >
-              {micActive ? (
-                <StopIcon className={styles.iconGlyph} aria-hidden="true" />
-              ) : (
-                <MicrophoneIcon
-                  className={styles.iconGlyph}
-                  aria-hidden="true"
-                />
-              )}
-            </button>
+            {isVoice ? (
+              <button
+                type="button"
+                className={styles.endBtn}
+                onClick={enterTextMode}
+                aria-label="End voice session"
+                title="End voice session"
+                data-testid="ask-pathfinder-end"
+              >
+                <StopIcon className={styles.endGlyph} aria-hidden="true" />
+                <span>End</span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                className={styles.iconBtn}
+                onClick={handleMicToggle}
+                disabled={micDisabled}
+                aria-label="Talk to Wulo Academy"
+                title="Talk to Wulo Academy"
+                data-testid="ask-pathfinder-mic"
+              >
+                <VoiceWaveIcon className={styles.iconGlyph} />
+              </button>
+            )}
             <button
               type="submit"
               className={styles.iconBtn}

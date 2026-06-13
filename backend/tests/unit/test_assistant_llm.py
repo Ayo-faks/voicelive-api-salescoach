@@ -299,7 +299,51 @@ def test_capability_question_describes_tutor() -> None:
     assert reply.get("smalltalk") is True
 
 
-def test_greeting_with_anchored_item_still_grounds() -> None:
+def test_compliment_answers_warmly_without_grounding() -> None:
+    retriever = FakeRetriever([])  # no sources at all
+    client = FakeClient(_model_json("should not be used", [1]))
+    provider = _provider(client, retriever, FakeFallback())
+
+    reply = provider.ask("You are awesome!", {"focus_item": {}, "memory_allowed": False})
+
+    assert client.calls == []  # no model call
+    assert "won't guess" not in reply["answer"]  # not the defer message
+    assert "thank you" in reply["answer"].lower()
+    assert reply["smalltalk"] is True
+    assert reply["grounded"] is False
+
+
+def test_closing_wraps_up_without_grounding() -> None:
+    retriever = FakeRetriever([])  # no sources at all
+    client = FakeClient(_model_json("should not be used", [1]))
+    provider = _provider(client, retriever, FakeFallback())
+
+    # Natural multi-word closing — longer than the 6-word chit-chat cap.
+    reply = provider.ask(
+        "Okay, let's end it. End the exercise please.",
+        {"focus_item": {}, "memory_allowed": False},
+    )
+
+    assert client.calls == []  # no model call
+    assert "won't guess" not in reply["answer"]  # not the defer message
+    assert "wrap up" in reply["answer"].lower()
+    assert reply["smalltalk"] is True
+    assert reply["grounded"] is False
+
+
+def test_round_up_math_question_still_grounds() -> None:
+    # "round up" as a maths verb must not be mistaken for a session close.
+    retriever = FakeRetriever([_hit("wiki-a", "Rounding", "num", "Round half up.")])
+    client = FakeClient(_model_json("Round 4.5 up to 5.", [1]))
+    provider = _provider(client, retriever, FakeFallback())
+
+    reply = provider.ask(
+        "Round up 4.5 to the nearest whole number",
+        {"focus_item": {}, "memory_allowed": False},
+    )
+    assert reply.get("smalltalk") is not True
+    assert len(client.calls) == 1
+
     # A "hi" while a diagnostic item is anchored must not bypass grounding.
     retriever = FakeRetriever([])
     client = FakeClient(_model_json("should not be used", [1]))

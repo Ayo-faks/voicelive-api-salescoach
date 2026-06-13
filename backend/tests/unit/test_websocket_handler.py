@@ -1060,6 +1060,60 @@ class TestVoiceProxyHandler:
         assert td["interrupt_response"] is True
         assert td["create_response"] is True
 
+    @patch("src.services.websocket_handler.config")
+    def test_build_session_config_learner_uses_patient_eou_vad(self, mock_config):
+        """Learner voice profiles get a patient semantic VAD with end-of-utterance detection.
+
+        Kids stutter and pause; the learner gate must use a longer silence
+        window plus Azure semantic EOU so a hesitation does not commit the turn.
+        """
+        mock_config.get.side_effect = lambda key, default=None: {
+            "azure_voice_name": "en-US-TestVoice",
+            "azure_voice_type": "azure-standard",
+            "azure_custom_lexicon_url": "",
+            "conversational_mic_enabled": False,
+        }.get(key, default)
+
+        handler = VoiceProxyHandler(Mock())
+        os.environ.pop("CONVERSATIONAL_MIC_ENABLED", None)
+
+        session = handler._build_session_config(None, profile=get_profile("learner_ask"))
+
+        td = session["turn_detection"]
+        assert td["type"] == "azure_semantic_vad"
+        # Patient silence window (default 900 ms) — longer than the legacy gate.
+        assert td["silence_duration_ms"] == 900
+        assert td["remove_filler_words"] is True
+        # Semantic end-of-utterance: the model decides the thought is finished.
+        eou = td["end_of_utterance_detection"]
+        assert eou["model"] == "semantic_detection_v1"
+        assert eou["threshold_level"] == "high"
+        assert eou["timeout_ms"] == 3000
+
+    @patch("src.services.websocket_handler.config")
+    def test_build_session_config_learner_vad_is_config_overridable(self, mock_config):
+        """Per-deployment tuning of the learner gate is honored via config keys."""
+        mock_config.get.side_effect = lambda key, default=None: {
+            "azure_voice_name": "en-US-TestVoice",
+            "azure_voice_type": "azure-standard",
+            "azure_custom_lexicon_url": "",
+            "learner_vad_silence_duration_ms": 1200,
+            "learner_vad_remove_filler_words": False,
+            "learner_eou_threshold_level": "medium",
+            "learner_eou_timeout_ms": 4500,
+        }.get(key, default)
+
+        handler = VoiceProxyHandler(Mock())
+        os.environ.pop("CONVERSATIONAL_MIC_ENABLED", None)
+
+        session = handler._build_session_config(None, profile=get_profile("learner"))
+
+        td = session["turn_detection"]
+        assert td["silence_duration_ms"] == 1200
+        assert td["remove_filler_words"] is False
+        assert td["end_of_utterance_detection"]["threshold_level"] == "medium"
+        assert td["end_of_utterance_detection"]["timeout_ms"] == 4500
+
     @pytest.mark.asyncio
     async def test_send_message(self):
         """Test sending a message to WebSocket."""

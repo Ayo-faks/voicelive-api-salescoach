@@ -20,6 +20,7 @@ export type LearnerDailyPlanItem = {
   id: string
   title: string
   minutes?: number
+  skillId?: string
 }
 
 export type LearnerCareerFit = {

@@ -244,12 +244,16 @@ const useStyles = makeStyles({
     padding: '3px 10px',
     borderRadius: '999px',
     fontSize: '11px',
-    fontWeight: 600,
+    fontWeight: 700,
     letterSpacing: '0.02em',
     textTransform: 'uppercase',
-    color: '#ffce7a',
-    background: 'rgba(255,196,84,0.12)',
-    border: '1px solid rgba(255,196,84,0.3)',
+    // Theme-aware warn colours so the badge reads clearly on BOTH the light
+    // Ask Wulo drawer and the dark fullscreen scrim. The previous hardcoded
+    // light-amber-on-transparent was near-invisible on the white drawer.
+    color: 'var(--pf-status-warn-fg)',
+    background:
+      'color-mix(in srgb, var(--pf-status-warn-fg) 16%, transparent)',
+    border: '1px solid color-mix(in srgb, var(--pf-status-warn-fg) 55%, transparent)',
   },
   citations: {
     display: 'flex',

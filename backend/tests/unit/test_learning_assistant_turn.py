@@ -157,3 +157,60 @@ def test_greeting_turn_returns_smalltalk_prose_not_profile_template(client: Any)
     assert blocks[0]["smalltalk"] is True
     assert "Hi! I'm Wulo" in blocks[0]["text"]
     assert "Start with Ratio and proportion" not in blocks[0]["text"]
+
+
+def test_typed_practice_request_returns_mcq_card_not_prose(client: Any) -> None:
+    # The always-on composer sends only a free-form question (no intent). A
+    # natural-language practice request must be routed to an exercise card,
+    # seeded from the learner's setup, instead of answering in prose.
+    resp = _turn(
+        client,
+        {
+            "user_id": "student-001",
+            "child_id": "student-001",
+            "question": "do today's path exercises",
+            "learner_setup": {"subject": "maths", "year_group": "SS2"},
+            "daily_plan": [{"title": "Scale a ratio", "skill_id": "ratio-proportion"}],
+        },
+    )
+    assert resp.status_code == 200
+    blocks = resp.get_json()["blocks"]
+    assert len(blocks) == 1
+    assert blocks[0]["kind"] == "mcq-tap"
+    assert blocks[0]["options"]
+    assert blocks[0]["speak"]
+
+
+def test_typed_question_still_returns_prose(client: Any) -> None:
+    # A genuine concept question must NOT be hijacked into a quiz.
+    resp = _turn(
+        client,
+        {
+            "user_id": "student-001",
+            "question": "What is photosynthesis?",
+            "learner_setup": {"subject": "Basic Science", "year_group": "JSS3"},
+        },
+    )
+    assert resp.status_code == 200
+    blocks = resp.get_json()["blocks"]
+    assert blocks[0]["kind"] == "prose"
+
+
+def test_passthrough_ask_intent_still_routes_practice(client: Any) -> None:
+    # Some surfaces tag the turn with a non-actionable "ask" label; a typed
+    # practice request must still resolve to an exercise card, not prose.
+    resp = _turn(
+        client,
+        {
+            "user_id": "student-001",
+            "child_id": "student-001",
+            "intent": "ask",
+            "question": "quiz me on today's exercises",
+            "learner_setup": {"subject": "maths", "year_group": "SS2"},
+        },
+    )
+    assert resp.status_code == 200
+    blocks = resp.get_json()["blocks"]
+    assert blocks[0]["kind"] == "mcq-tap"
+
+

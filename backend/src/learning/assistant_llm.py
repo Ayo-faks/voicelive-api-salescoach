@@ -35,6 +35,7 @@ import time
 from typing import Any, Dict, List, Mapping, Optional, Sequence
 
 from src.learning import taxonomy
+from src.learning.assistant_intent import is_session_closing
 from src.learning.rag import RagRetriever, RetrievalHit, retrieve_or_refuse
 from src.learning.tutor import (
     FocusItem,
@@ -116,6 +117,32 @@ _THANKS_PHRASES = (
     "thank you", "thanks", "thank u", "thx", "tnks", "well done", "nice one",
     "appreciate it", "good job", "you're the best", "youre the best",
 )
+# Pure compliments / encouragement aimed at the tutor. Like greetings/thanks
+# these never need RAG — answering "You are awesome!" with a "no grounded
+# source" refusal feels broken, so we acknowledge warmly and steer to study.
+_COMPLIMENT_PHRASES = (
+    "you are awesome", "you're awesome", "youre awesome", "ur awesome",
+    "you are amazing", "you're amazing", "youre amazing",
+    "you are great", "you're great", "youre great",
+    "you are the best", "you're the best", "youre the best",
+    "you are smart", "you're smart", "youre smart",
+    "you are good", "you're good", "youre good",
+    "you are cool", "you're cool", "youre cool",
+    "you are brilliant", "you're brilliant", "youre brilliant",
+    "you are helpful", "you're helpful", "youre helpful",
+    "you rock", "you are wonderful", "you're wonderful",
+    "i love you", "love you", "i like you", "you are nice", "you're nice",
+    "great stuff", "well done",
+)
+# Bare one-word compliments — only matched when they make up the whole message
+# (every token is a compliment word), so a real question like "amazing facts
+# about the sun" is never misrouted.
+_COMPLIMENT_TOKENS = frozenset(
+    {
+        "awesome", "amazing", "brilliant", "fantastic", "wonderful",
+        "great", "cool", "nice", "wow", "perfect", "excellent", "love",
+    }
+)
 _CAPABILITY_PHRASES = (
     "who are you", "what are you", "what is your name", "what's your name",
     "whats your name", "what can you do", "what do you do", "how can you help",
@@ -130,21 +157,34 @@ def _normalize_smalltalk(text: str) -> str:
 
 
 def _classify_smalltalk(question: str) -> Optional[str]:
-    """Return ``greeting`` | ``thanks`` | ``capability`` for social openers.
+    """Return ``greeting`` | ``thanks`` | ``capability`` | ``compliment`` |
+    ``closing`` for social / session-control openers.
 
-    Conservative on purpose: only fires for short messages so a real study
-    question that happens to contain "hi" (e.g. "what is a histogram") is never
-    misrouted. Returns ``None`` for anything that should go through grounding.
+    Conservative on purpose: greetings/thanks only fire for short messages so a
+    real study question that happens to contain "hi" (e.g. "what is a
+    histogram") is never misrouted. Closings are matched as distinctive
+    multi-word phrases, so they may run a little longer. Returns ``None`` for
+    anything that should go through grounding.
     """
     norm = _normalize_smalltalk(question)
     if not norm:
         return None
     words = norm.split()
+    # Session-control closings ("let's round up", "end the exercise") are
+    # distinctive imperatives — match them before the short-message guard so a
+    # natural "okay, let's end it, end the exercise please" still lands here.
+    # Shared with the intent router so both agree on what counts as a close.
+    if is_session_closing(question):
+        return "closing"
     # Only treat very short messages as pure social chit-chat.
     if len(words) > 6:
         return None
     if any(p in norm for p in _CAPABILITY_PHRASES):
         return "capability"
+    if any(p in norm for p in _COMPLIMENT_PHRASES):
+        return "compliment"
+    if words and all(w in _COMPLIMENT_TOKENS for w in words):
+        return "compliment"
     if any(p in norm for p in _THANKS_PHRASES) or norm in {"ok", "okay", "k", "cool", "alright"}:
         return "thanks"
     if any(p in norm for p in _GREETING_PHRASES):
@@ -163,6 +203,18 @@ def _smalltalk_reply(kind: str, context: Mapping[str, Any]) -> str:
         return (
             "You're welcome — glad that helped! Want to lock it in with a quick "
             "practice question, or is there another topic you'd like to go over?"
+        )
+    if kind == "compliment":
+        return (
+            "Aw, thank you — that means a lot! I'm here whenever you want to "
+            "learn something new. Want to try a quick practice question, or "
+            f"go over a topic{subject_clause}?"
+        )
+    if kind == "closing":
+        return (
+            "Nice work — let's wrap up there. You did well to keep going. "
+            "Whenever you're ready for more, tap Practice up top to start a "
+            "fresh set, or just ask me a new question. See you next time! 👋"
         )
     if kind == "capability":
         return (

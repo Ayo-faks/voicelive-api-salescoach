@@ -108,6 +108,7 @@ from src.learning.learner_voice import (
     LearnerVoiceTurnPlanner,
     LearnerVoiceTurnRequest,
     LearnerVoiceTurnResponse,
+    normalize_class_year,
 )
 from src.learning.assistant_blocks import PlanBlock, PlanStep, ProfileBlock, ProfileChip, ProseBlock
 from src.learning.assistant_planner import UnifiedAssistantPlanner
@@ -612,6 +613,21 @@ class LearningApi:
                     self.assistant_provider = model_provider
             except Exception:  # noqa: BLE001
                 logger.exception("Failed to build model assistant provider; using deterministic fallback")
+
+        # Natural-language intent classifier for the always-on composer: the
+        # message bar only sends a free-form question, so a typed "do today's
+        # path exercises" must be classified into the planner's practice/plan/
+        # profile vocabulary before routing. ``None`` here means NL routing
+        # falls back to the free keyword matcher in ``assistant_intent``.
+        self.assistant_intent_classifier = None
+        try:
+            from src.config import get_config
+            from src.learning.assistant_intent import ModelIntentClassifier
+
+            self.assistant_intent_classifier = ModelIntentClassifier.from_settings(get_config())
+        except Exception:  # noqa: BLE001
+            logger.exception("Failed to build assistant intent classifier; NL routing uses keywords only")
+
 
         # Upgrade the deterministic learner voice planner to the model-backed
         # turn planner (Phase 3) under the same conditions: flag on + Azure
@@ -3154,31 +3170,78 @@ class LearningApi:
         }
 
         # Card-brain request — only built when the payload carries practice
-        # signals, so a pure question never spins up a walk.
+        # signals or the resolved intent asks for practice, so a pure question
+        # never spins up a walk.
         voice_request: Optional[LearnerVoiceTurnRequest] = None
         has_practice_signal = any(
             payload.get(k) is not None
             for k in ("last_card_id", "last_kind", "answer_option_id")
         ) or bool(payload.get("advance"))
+
+        # Natural-language routing: the always-on composer only sends a
+        # free-form question, so a typed "do today's path exercises" must be
+        # classified into the planner's intent vocabulary here. Treat empty or
+        # non-actionable passthrough labels ("ask"/"question"/"chat"/"tutor")
+        # as "infer from text"; never override an explicit actionable intent or
+        # an in-flight practice walk.
+        _passthrough_intents = {"", "ask", "question", "chat", "tutor"}
+        if (
+            str(intent or "").strip().lower() in _passthrough_intents
+            and question
+            and not has_practice_signal
+        ):
+            from src.learning.assistant_intent import INTENT_QUESTION, resolve_intent
+
+            resolved = resolve_intent(
+                question, context, llm=self.assistant_intent_classifier
+            )
+            if resolved and resolved != INTENT_QUESTION:
+                intent = resolved
+
         wants_practice = str(intent or "").strip().lower() in {
             "practice", "start_exercise", "exercise", "next", "quiz"
         }
         if has_practice_signal or wants_practice:
+            child_id = (
+                str(payload.get("child_id") or payload.get("user_id") or "pending").strip()
+                or "pending"
+            )
+            lang = str(payload.get("lang") or "en-NG")
+            seed = self._practice_seed_from_context(payload)
             try:
                 voice_request = LearnerVoiceTurnRequest(
-                    child_id=str(payload.get("child_id") or payload.get("user_id") or "pending").strip()
-                    or "pending",
-                    lang=str(payload.get("lang") or "en-NG"),
+                    child_id=child_id,
+                    lang=lang,
                     last_card_id=payload.get("last_card_id"),
                     last_kind=payload.get("last_kind"),
                     answer_option_id=payload.get("answer_option_id"),
                     advance=bool(payload.get("advance") or False),
-                    exam=payload.get("exam"),
-                    class_year=payload.get("class_year"),
-                    subject=payload.get("subject"),
+                    exam=payload.get("exam") or seed.get("exam"),
+                    class_year=payload.get("class_year") or seed.get("class_year"),
+                    subject=payload.get("subject") or seed.get("subject"),
+                    skill_id=payload.get("skill_id") or seed.get("skill_id"),
                 )
-            except Exception as exc:  # pydantic validation
-                raise LearningApiError(f"invalid practice turn: {exc}", status_code=400) from exc
+            except Exception:  # pydantic validation on the seeded taxonomy
+                # A seeded slot was invalid (e.g. an unmapped subject); retry
+                # with explicit client values only so an honest request still
+                # renders a card from the default walk instead of erroring.
+                try:
+                    voice_request = LearnerVoiceTurnRequest(
+                        child_id=child_id,
+                        lang=lang,
+                        last_card_id=payload.get("last_card_id"),
+                        last_kind=payload.get("last_kind"),
+                        answer_option_id=payload.get("answer_option_id"),
+                        advance=bool(payload.get("advance") or False),
+                        exam=payload.get("exam"),
+                        class_year=payload.get("class_year"),
+                        subject=payload.get("subject"),
+                    )
+                except Exception as exc:  # explicit client values were invalid
+                    raise LearningApiError(
+                        f"invalid practice turn: {exc}", status_code=400
+                    ) from exc
+
 
         profile_block = self._build_profile_block(payload)
         plan_block = self._build_plan_block(payload)
@@ -3366,6 +3429,55 @@ class LearningApi:
             chips=chips,
             weak_topics=labels[:5],
         )
+
+    @staticmethod
+    def _practice_seed_from_context(payload: Mapping[str, Any]) -> Dict[str, Optional[str]]:
+        """Seed a practice walk from the learner's setup + daily plan.
+
+        Maps the learner's subject slug and class year onto the voice planner's
+        taxonomy so a typed "do today's exercises" lands on the right
+        ``(exam, class_year, subject)`` bucket, and leads with the first
+        unfinished daily-plan skill when one is supplied. Any slot that can't be
+        mapped is left ``None`` so the planner falls back to its default
+        WAEC/SSS2/Mathematics walk rather than producing a "not offered" card.
+        """
+        subject_by_slug = {
+            "maths": "Mathematics",
+            "math": "Mathematics",
+            "mathematics": "Mathematics",
+            "english": "English Language",
+            "english language": "English Language",
+            "english-language": "English Language",
+            "basic science": "Basic Science",
+            "basic-science": "Basic Science",
+            "science": "Basic Science",
+        }
+        setup = payload.get("learner_setup") or {}
+        seed: Dict[str, Optional[str]] = {
+            "exam": None,
+            "class_year": None,
+            "subject": None,
+            "skill_id": None,
+        }
+
+        subject_slug = str(setup.get("subject") or "").strip().lower()
+        seed["subject"] = subject_by_slug.get(subject_slug)
+
+        raw_year = setup.get("year_group") or setup.get("class_year")
+        class_year = normalize_class_year(raw_year) if raw_year else None
+        if class_year in {"JSS1", "JSS2", "JSS3", "SSS1", "SSS2", "SSS3"}:
+            seed["class_year"] = class_year
+            # Pick an exam valid for the class band so the planner never
+            # short-circuits with a "not offered at this class" card.
+            seed["exam"] = "Junior WAEC" if str(class_year).startswith("JSS") else "WAEC"
+
+        for item in payload.get("daily_plan") or []:
+            if isinstance(item, Mapping) and not item.get("done"):
+                skill = str(item.get("skill_id") or item.get("skillId") or "").strip()
+                if skill:
+                    seed["skill_id"] = skill
+                    break
+        return seed
 
     @staticmethod
     def _build_plan_block(payload: Mapping[str, Any]) -> Optional[PlanBlock]:

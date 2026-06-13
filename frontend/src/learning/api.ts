@@ -1088,7 +1088,7 @@ export interface AssistantTurnRequest {
   subject?: string | null
   // Personalisation context (the learner's own data only).
   weak_topics?: Array<{ skill_id?: string; label?: string }>
-  daily_plan?: Array<{ id?: string; title?: string }>
+  daily_plan?: Array<{ id?: string; title?: string; skill_id?: string; done?: boolean }>
   career_fits?: unknown
   last_wrong_answer?: { skill_id?: string; label?: string } | null
   learner_setup?: { subject?: string; year_group?: string } | null
