@@ -480,6 +480,7 @@ function ChildWeeklyStats({
   const stats = weekly.stats
   const { completed, target } = stats.sessions
   const remaining = Math.max(0, target - completed)
+  const currentMastery = stats.current_mastery_pct
   const delta = stats.mastery_delta_pct
   const focus = stats.mastery_focus_label
   const streak = stats.streak_days
@@ -499,17 +500,14 @@ function ChildWeeklyStats({
     {
       id: 'mastery',
       label: 'Mastery',
-      value: delta === 0 && !focus ? '—' : `${delta > 0 ? '+' : ''}${delta}%`,
+      value:
+        typeof currentMastery === 'number'
+          ? `${Math.round(currentMastery)}%`
+          : '—',
       meaning:
-        delta === 0 && !focus
-          ? `A few practice sessions will show how ${firstName}'s mastery is moving.`
-          : delta >= 0
-            ? focus
-              ? `${firstName}'s biggest gains this week are in ${focus}.`
-              : `${firstName}'s mastery moved up this week.`
-            : focus
-              ? `${firstName} is slipping a little in ${focus} — a short session helps.`
-              : `${firstName}'s mastery dipped this week — a short session helps.`,
+        typeof currentMastery !== 'number'
+          ? `A few practice sessions will show ${firstName}'s current mastery.`
+          : `Weekly change ${delta > 0 ? '+' : ''}${delta}%${focus ? ` · ${focus}` : ''}.`,
     },
     {
       id: 'streak',

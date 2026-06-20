@@ -219,6 +219,7 @@ const weeklyEmptyTiles: WeeklyTile[] = [
 function deriveWeeklyTiles(stats: {
   sessions: { completed: number; target: number }
   streak_days: number
+  current_mastery_pct?: number | null
   mastery_delta_pct: number
   mastery_focus_label: string
 }): WeeklyTile[] {
@@ -243,14 +244,21 @@ function deriveWeeklyTiles(stats: {
         ? 'On a roll'
         : 'Keep it going'
 
+  const currentMastery =
+    typeof stats.current_mastery_pct === 'number'
+      ? `${Math.round(stats.current_mastery_pct)}%`
+      : '—'
   const pct = Math.round(stats.mastery_delta_pct)
-  const masteryValue = focus === '' && pct === 0 ? '—' : `${pct > 0 ? '+' : ''}${pct}%`
-  const masteryDelta = focus !== '' ? focus : 'Mastery shift'
+  const weeklyChange = `${pct > 0 ? '+' : ''}${pct}%`
+  const masteryDelta =
+    currentMastery === '—'
+      ? 'No mastery yet'
+      : `Weekly change ${weeklyChange}`
 
   return [
     { label: 'Sessions', value: `${completed} / ${target}`, delta: sessionsDelta },
     { label: 'Streak', value: streakValue, delta: streakDelta },
-    { label: 'Mastery', value: masteryValue, delta: masteryDelta },
+    { label: 'Mastery', value: currentMastery, delta: masteryDelta },
   ]
 }
 

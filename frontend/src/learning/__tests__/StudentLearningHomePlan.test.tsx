@@ -124,6 +124,7 @@ describe('StudentLearningHome adaptive plan wiring', () => {
     fetchWeeklyStatsMock.mockResolvedValue({
       sessions: { completed: 0, target: 5 },
       streak_days: 0,
+      current_mastery_pct: null,
       mastery_delta_pct: 0,
       mastery_focus_label: '',
     })
@@ -155,6 +156,7 @@ describe('StudentLearningHome adaptive plan wiring', () => {
     fetchWeeklyStatsMock.mockResolvedValue({
       sessions: { completed: 0, target: 5 },
       streak_days: 0,
+      current_mastery_pct: null,
       mastery_delta_pct: 0,
       mastery_focus_label: '',
     })
@@ -180,6 +182,7 @@ describe('StudentLearningHome weekly stats wiring', () => {
   const realWeeklyStats: LearnerWeeklyStatsResponse = {
     sessions: { completed: 3, target: 5 },
     streak_days: 5,
+    current_mastery_pct: 62,
     mastery_delta_pct: 8,
     mastery_focus_label: 'Differentiation',
   }
@@ -205,8 +208,8 @@ describe('StudentLearningHome weekly stats wiring', () => {
       expect(screen.getAllByText('3 / 5').length).toBeGreaterThan(0)
     })
     expect(screen.getAllByText('5 days').length).toBeGreaterThan(0)
-    expect(screen.getAllByText('+8%').length).toBeGreaterThan(0)
-    expect(screen.getAllByText('Differentiation').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('62%').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Weekly change +8%').length).toBeGreaterThan(0)
     // The fabricated demo numbers must be gone.
     expect(screen.queryByText('4 / 5')).toBeNull()
     expect(screen.queryByText('7 days')).toBeNull()
@@ -219,6 +222,7 @@ describe('StudentLearningHome weekly stats wiring', () => {
     fetchWeeklyStatsMock.mockResolvedValue({
       sessions: { completed: 0, target: 5 },
       streak_days: 0,
+      current_mastery_pct: null,
       mastery_delta_pct: 0,
       mastery_focus_label: '',
     })
@@ -279,12 +283,14 @@ describe('StudentLearningHome weekly stats wiring', () => {
       .mockResolvedValueOnce({
         sessions: { completed: 0, target: 5 },
         streak_days: 0,
+        current_mastery_pct: null,
         mastery_delta_pct: 0,
         mastery_focus_label: '',
       })
       .mockResolvedValue({
         sessions: { completed: 1, target: 5 },
         streak_days: 1,
+        current_mastery_pct: 33,
         mastery_delta_pct: 0,
         mastery_focus_label: 'Physics definition',
       })

@@ -4194,6 +4194,7 @@ class LearningApi:
             {
               "sessions": {"completed": int, "target": int},
               "streak_days": int,
+                            "current_mastery_pct": float, # latest per-skill average, percent
               "mastery_delta_pct": float,   # last 7d vs prior 7d, points
               "mastery_focus_label": str,   # top recently-practised skill
             }
@@ -4207,6 +4208,7 @@ class LearningApi:
         empty: Dict[str, Any] = {
             "sessions": {"completed": 0, "target": self.WEEKLY_SESSION_TARGET},
             "streak_days": 0,
+            "current_mastery_pct": None,
             "mastery_delta_pct": 0.0,
             "mastery_focus_label": "",
         }
@@ -4236,6 +4238,24 @@ class LearningApi:
             timeline.append((occurred, skill_id, probability))
         if not timeline:
             return empty
+
+        latest_probability_by_skill: Dict[str, float] = {}
+        for occurred, skill_id, probability in sorted(
+            timeline,
+            key=lambda row: row[0],
+            reverse=True,
+        ):
+            if not skill_id or probability is None or skill_id in latest_probability_by_skill:
+                continue
+            latest_probability_by_skill[skill_id] = probability
+        current_mastery_pct: Optional[float] = None
+        if latest_probability_by_skill:
+            current_mastery_pct = round(
+                sum(latest_probability_by_skill.values())
+                / len(latest_probability_by_skill)
+                * 100.0,
+                1,
+            )
 
         # 2. Sessions = distinct active UTC days in the trailing 7 days.
         week_start = now - timedelta(days=7)
@@ -4315,6 +4335,7 @@ class LearningApi:
                 "target": self.WEEKLY_SESSION_TARGET,
             },
             "streak_days": streak_days,
+            "current_mastery_pct": current_mastery_pct,
             "mastery_delta_pct": mastery_delta_pct,
             "mastery_focus_label": focus_label,
         }

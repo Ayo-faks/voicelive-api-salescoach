@@ -65,15 +65,16 @@ export function deriveActionableStatCards(
     })
   }
 
-  // Mastery delta.
+  // Current mastery + weekly movement.
+  const currentMastery = stats.current_mastery_pct
   const delta = stats.mastery_delta_pct
   const focusLabel = stats.mastery_focus_label
-  if (delta === 0 && !focusLabel) {
+  if (typeof currentMastery !== 'number') {
     cards.push({
       id: 'mastery',
       label: 'Mastery',
       value: '—',
-      meaning: 'Practise a few sessions to see your mastery shift.',
+      meaning: 'Practise a few sessions to see your current mastery.',
       cta: { label: 'Start practising', action: { kind: 'practice', skillId: focusSkillId } },
       band: 'no_evidence',
     })
@@ -81,10 +82,10 @@ export function deriveActionableStatCards(
     cards.push({
       id: 'mastery',
       label: 'Mastery',
-      value: `+${delta}%`,
+      value: `${Math.round(currentMastery)}%`,
       meaning: focusLabel
-        ? `Your biggest gains this week are in ${focusLabel}.`
-        : 'Your mastery moved up this week.',
+        ? `Weekly change +${delta}% — strongest recent focus: ${focusLabel}.`
+        : `Weekly change +${delta}%.`,
       cta: { label: 'Keep it up', action: { kind: 'practice', skillId: focusSkillId } },
       band: delta > 0 ? 'positive' : 'flat',
     })
@@ -92,10 +93,10 @@ export function deriveActionableStatCards(
     cards.push({
       id: 'mastery',
       label: 'Mastery',
-      value: `${delta}%`,
+      value: `${Math.round(currentMastery)}%`,
       meaning: focusLabel
-        ? `Slipping a little in ${focusLabel} — a short session repairs it.`
-        : 'Mastery dipped this week — a short session repairs it.',
+        ? `Weekly change ${delta}% — practise ${focusLabel} to repair it.`
+        : `Weekly change ${delta}% — a short session repairs it.`,
       cta: { label: 'Shore it up', action: { kind: 'practice', skillId: focusSkillId } },
       band: 'negative',
     })

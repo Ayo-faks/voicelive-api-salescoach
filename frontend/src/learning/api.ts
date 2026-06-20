@@ -229,6 +229,7 @@ export type LearnerCareerPlanResponse = {
 export type LearnerWeeklyStatsResponse = {
   sessions: { completed: number; target: number }
   streak_days: number
+  current_mastery_pct?: number | null
   mastery_delta_pct: number
   mastery_focus_label: string
 }

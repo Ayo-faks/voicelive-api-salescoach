@@ -54,6 +54,7 @@ def test_cold_start_returns_honest_zeros(learning_api: LearningApi):
     assert stats == {
         "sessions": {"completed": 0, "target": 5},
         "streak_days": 0,
+        "current_mastery_pct": None,
         "mastery_delta_pct": 0.0,
         "mastery_focus_label": "",
     }
@@ -101,8 +102,20 @@ def test_mastery_delta_last_week_vs_prior_week(learning_api: LearningApi):
 
     stats = learning_api.weekly_stats({"student_id": "stu-grow"})
     # mean(recent)=0.80, mean(prior)=0.40 -> +40.0 percentage points.
+    assert stats["current_mastery_pct"] == 80.0
     assert stats["mastery_delta_pct"] == 40.0
     assert stats["mastery_focus_label"] != ""
+
+
+def test_current_mastery_uses_latest_estimate_per_skill(learning_api: LearningApi):
+    repo = learning_api.repository
+    repo.mastery_events.append(_event("stu-current", "ratio-proportion", 0.30, days_ago=2))  # type: ignore[attr-defined]
+    repo.mastery_events.append(_event("stu-current", "ratio-proportion", 0.70, days_ago=1))  # type: ignore[attr-defined]
+    repo.mastery_events.append(_event("stu-current", "fraction-operations", 0.50, days_ago=0))  # type: ignore[attr-defined]
+
+    stats = learning_api.weekly_stats({"student_id": "stu-current"})
+
+    assert stats["current_mastery_pct"] == 60.0
 
 
 def test_mastery_delta_zero_without_prior_window(learning_api: LearningApi):
@@ -112,6 +125,7 @@ def test_mastery_delta_zero_without_prior_window(learning_api: LearningApi):
         _event("stu-recent", "ratio-proportion", 0.90, days_ago=1)
     )
     stats = learning_api.weekly_stats({"student_id": "stu-recent"})
+    assert stats["current_mastery_pct"] == 90.0
     assert stats["mastery_delta_pct"] == 0.0
     assert stats["sessions"]["completed"] == 1
 

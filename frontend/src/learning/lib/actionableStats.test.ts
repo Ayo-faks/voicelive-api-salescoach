@@ -10,6 +10,7 @@ function stats(overrides: Partial<{
   completed: number
   target: number
   streak_days: number
+  current_mastery_pct: number | null
   mastery_delta_pct: number
   mastery_focus_label: string
 }> = {}) {
@@ -19,6 +20,10 @@ function stats(overrides: Partial<{
       target: overrides.target ?? 5,
     },
     streak_days: overrides.streak_days ?? 3,
+    current_mastery_pct:
+      'current_mastery_pct' in overrides
+        ? (overrides.current_mastery_pct ?? null)
+        : 62,
     mastery_delta_pct: overrides.mastery_delta_pct ?? 4,
     mastery_focus_label: overrides.mastery_focus_label ?? 'Algebra',
   }
@@ -62,10 +67,11 @@ describe('deriveActionableStatCards', () => {
     expect(sessions.cta?.label).toBe('Start a session')
   })
 
-  it('positive mastery delta names the focus area and keeps it up', () => {
+  it('mastery shows current mastery and weekly change context', () => {
     const cards = deriveActionableStatCards({ stats: stats(), weakTopics })
     const mastery = cards.find(c => c.id === 'mastery')!
-    expect(mastery.value).toBe('+4%')
+    expect(mastery.value).toBe('62%')
+    expect(mastery.meaning).toContain('Weekly change +4%')
     expect(mastery.meaning).toContain('Algebra')
     expect(mastery.cta?.label).toBe('Keep it up')
     expect(mastery.band).toBe('positive')
@@ -77,14 +83,30 @@ describe('deriveActionableStatCards', () => {
       weakTopics,
     })
     const mastery = cards.find(c => c.id === 'mastery')!
-    expect(mastery.value).toBe('-3%')
+    expect(mastery.value).toBe('62%')
+    expect(mastery.meaning).toContain('Weekly change -3%')
     expect(mastery.cta?.label).toBe('Shore it up')
     expect(mastery.band).toBe('negative')
   })
 
-  it('no mastery evidence renders the honest empty variant', () => {
+  it('flat mastery still shows the current mastery value', () => {
     const cards = deriveActionableStatCards({
       stats: stats({ mastery_delta_pct: 0, mastery_focus_label: '' }),
+      weakTopics,
+    })
+    const mastery = cards.find(c => c.id === 'mastery')!
+    expect(mastery.value).toBe('62%')
+    expect(mastery.meaning).toContain('Weekly change +0%')
+    expect(mastery.band).toBe('flat')
+  })
+
+  it('no mastery evidence renders the honest empty variant', () => {
+    const cards = deriveActionableStatCards({
+      stats: stats({
+        current_mastery_pct: null,
+        mastery_delta_pct: 0,
+        mastery_focus_label: '',
+      }),
       weakTopics,
     })
     const mastery = cards.find(c => c.id === 'mastery')!

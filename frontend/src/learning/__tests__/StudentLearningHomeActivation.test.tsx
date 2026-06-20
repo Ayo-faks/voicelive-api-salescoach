@@ -136,6 +136,7 @@ const adaptivePlan: LearnerDailyPlanResponse = {
 const warmStats = {
   sessions: { completed: 2, target: 5 },
   streak_days: 3,
+  current_mastery_pct: 62,
   mastery_delta_pct: 4,
   mastery_focus_label: 'Algebra',
 }
@@ -347,6 +348,7 @@ describe('StudentLearningHome activation surfaces (flags on)', () => {
     fetchWeeklyStatsMock.mockResolvedValue({
       sessions: { completed: 0, target: 5 },
       streak_days: 0,
+      current_mastery_pct: null,
       mastery_delta_pct: 0,
       mastery_focus_label: '',
     })
