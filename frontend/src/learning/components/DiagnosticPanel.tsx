@@ -29,6 +29,7 @@ export type DiagnosticPanelProps = {
   skillId?: string
   skillIds?: string[]
   subject?: string
+  diagnosticId?: string
   studentId?: string | null
   onCompleted?: (plan: PendingPlanRecord | null) => void
   onItemAnswered?: (result: AnswerDiagnosticResponse) => void
@@ -186,6 +187,41 @@ function languageLabel(value: string) {
   return 'In your language'
 }
 
+// Skill domains (the second segment of a skill ID like `jss3.algebra.linear`)
+// whose diagnostic answers are a single numeric value. Only these should see
+// the "type just the value, not x = 5" guidance — literacy/content items
+// (English comprehension, grammar, lexis, …) expect a word or short phrase, so
+// the numeric hint there reads as a Maths question. Anything not listed here
+// falls back to the free-text hint, which is safe for new subjects too.
+const NUMERIC_ANSWER_DOMAINS = new Set([
+  'algebra',
+  'calc',
+  'coord',
+  'geometry',
+  'indices',
+  'logarithms',
+  'measurement',
+  'mensuration',
+  'number',
+  'number_and_numeration',
+  'numberbases',
+  'probability',
+  'quadratics',
+  'sequences',
+  'sequences_and_series',
+  'sets',
+  'statistics',
+  'surds',
+  'trig',
+  'trigonometry',
+  'variation',
+])
+
+function expectsNumericAnswer(skillId: string): boolean {
+  const domain = skillId.split('.').filter(Boolean)[1] ?? ''
+  return NUMERIC_ANSWER_DOMAINS.has(domain)
+}
+
 /**
  * Normalise a learner's typed answer before it is graded (#10).
  *
@@ -206,6 +242,7 @@ export default function DiagnosticPanel({
   skillId,
   skillIds,
   subject,
+  diagnosticId,
   studentId,
   onCompleted,
   onItemAnswered,
@@ -239,6 +276,7 @@ export default function DiagnosticPanel({
     startDiagnostic({
       ...(skillIds && skillIds.length > 0 ? { skill_ids: skillIds } : {}),
       ...(skillId ? { skill_id: skillId } : {}),
+      ...(diagnosticId ? { diagnostic_id: diagnosticId } : {}),
       ...(subject ? { subject } : {}),
       ...(studentId ? { student_id: studentId } : {}),
     })
@@ -251,7 +289,7 @@ export default function DiagnosticPanel({
         onError?.(err)
       })
       .finally(() => setBusy(false))
-  }, [skillId, skillIds, subject, onError, studentId])
+  }, [skillId, skillIds, subject, diagnosticId, onError, studentId])
 
   async function submitAnswer(e: React.FormEvent) {
     e.preventDefault()
@@ -352,8 +390,14 @@ export default function DiagnosticPanel({
             Submit
           </Button>
           <p className={styles.hint} data-testid="diagnostic-hint">
-            Type just the value — for example <strong>5</strong>, not{' '}
-            <strong>x = 5</strong>.
+            {expectsNumericAnswer(currentItem.skill_id) ? (
+              <>
+                Type just the value — for example <strong>5</strong>, not{' '}
+                <strong>x = 5</strong>.
+              </>
+            ) : (
+              'Answer in your own words — a short phrase or sentence is fine.'
+            )}
           </p>
         </form>
       )}

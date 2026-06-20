@@ -77,4 +77,53 @@ describe('DiagnosticPanel learner-facing labels', () => {
       expect(screen.getByText('Yoruba')).toBeTruthy()
     })
   })
+
+  it('shows the numeric answer hint for Maths-domain items', async () => {
+    startDiagnosticMock.mockResolvedValue(session('jss3.algebra.linear', 'en-NG'))
+
+    render(<DiagnosticPanel studentId="student-1" />)
+
+    const hint = await screen.findByTestId('diagnostic-hint')
+    expect(hint.textContent).toContain('Type just the value')
+    expect(hint.textContent).toContain('x = 5')
+  })
+
+  it('shows a free-text hint for English items, not the Maths "value" hint', async () => {
+    startDiagnosticMock.mockResolvedValue(
+      session('ss3.english.comprehension.main_idea', 'en-NG')
+    )
+
+    render(<DiagnosticPanel studentId="student-1" />)
+
+    const hint = await screen.findByTestId('diagnostic-hint')
+    expect(hint.textContent).toContain('Answer in your own words')
+    expect(hint.textContent).not.toContain('Type just the value')
+    expect(hint.textContent).not.toContain('x = 5')
+  })
+
+  it('passes diagnostic_id through to diagnostic startup', async () => {
+    startDiagnosticMock.mockResolvedValue(
+      session('ss3.lexis_and_structure.sentence_completion', 'en-NG')
+    )
+
+    render(
+      <DiagnosticPanel
+        studentId="student-1"
+        skillId="ss3.lexis_and_structure.sentence_completion"
+        subject="english-jss3-ss3"
+        diagnosticId="english-jss3-ss3-v1"
+      />
+    )
+
+    await waitFor(() => {
+      expect(startDiagnosticMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          student_id: 'student-1',
+          skill_id: 'ss3.lexis_and_structure.sentence_completion',
+          subject: 'english-jss3-ss3',
+          diagnostic_id: 'english-jss3-ss3-v1',
+        })
+      )
+    })
+  })
 })

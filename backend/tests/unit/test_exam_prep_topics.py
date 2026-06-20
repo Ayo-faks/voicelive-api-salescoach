@@ -9,13 +9,31 @@ topic's items even when it falls outside the round-robin diagnostic sample.
 from __future__ import annotations
 
 import pytest
+from flask import Flask
 
-from src.learning.api import LearningApi
+from src.learning.api import LearningApi, LearningApiError, register_learning_api
 
 
 @pytest.fixture()
 def learning_api() -> LearningApi:
     return LearningApi()
+
+
+@pytest.fixture()
+def client(learning_api: LearningApi):
+    app = Flask(__name__)
+    app.config["TESTING"] = True
+    register_learning_api(app, learning_api)
+    return app.test_client()
+
+
+def test_exam_prep_topics_route_serves_catalogue(client):
+    response = client.get("/api/learning/exam-prep/topics")
+
+    assert response.status_code == 200, response.get_data(as_text=True)
+    body = response.get_json()
+    assert body["topic_count"] == len(body["topics"])
+    assert any(topic["subject"] == "english" for topic in body["topics"])
 
 
 def test_catalogue_groups_real_topics_by_subject(learning_api: LearningApi):
@@ -127,6 +145,32 @@ def test_targeted_topic_practice_serves_that_skill(learning_api: LearningApi):
 
     assert result["item"] is not None
     assert result["item"]["skill_id"] == topic["skill_id"]
+
+
+def test_subjectless_skill_practice_infers_owning_bank(learning_api: LearningApi):
+    catalogue = learning_api.build_exam_prep_topics()
+    topic = next(
+        entry for entry in catalogue["topics"] if entry["subject"] == "english"
+    )
+
+    result = learning_api.start_diagnostic(
+        {
+            "skill_id": topic["skill_id"],
+            "student_id": "exam-prep-learner",
+        }
+    )
+
+    assert result["diagnostic_id"] == topic["diagnostic_id"]
+    assert result["subject"] == topic["diagnostic_subject"]
+    assert result["item"] is not None
+    assert result["item"]["skill_id"] == topic["skill_id"]
+
+
+def test_unknown_skill_without_subject_does_not_fall_back_to_maths(
+    learning_api: LearningApi,
+):
+    with pytest.raises(LearningApiError, match="unknown skill_id"):
+        learning_api.start_diagnostic({"skill_id": "english.missing.skill"})
 
 
 def test_multi_skill_topic_session_interleaves_all_topic_skills(

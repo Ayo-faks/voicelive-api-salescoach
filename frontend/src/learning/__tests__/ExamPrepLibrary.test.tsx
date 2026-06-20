@@ -8,6 +8,7 @@ vi.mock('../components/DiagnosticPanel', () => ({
     skillId?: string
     skillIds?: string[]
     subject?: string
+    diagnosticId?: string
     studentId?: string | null
   }) => {
     diagnosticPanelMock(props)
@@ -235,6 +236,7 @@ describe('ExamPrepLibrary live catalogue', () => {
       expect.objectContaining({
         skillId: 'ss3.motion.projectiles',
         subject: 'physics',
+        diagnosticId: 'diag-physics',
         studentId: 'student-1',
       })
     )
@@ -259,6 +261,7 @@ describe('ExamPrepLibrary live catalogue', () => {
       expect.objectContaining({
         skillIds: ['ss3.motion.newtons_laws', 'ss3.motion.projectiles'],
         subject: 'physics',
+        diagnosticId: 'diag-physics',
         studentId: 'student-1',
       })
     )

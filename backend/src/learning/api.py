@@ -876,7 +876,38 @@ class LearningApi:
             if bank is None:
                 raise LearningApiError(f"unknown subject {subject!r}", status_code=404)
             return bank
+        # No diagnostic_id and no subject: infer the owning bank from the
+        # skill(s) being practised so subject-specific exam-prep skills (e.g.
+        # English) resolve to their own bank instead of silently falling back
+        # to the Maths default. An unrecognised skill must error rather than
+        # quietly serving a Maths question.
+        skill_id = payload.get("skill_id")
+        if not skill_id:
+            raw_skill_ids = payload.get("skill_ids")
+            if isinstance(raw_skill_ids, (list, tuple)):
+                skill_id = next((str(value) for value in raw_skill_ids if value), None)
+        if skill_id:
+            bank = self._bank_for_skill(str(skill_id))
+            if bank is not None:
+                return bank
+            raise LearningApiError(
+                f"unknown skill_id: {skill_id}", status_code=404
+            )
         return self.item_bank
+
+    def _bank_for_skill(self, skill_id: str) -> Optional[DiagnosticItemBank]:
+        """Return the registered bank that owns ``skill_id`` (or ``None``).
+
+        Lets subjectless practice requests resolve to the right subject bank
+        instead of defaulting to Maths. The first registered bank listing the
+        skill wins, which keeps shared Maths skills on the default bank.
+        """
+
+        for bank in self._banks_by_id.values():
+            for skill in bank.skills:
+                if skill.skill_id == skill_id:
+                    return bank
+        return None
 
     def answer_diagnostic(self, payload: Mapping[str, Any]) -> Dict[str, Any]:
         session_id = str(payload.get("session_id") or "").strip()
@@ -4646,6 +4677,11 @@ def register_learning_api(app: Flask, api: Optional[LearningApi] = None) -> Lear
 
         view.__name__ = handler.__name__
         return view
+
+    @app.route("/api/learning/exam-prep/topics", methods=["GET"])
+    @_wrap
+    def _exam_prep_topics(payload: Dict[str, Any]) -> Dict[str, Any]:
+        return learning_api.build_exam_prep_topics()
 
     @app.route("/api/learning/diagnostic/start", methods=["POST"])
     @_wrap

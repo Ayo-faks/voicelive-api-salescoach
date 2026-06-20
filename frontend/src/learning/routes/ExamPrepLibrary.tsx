@@ -54,6 +54,7 @@ type ExamRow = {
   year: string
   exam: string
   diagnosticSubject?: string
+  diagnosticId?: string
 }
 
 /** A concrete practice session target (whole topic or a single skill). */
@@ -64,6 +65,7 @@ type PracticeTarget = {
   skillIds?: string[]
   subject: string
   diagnosticSubject?: string
+  diagnosticId?: string
 }
 
 function activityToRow(item: Activity): ExamRow {
@@ -96,6 +98,7 @@ function topicToRow(topic: ExamPrepTopic): ExamRow {
     year: topic.year,
     exam: topic.exam,
     diagnosticSubject: topic.diagnostic_subject,
+    diagnosticId: topic.diagnostic_id,
   }
 }
 
@@ -517,6 +520,7 @@ export default function ExamPrepLibrary({ studentId }: ExamPrepLibraryProps) {
         skillIds: skillIds.length > 0 ? skillIds : undefined,
         subject: item.subject,
         diagnosticSubject: item.diagnosticSubject,
+        diagnosticId: item.diagnosticId,
       }
     }
     const skill = item.skills.find(entry => entry.skill_id === skillSlug)
@@ -527,6 +531,7 @@ export default function ExamPrepLibrary({ studentId }: ExamPrepLibraryProps) {
         skillId: skill.skill_id,
         subject: item.subject,
         diagnosticSubject: item.diagnosticSubject,
+        diagnosticId: item.diagnosticId,
       }
     }
     // A skill-less teaser topic practised straight from the library.
@@ -536,6 +541,7 @@ export default function ExamPrepLibrary({ studentId }: ExamPrepLibraryProps) {
       skillId: item.skillId,
       subject: item.subject,
       diagnosticSubject: item.diagnosticSubject,
+      diagnosticId: item.diagnosticId,
     }
   }, [topicSlug, skillSlug, rows])
 
@@ -630,6 +636,7 @@ export default function ExamPrepLibrary({ studentId }: ExamPrepLibraryProps) {
             skillId={practice.skillId}
             skillIds={practice.skillIds}
             subject={practice.diagnosticSubject ?? practice.subject}
+            diagnosticId={practice.diagnosticId}
             studentId={studentId}
           />
         </div>
