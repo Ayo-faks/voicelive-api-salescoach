@@ -181,6 +181,72 @@ def test_typed_practice_request_returns_mcq_card_not_prose(client: Any) -> None:
     assert blocks[0]["speak"]
 
 
+def test_typed_practice_subject_overrides_profile_subject(client: Any) -> None:
+    resp = _turn(
+        client,
+        {
+            "user_id": "student-001",
+            "child_id": "student-001",
+            "question": "give me agric questions to practice",
+            "learner_setup": {"subject": "mathematics", "year_group": "SS2"},
+        },
+    )
+    assert resp.status_code == 200
+    blocks = resp.get_json()["blocks"]
+    assert len(blocks) == 1
+    assert blocks[0]["kind"] == "mcq-tap"
+    assert blocks[0]["skill_id"].startswith("ss3.agricultural_science.")
+    assert blocks[0]["skill_id"] != "differentiation"
+
+
+def test_assistant_practice_answer_updates_mastery(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("PATHFINDER_ASSISTANT_LLM_ENABLED", "false")
+    reload_config()
+    api = LearningApi()
+    try:
+        first = api.run_assistant_turn(
+            {
+                "user_id": "student-001",
+                "child_id": "student-001",
+                "intent": "practice",
+                "exam": "WAEC",
+                "class_year": "SSS3",
+                "subject": "physics",
+                "skill_id": "ss3.physics.measurements.phys_def",
+                "skill_strict": True,
+                "max_questions": 1,
+            }
+        )
+        card = first["blocks"][0]
+        assert card["kind"] == "mcq-tap"
+
+        second = api.run_assistant_turn(
+            {
+                "user_id": "student-001",
+                "child_id": "student-001",
+                "exam": "WAEC",
+                "class_year": "SSS3",
+                "subject": "physics",
+                "skill_id": "ss3.physics.measurements.phys_def",
+                "skill_strict": True,
+                "max_questions": 1,
+                "last_card_id": card["card_id"],
+                "last_kind": "mcq-tap",
+                "answer_option_id": "a",
+            }
+        )
+        assert second["blocks"][0]["kind"] == "progress"
+        assert second.get("mastery_estimate", {}).get("probability") > 0.5
+        mastery_events = getattr(api.repository, "mastery_events", [])
+        assert mastery_events[-1]["skill_id"] == "ss3.physics.measurements.phys_def"
+        assert mastery_events[-1]["student_id"] == "student-001"
+        assert "scored_answer" not in second
+    finally:
+        reload_config()
+
+
 def test_typed_question_still_returns_prose(client: Any) -> None:
     # A genuine concept question must NOT be hijacked into a quiz.
     resp = _turn(

@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { MemoryRouter } from 'react-router-dom'
 import type {
@@ -23,9 +23,13 @@ vi.mock('../api', async importOriginal => {
   }
 })
 
+const practiceFullscreenProps = vi.hoisted(() => vi.fn())
+
 vi.mock('../components/PracticeFullscreen', () => ({
-  default: (props: { open: boolean }) =>
-    props.open ? <div data-testid="practice-fullscreen-mock" /> : null,
+  default: (props: { open: boolean; onSessionComplete?: () => void }) => {
+    practiceFullscreenProps(props)
+    return props.open ? <div data-testid="practice-fullscreen-mock" /> : null
+  },
 }))
 
 vi.mock('../components/LearnerTutorFullscreen', () => ({
@@ -107,6 +111,7 @@ const adaptivePlan: LearnerDailyPlanResponse = {
 
 afterEach(() => {
   window.localStorage.clear()
+  practiceFullscreenProps.mockReset()
   fetchLearnerPlanMock.mockReset()
   fetchWeeklyStatsMock.mockReset()
   vi.restoreAllMocks()
@@ -251,5 +256,58 @@ describe('StudentLearningHome weekly stats wiring', () => {
       expect(screen.getAllByText('No sessions yet').length).toBeGreaterThan(0)
     })
     expect(screen.queryByText('+12%')).toBeNull()
+  })
+
+  it('refetches weekly stats and weak-topic plan when practice completes', async () => {
+    mockConfigFetch()
+    const refreshedPlan: LearnerDailyPlanResponse = {
+      ...adaptivePlan,
+      weak_topics: [
+        {
+          skill_id: 'ss3.physics.measurements.phys_def',
+          label: 'Physics definition',
+          mastery: 33,
+          gap: 'Needs another pass',
+          next_action: 'Try one more physics card.',
+        },
+      ],
+    }
+    fetchLearnerPlanMock
+      .mockResolvedValueOnce(adaptivePlan)
+      .mockResolvedValue(refreshedPlan)
+    fetchWeeklyStatsMock
+      .mockResolvedValueOnce({
+        sessions: { completed: 0, target: 5 },
+        streak_days: 0,
+        mastery_delta_pct: 0,
+        mastery_focus_label: '',
+      })
+      .mockResolvedValue({
+        sessions: { completed: 1, target: 5 },
+        streak_days: 1,
+        mastery_delta_pct: 0,
+        mastery_focus_label: 'Physics definition',
+      })
+
+    render(
+      <MemoryRouter>
+        <StudentLearningHome studentId="student-001" />
+      </MemoryRouter>
+    )
+
+    const practiceButton = await screen.findByRole('button', {
+      name: /Open practice: Adaptive differentiation check-in/i,
+    })
+    fireEvent.click(practiceButton)
+    await waitFor(() => expect(practiceFullscreenProps).toHaveBeenCalled())
+    const latestProps = practiceFullscreenProps.mock.calls.at(-1)?.[0]
+    latestProps?.onSessionComplete?.()
+
+    await waitFor(() => expect(fetchLearnerPlanMock).toHaveBeenCalledTimes(2))
+    await waitFor(() => expect(fetchWeeklyStatsMock).toHaveBeenCalledTimes(2))
+    await waitFor(() => {
+      expect(screen.getAllByText('Physics definition').length).toBeGreaterThan(0)
+    })
+    expect(screen.getAllByText('1 / 5').length).toBeGreaterThan(0)
   })
 })

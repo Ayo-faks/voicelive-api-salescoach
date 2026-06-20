@@ -890,6 +890,7 @@ export async function submitVoiceFrame(payload: {
 export type LearnerVoiceCardKind =
   | 'greeting'
   | 'mcq-tap'
+  | 'free-response'
   | 'explanation'
   | 'progress'
   | 'mark-known'
@@ -919,6 +920,14 @@ export interface LearnerVoiceMcqCard extends LearnerVoiceCardBase {
   skill_id?: string | null
 }
 
+export interface LearnerVoiceFreeResponseCard extends LearnerVoiceCardBase {
+  kind: 'free-response'
+  prompt: string
+  skill_id?: string | null
+  placeholder?: string | null
+  submit_label?: string | null
+}
+
 export interface LearnerVoiceExplanationCard extends LearnerVoiceCardBase {
   kind: 'explanation'
   title: string
@@ -941,6 +950,7 @@ export interface LearnerVoiceMarkKnownCard extends LearnerVoiceCardBase {
 export type LearnerVoiceCard =
   | LearnerVoiceGreetingCard
   | LearnerVoiceMcqCard
+  | LearnerVoiceFreeResponseCard
   | LearnerVoiceExplanationCard
   | LearnerVoiceProgressCard
   | LearnerVoiceMarkKnownCard
@@ -951,12 +961,15 @@ export interface LearnerVoiceTurnRequest {
   last_card_id?: string | null
   last_kind?: LearnerVoiceCardKind | null
   answer_option_id?: string | null
+  answer_text?: string | null
   advance?: boolean
   exam?: string | null
   class_year?: string | null
   subject?: string | null
   /** Optional forced lead skill — the planner leads with it when available. */
   skill_id?: string | null
+  skill_strict?: boolean
+  max_questions?: number | null
 }
 
 export interface LearnerVoiceTurnResponse {

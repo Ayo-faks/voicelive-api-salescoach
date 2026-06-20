@@ -3,8 +3,8 @@
  *
  * Promotes the previously hard-coded exam-prep catalogue out of the learner
  * home into its own navigable, searchable, and filterable page. Selecting an
- * item starts a *visible* practice session inline (a `DiagnosticPanel`), scrolls
- * it into view, and offers a back control — replacing the old dead-click that
+ * item starts the shared tutor-card + voice practice surface, scrolls the page
+ * into context, and offers a back control — replacing the old dead-click that
  * silently mutated home state.
  */
 import { Input, Text, makeStyles } from '@fluentui/react-components'
@@ -15,9 +15,9 @@ import {
   MagnifyingGlassIcon,
   PlayCircleIcon,
 } from '@heroicons/react/24/outline'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import DiagnosticPanel from '../components/DiagnosticPanel'
+import PracticeFullscreen from '../components/PracticeFullscreen'
 import {
   fetchExamPrepTopics,
   type ExamPrepSkill,
@@ -64,8 +64,41 @@ type PracticeTarget = {
   skillId?: string
   skillIds?: string[]
   subject: string
+  exam?: string
+  classYear?: string
+  skillStrict?: boolean
+  maxQuestions?: number
   diagnosticSubject?: string
   diagnosticId?: string
+}
+
+const EXAM_PREP_MAX_QUESTIONS = 10
+
+function voiceClassYear(year: string): string | undefined {
+  const normalized = year.trim().toUpperCase()
+  const senior = normalized.match(/^SSS?(\d)$/)
+  if (senior) return `SSS${senior[1]}`
+  if (/^JSS\d$/.test(normalized)) return normalized
+  return undefined
+}
+
+function voiceExamForYear(year: string, exam: string): string | undefined {
+  const classYear = voiceClassYear(year)
+  if (classYear?.startsWith('JSS')) return 'Junior WAEC'
+  if (classYear?.startsWith('SSS')) return 'WAEC'
+  return ['WAEC', 'NECO', 'JAMB', 'Junior WAEC'].includes(exam)
+    ? exam
+    : undefined
+}
+
+function examPrepVoiceTaxonomy(item: ExamRow): {
+  exam?: string
+  classYear?: string
+} {
+  return {
+    exam: voiceExamForYear(item.year, item.exam),
+    classYear: voiceClassYear(item.year),
+  }
 }
 
 function activityToRow(item: Activity): ExamRow {
@@ -134,7 +167,7 @@ const useStyles = makeStyles({
     paddingTop: '8px',
     paddingBottom: '12px',
     backgroundColor: 'var(--pf-page)',
-    boxShadow: `0 1px 0 var(--pf-line)`,
+    boxShadow: '0 1px 0 var(--pf-line)',
   },
   searchBox: { maxWidth: '420px' },
   filterRow: {
@@ -152,7 +185,7 @@ const useStyles = makeStyles({
     marginRight: '4px',
   },
   pillButton: {
-    border: `1px solid var(--pf-line)`,
+    border: '1px solid var(--pf-line)',
     backgroundColor: 'var(--pf-surface)',
     color: 'var(--pf-text-secondary)',
     borderRadius: t.radius.pill,
@@ -162,7 +195,7 @@ const useStyles = makeStyles({
     cursor: 'pointer',
   },
   pillButtonActive: {
-    border: `1px solid var(--pf-ink)`,
+    border: '1px solid var(--pf-ink)',
     backgroundColor: 'var(--pf-ink)',
     color: 'var(--pf-on-ink)',
     borderRadius: t.radius.pill,
@@ -182,7 +215,7 @@ const useStyles = makeStyles({
     minHeight: t.control.minHeight,
     textAlign: 'left',
     font: 'inherit',
-    border: `1px solid var(--pf-line)`,
+    border: '1px solid var(--pf-line)',
     backgroundColor: 'var(--pf-surface-muted)',
     borderRadius: t.radius.control,
     padding: '8px 14px',
@@ -208,15 +241,15 @@ const useStyles = makeStyles({
     width: '100%',
     textAlign: 'left',
     font: 'inherit',
-    border: `1px solid var(--pf-line)`,
+    border: '1px solid var(--pf-line)',
     backgroundColor: 'var(--pf-surface)',
     borderRadius: t.radius.lg,
     padding: '12px 14px',
     cursor: 'pointer',
   },
   rowActive: {
-    border: `1px solid var(--pf-ink)`,
-    boxShadow: `0 0 0 1px var(--pf-ink)`,
+    border: '1px solid var(--pf-ink)',
+    boxShadow: '0 0 0 1px var(--pf-ink)',
   },
   rowIcon: {    display: 'inline-flex',
     width: '36px',
@@ -240,7 +273,7 @@ const useStyles = makeStyles({
     whiteSpace: 'nowrap',
   },
   empty: {
-    border: `1px dashed var(--pf-line)`,
+    border: '1px dashed var(--pf-line)',
     borderRadius: t.radius.lg,
     padding: '24px',
     textAlign: 'center',
@@ -249,7 +282,7 @@ const useStyles = makeStyles({
   practice: {
     display: 'grid',
     gap: '12px',
-    border: `1px solid var(--pf-line)`,
+    border: '1px solid var(--pf-line)',
     borderRadius: t.radius.xl,
     padding: '16px',
     backgroundColor: 'var(--pf-surface-muted)',
@@ -265,7 +298,7 @@ const useStyles = makeStyles({
     display: 'inline-flex',
     alignItems: 'center',
     gap: '6px',
-    border: `1px solid var(--pf-line)`,
+    border: '1px solid var(--pf-line)',
     backgroundColor: 'var(--pf-surface)',
     color: 'var(--pf-text)',
     borderRadius: t.radius.pill,
@@ -303,7 +336,7 @@ const useStyles = makeStyles({
     display: 'inline-flex',
     alignItems: 'center',
     gap: '8px',
-    border: `1px solid var(--pf-ink)`,
+    border: '1px solid var(--pf-ink)',
     backgroundColor: 'var(--pf-ink)',
     color: 'var(--pf-on-ink)',
     borderRadius: t.radius.pill,
@@ -321,7 +354,7 @@ const useStyles = makeStyles({
     width: '100%',
     textAlign: 'left',
     font: 'inherit',
-    border: `1px solid var(--pf-line)`,
+    border: '1px solid var(--pf-line)',
     backgroundColor: 'var(--pf-surface)',
     borderRadius: t.radius.lg,
     padding: '12px 14px',
@@ -332,7 +365,7 @@ const useStyles = makeStyles({
     width: '10px',
     height: '10px',
     borderRadius: t.radius.pill,
-    border: `1px solid var(--pf-line)`,
+    border: '1px solid var(--pf-line)',
     backgroundColor: 'var(--pf-surface-muted)',
     flexShrink: 0,
   },
@@ -488,7 +521,7 @@ export default function ExamPrepLibrary({ studentId }: ExamPrepLibraryProps) {
   const searchOrFilterActive =
     query.trim() !== '' || subject !== 'All' || track !== 'All'
 
-  const startPractice = () => {
+  const startPractice = useCallback(() => {
     // Defer the scroll until the panel has mounted.
     window.requestAnimationFrame(() => {
       practiceRef.current?.scrollIntoView({
@@ -496,7 +529,7 @@ export default function ExamPrepLibrary({ studentId }: ExamPrepLibraryProps) {
         block: 'start',
       })
     })
-  }
+  }, [])
 
   // The topic detail and practice session are resolved from the URL segments
   // against the loaded catalogue, so a refresh or shared deep link lands on the
@@ -519,6 +552,9 @@ export default function ExamPrepLibrary({ studentId }: ExamPrepLibraryProps) {
         skillId: item.skillId,
         skillIds: skillIds.length > 0 ? skillIds : undefined,
         subject: item.subject,
+        ...examPrepVoiceTaxonomy(item),
+        skillStrict: false,
+        maxQuestions: EXAM_PREP_MAX_QUESTIONS,
         diagnosticSubject: item.diagnosticSubject,
         diagnosticId: item.diagnosticId,
       }
@@ -530,6 +566,9 @@ export default function ExamPrepLibrary({ studentId }: ExamPrepLibraryProps) {
         title: `${item.title} · ${skill.label}`,
         skillId: skill.skill_id,
         subject: item.subject,
+        ...examPrepVoiceTaxonomy(item),
+        skillStrict: true,
+        maxQuestions: EXAM_PREP_MAX_QUESTIONS,
         diagnosticSubject: item.diagnosticSubject,
         diagnosticId: item.diagnosticId,
       }
@@ -540,6 +579,9 @@ export default function ExamPrepLibrary({ studentId }: ExamPrepLibraryProps) {
       title: item.title,
       skillId: item.skillId,
       subject: item.subject,
+      ...examPrepVoiceTaxonomy(item),
+      skillStrict: Boolean(item.skillId),
+      maxQuestions: EXAM_PREP_MAX_QUESTIONS,
       diagnosticSubject: item.diagnosticSubject,
       diagnosticId: item.diagnosticId,
     }
@@ -548,8 +590,7 @@ export default function ExamPrepLibrary({ studentId }: ExamPrepLibraryProps) {
   // Scroll the practice panel into view whenever a session opens.
   useEffect(() => {
     if (practice) startPractice()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [practice?.key])
+  }, [practice, startPractice])
 
   const goToPath = (path: string) => navigate(path)
 
@@ -631,13 +672,23 @@ export default function ExamPrepLibrary({ studentId }: ExamPrepLibraryProps) {
                 : 'Back to library'}
             </button>
           </div>
-          <DiagnosticPanel
+          <PracticeFullscreen
             key={practice.key}
+            open
+            onClose={() =>
+              goToPath(
+                activeTopic && activeTopic.skills.length > 0
+                  ? `/exam-prep/${encodeURIComponent(activeTopic.id)}`
+                  : '/exam-prep'
+              )
+            }
+            childId={studentId ?? 'exam-prep-learner'}
+            exam={practice.exam}
+            classYear={practice.classYear}
+            subject={practice.subject}
             skillId={practice.skillId}
-            skillIds={practice.skillIds}
-            subject={practice.diagnosticSubject ?? practice.subject}
-            diagnosticId={practice.diagnosticId}
-            studentId={studentId}
+            skillStrict={practice.skillStrict}
+            maxQuestions={practice.maxQuestions}
           />
         </div>
       ) : activeTopic ? (

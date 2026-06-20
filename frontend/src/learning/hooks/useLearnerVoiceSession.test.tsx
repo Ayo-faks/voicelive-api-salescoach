@@ -88,6 +88,8 @@ describe('useLearnerVoiceSession', () => {
 
     await waitFor(() => expect(FakeWebSocket.instances).toHaveLength(1))
     const ws = FakeWebSocket.instances[0]
+    expect(ws.url).toContain('/ws/voice')
+    expect(ws.url).not.toContain(':8000')
     expect(ws.url).toContain('last_card_id=card-1')
     expect(ws.url).toContain('last_kind=mcq-tap')
 

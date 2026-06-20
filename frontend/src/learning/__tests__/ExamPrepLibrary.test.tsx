@@ -1,20 +1,24 @@
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-const diagnosticPanelMock = vi.hoisted(() => vi.fn())
+const practiceFullscreenMock = vi.hoisted(() => vi.fn())
 
-vi.mock('../components/DiagnosticPanel', () => ({
+vi.mock('../components/PracticeFullscreen', () => ({
   default: (props: {
-    skillId?: string
-    skillIds?: string[]
+    open: boolean
+    onClose: () => void
+    childId: string
+    exam?: string
+    classYear?: string
     subject?: string
-    diagnosticId?: string
-    studentId?: string | null
+    skillId?: string
+    skillStrict?: boolean
+    maxQuestions?: number
   }) => {
-    diagnosticPanelMock(props)
+    practiceFullscreenMock(props)
     return (
-      <div data-testid="diagnostic-panel-mock">
-        {props.skillId} · {props.subject} · {props.studentId}
+      <div data-testid="practice-fullscreen-mock">
+        {props.skillId} · {props.subject} · {props.childId}
       </div>
     )
   },
@@ -54,7 +58,7 @@ beforeEach(() => {
 })
 
 afterEach(() => {
-  diagnosticPanelMock.mockClear()
+  practiceFullscreenMock.mockClear()
   fetchExamPrepTopicsMock.mockReset()
   vi.restoreAllMocks()
 })
@@ -117,12 +121,16 @@ describe('ExamPrepLibrary', () => {
 
     const practice = screen.getByTestId('exam-prep-practice')
     expect(practice).toBeTruthy()
-    expect(within(practice).getByTestId('diagnostic-panel-mock')).toBeTruthy()
-    expect(diagnosticPanelMock).toHaveBeenCalledWith(
+    expect(within(practice).getByTestId('practice-fullscreen-mock')).toBeTruthy()
+    expect(practiceFullscreenMock).toHaveBeenCalledWith(
       expect.objectContaining({
+        childId: 'student-1',
+        exam: 'WAEC',
+        classYear: 'SSS3',
         skillId: 'ss3.indices.laws_of_indices',
         subject: 'mathematics',
-        studentId: 'student-1',
+        skillStrict: true,
+        maxQuestions: 10,
       })
     )
   })
@@ -220,7 +228,7 @@ describe('ExamPrepLibrary live catalogue', () => {
     expect(
       within(detail).getByTestId('exam-prep-skill-ss3.motion.projectiles')
     ).toBeTruthy()
-    expect(diagnosticPanelMock).not.toHaveBeenCalled()
+    expect(practiceFullscreenMock).not.toHaveBeenCalled()
   })
 
   it('practises a single drilled-into skill', async () => {
@@ -232,12 +240,15 @@ describe('ExamPrepLibrary live catalogue', () => {
     fireEvent.click(screen.getByTestId('exam-prep-skill-ss3.motion.projectiles'))
 
     expect(screen.getByTestId('exam-prep-practice')).toBeTruthy()
-    expect(diagnosticPanelMock).toHaveBeenCalledWith(
+    expect(practiceFullscreenMock).toHaveBeenCalledWith(
       expect.objectContaining({
+        childId: 'student-1',
+        exam: 'WAEC',
+        classYear: 'SSS3',
         skillId: 'ss3.motion.projectiles',
         subject: 'physics',
-        diagnosticId: 'diag-physics',
-        studentId: 'student-1',
+        skillStrict: true,
+        maxQuestions: 10,
       })
     )
 
@@ -256,13 +267,16 @@ describe('ExamPrepLibrary live catalogue', () => {
     fireEvent.click(screen.getByTestId('exam-prep-practice-all'))
 
     expect(screen.getByTestId('exam-prep-practice')).toBeTruthy()
-    // "Practise all" runs a multi-skill session across every topic skill.
-    expect(diagnosticPanelMock).toHaveBeenCalledWith(
+    // "Practise all" opens the topic's representative skill without strict filtering.
+    expect(practiceFullscreenMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        skillIds: ['ss3.motion.newtons_laws', 'ss3.motion.projectiles'],
+        childId: 'student-1',
+        exam: 'WAEC',
+        classYear: 'SSS3',
+        skillId: 'ss3.motion.newtons_laws',
         subject: 'physics',
-        diagnosticId: 'diag-physics',
-        studentId: 'student-1',
+        skillStrict: false,
+        maxQuestions: 10,
       })
     )
   })
@@ -292,10 +306,14 @@ describe('ExamPrepLibrary live catalogue', () => {
     )
 
     expect(screen.getByTestId('exam-prep-practice')).toBeTruthy()
-    expect(diagnosticPanelMock).toHaveBeenCalledWith(
+    expect(practiceFullscreenMock).toHaveBeenCalledWith(
       expect.objectContaining({
+        childId: 'student-1',
+        exam: 'WAEC',
+        classYear: 'SSS3',
         skillId: 'ss3.indices.laws_of_indices',
-        studentId: 'student-1',
+        subject: 'mathematics',
+        skillStrict: true,
       })
     )
   })

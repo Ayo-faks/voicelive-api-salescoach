@@ -2333,12 +2333,14 @@ export default function StudentLearningHome({
   const [serverPlanItems, setServerPlanItems] = useState<
     Array<{ skillId: string; label: string }>
   >([])
+  const [planRefreshKey, setPlanRefreshKey] = useState(0)
   useEffect(() => {
     if (!featureFlags.pathfinder_learner_onboarding_enabled) return
     let cancelled = false
+    const requestVersion = planRefreshKey
     fetchLearnerPlan(studentId ? { student_id: studentId } : {})
       .then(plan => {
-        if (cancelled) return
+        if (cancelled || requestVersion !== planRefreshKey) return
         setServerPlanItems(
           plan.today
             .filter(item => item.skill_id)
@@ -2376,7 +2378,7 @@ export default function StudentLearningHome({
     return () => {
       cancelled = true
     }
-  }, [studentId])
+  }, [studentId, planRefreshKey])
   // Career pathways start from the deterministic local list and are replaced by
   // the per-learner mastery-ranked plan from `GET /api/learning/learner/careers`
   // when the onboarding flag is on. Flag-off builds keep the static array.
@@ -2420,7 +2422,12 @@ export default function StudentLearningHome({
   // when the onboarding flag is on. Flag-off (demo/tests) keeps the static
   // `weeklyTiles`; loading shows neutral placeholders; error/cold-start shows an
   // honest empty state — never the old fabricated 4/5 · 7 days · +12%.
-  const weekly = useWeeklyStats(studentId)
+  const [weeklyRefreshKey, setWeeklyRefreshKey] = useState(0)
+  const refreshLearningProgress = useCallback(() => {
+    setPlanRefreshKey(value => value + 1)
+    setWeeklyRefreshKey(value => value + 1)
+  }, [])
+  const weekly = useWeeklyStats(studentId, weeklyRefreshKey)
   const resolvedWeeklyTiles: WeeklyTile[] =
     weekly.status === 'idle'
       ? weeklyTiles
@@ -4161,6 +4168,7 @@ export default function StudentLearningHome({
           classYear={learnerSetup.year}
           subject={learnerSetup.subject}
           skillId={forcedPracticeSkill ?? undefined}
+          onSessionComplete={refreshLearningProgress}
         />
       )}
 

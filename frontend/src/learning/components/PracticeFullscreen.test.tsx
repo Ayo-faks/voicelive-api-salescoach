@@ -13,7 +13,8 @@ import PracticeFullscreen from './PracticeFullscreen'
 const firstCard: LearnerVoiceCard = {
   card_id: 'card-1',
   kind: 'mcq-tap',
-  speak: 'Choose the ratio answer.',
+  speak:
+    'Hi — let\'s do a quick WAEC SSS2 Mathematics check. Question 1 of 2. 2 cups rice need 3 cups water. What do 6 cups need?',
   stem: '2 cups rice need 3 cups water. What do 6 cups need?',
   options: [
     { id: 'a', label: 'A', text: '6 cups' },
@@ -30,6 +31,25 @@ const voiceCard: LearnerVoiceCard = {
     { id: 'a', label: 'A', text: '400 naira' },
     { id: 'b', label: 'B', text: '1600 naira' },
   ],
+}
+
+const freeResponseCard: LearnerVoiceCard = {
+  card_id: 'free-1',
+  kind: 'free-response',
+  speak:
+    "Hi — let's do a quick Junior WAEC JSS3 english check. Question 1 of 1. Choose the word closest in meaning to 'reluctant'.",
+  prompt: "Choose the word closest in meaning to 'reluctant'.",
+  skill_id: 'jss3.english.vocab.synonyms',
+  placeholder: 'Type or say your answer',
+  submit_label: 'Check answer',
+}
+
+const progressCard: LearnerVoiceCard = {
+  card_id: 'progress-1',
+  kind: 'progress',
+  speak: 'Nice work.',
+  completed: 1,
+  total: 1,
 }
 
 const apiMock = vi.hoisted(() => ({
@@ -116,12 +136,23 @@ describe('PracticeFullscreen voice answers', () => {
   })
 
   it('removes the old tutor chip, keeps the card mounted, and routes voice-active taps through the current WS card', async () => {
+    apiMock.runLearnerVoiceTurn.mockResolvedValue({
+      card: firstCard,
+      session_complete: false,
+    })
+
     render(
       <PracticeFullscreen open={true} onClose={() => {}} childId="stu-1" />
     )
 
     const cardSlot = screen.getByTestId('practice-card-slot')
     expect((await screen.findByTestId('practice-card')).getAttribute('data-card-id')).toBe('card-1')
+    expect(screen.getByTestId('practice-question-counter').textContent).toBe(
+      'Question 1 of 2'
+    )
+    expect(screen.getByTestId('practice-question-text').textContent).toContain(
+      '2 cups rice need 3 cups water'
+    )
     expect(screen.queryByTestId('practice-talk')).toBeNull()
     expect(screen.getByTestId('practice-voice-mic')).toBeTruthy()
     expect(screen.getByTestId('practice-voice-toggle')).toBeTruthy()
@@ -196,5 +227,89 @@ describe('PracticeFullscreen voice answers', () => {
     expect((await screen.findByTestId('practice-voice-error')).textContent).toContain(
       'Tutor needs your microphone to listen'
     )
+  })
+
+  it('does not show a voice error when the optional socket closes before mic use', async () => {
+    render(
+      <PracticeFullscreen open={true} onClose={() => {}} childId="stu-1" />
+    )
+
+    await screen.findByTestId('practice-card')
+    await waitFor(() => expect(FakeWebSocket.instances).toHaveLength(1))
+    await waitFor(() =>
+      expect(screen.getByTestId('practice-voice-state').textContent).toBe('Ready')
+    )
+    act(() => {
+      FakeWebSocket.instances[0].onclose?.()
+    })
+
+    expect(screen.queryByTestId('practice-voice-error')).toBeNull()
+    await waitFor(() =>
+      expect(screen.getByTestId('practice-voice-state').textContent).toBe('Ready')
+    )
+  })
+
+  it('submits typed free-response answers through the voice turn API', async () => {
+    apiMock.runLearnerVoiceTurn.mockReset()
+    apiMock.runLearnerVoiceTurn.mockResolvedValue({
+      card: freeResponseCard,
+      session_complete: false,
+    })
+
+    render(
+      <PracticeFullscreen open={true} onClose={() => {}} childId="stu-1" />
+    )
+
+    const input = await screen.findByTestId('practice-free-response-input')
+    const cardText = screen.getByTestId('practice-card').textContent ?? ''
+    expect(cardText).toContain(
+      "Hi — let's do a quick Junior WAEC JSS3 english check."
+    )
+    expect(screen.getByTestId('practice-question-counter').textContent).toBe(
+      'Question 1 of 1'
+    )
+    expect(screen.getByTestId('practice-question-text').textContent).toBe(
+      "Choose the word closest in meaning to 'reluctant'."
+    )
+    expect(cardText).not.toContain(
+      "Hi — let's do a quick Junior WAEC JSS3 english check. Question 1 of 1. Choose"
+    )
+    fireEvent.change(input, { target: { value: 'unwilling' } })
+    fireEvent.click(screen.getByTestId('practice-free-response-submit'))
+
+    await waitFor(() => {
+      expect(apiMock.runLearnerVoiceTurn.mock.calls).toContainEqual([
+        expect.objectContaining({
+          last_card_id: 'free-1',
+          last_kind: 'free-response',
+          answer_text: 'unwilling',
+        }),
+      ])
+    })
+  })
+
+  it('notifies the host when a practice session completes', async () => {
+    const onSessionComplete = vi.fn()
+    apiMock.runLearnerVoiceTurn.mockReset()
+    apiMock.runLearnerVoiceTurn.mockImplementation((payload: { answer_option_id?: string }) => {
+      if (payload.answer_option_id) {
+        return Promise.resolve({ card: progressCard, session_complete: true })
+      }
+      return Promise.resolve({ card: firstCard, session_complete: false })
+    })
+
+    render(
+      <PracticeFullscreen
+        open={true}
+        onClose={() => {}}
+        childId="stu-1"
+        onSessionComplete={onSessionComplete}
+      />
+    )
+
+    await screen.findByTestId('practice-option-b')
+    fireEvent.click(screen.getByTestId('practice-option-b'))
+
+    await waitFor(() => expect(onSessionComplete).toHaveBeenCalledTimes(1))
   })
 })

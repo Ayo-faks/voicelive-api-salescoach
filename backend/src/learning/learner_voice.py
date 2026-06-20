@@ -24,18 +24,23 @@ Session state lives client-side so we never trust caller-supplied
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import Any, Dict, FrozenSet, List, Literal, Optional, Tuple, Union
+import re
+from dataclasses import dataclass, field as dataclass_field
+from typing import Any, Callable, Dict, FrozenSet, Iterable, List, Literal, Optional, Tuple, Union
 from uuid import uuid4
 
 from pydantic import BaseModel, Field, field_validator
 
+from src.learning.models import Provenance
 
-CardKind = Literal["greeting", "mcq-tap", "explanation", "progress", "mark-known"]
+
+CardKind = Literal[
+    "greeting", "mcq-tap", "free-response", "explanation", "progress", "mark-known"
+]
 
 Exam = Literal["WAEC", "NECO", "JAMB", "Junior WAEC"]
 ClassYear = Literal["JSS2", "JSS3", "SSS1", "SSS2", "SSS3"]
-Subject = Literal["Mathematics", "English Language", "Basic Science"]
+Subject = str
 
 # Exams permitted per class band. JAMB is an SSS-leaver exam; Junior WAEC is
 # the JSS exit. WAEC and NECO appear at both levels in real Nigerian usage but
@@ -119,6 +124,14 @@ class McqTapCard(_BaseCard):
     skill_id: Optional[str] = None
 
 
+class FreeResponseCard(_BaseCard):
+    kind: Literal["free-response"] = "free-response"
+    prompt: str
+    skill_id: Optional[str] = None
+    placeholder: str = "Type your answer, or say it out loud"
+    submit_label: str = "Check answer"
+
+
 class ExplanationCard(_BaseCard):
     kind: Literal["explanation"] = "explanation"
     title: str
@@ -139,7 +152,12 @@ class MarkKnownCard(_BaseCard):
 
 
 LearnerVoiceCard = Union[
-    GreetingCard, McqTapCard, ExplanationCard, ProgressCard, MarkKnownCard
+    GreetingCard,
+    McqTapCard,
+    FreeResponseCard,
+    ExplanationCard,
+    ProgressCard,
+    MarkKnownCard,
 ]
 
 
@@ -161,6 +179,7 @@ class LearnerVoiceTurnRequest(BaseModel):
     last_card_id: Optional[str] = None
     last_kind: Optional[CardKind] = None
     answer_option_id: Optional[str] = None  # MCQ choice
+    answer_text: Optional[str] = None
     advance: bool = False  # tap-through for non-MCQ cards
     exam: Optional[Exam] = None
     class_year: Optional[ClassYear] = None
@@ -169,6 +188,8 @@ class LearnerVoiceTurnRequest(BaseModel):
     # taxonomy contains a question for this skill, the walkthrough is reordered
     # so it comes first; otherwise it is ignored and the normal order applies.
     skill_id: Optional[str] = None
+    skill_strict: bool = False
+    max_questions: Optional[int] = Field(default=None, ge=1, le=50)
 
     @field_validator("class_year", mode="before")
     @classmethod
@@ -178,9 +199,20 @@ class LearnerVoiceTurnRequest(BaseModel):
         return normalize_class_year(value)
 
 
+class LearnerVoiceScoredAnswer(BaseModel):
+    item_id: str = Field(min_length=1)
+    skill_id: str = Field(min_length=1)
+    response_text: str = Field(min_length=1)
+    correct: bool
+    item_difficulty: float = Field(default=0.0, ge=-5.0, le=5.0)
+    lang: str = "en"
+    provenance: List[Provenance]
+
+
 class LearnerVoiceTurnResponse(BaseModel):
     card: LearnerVoiceCard
     session_complete: bool = False
+    scored_answer: Optional[LearnerVoiceScoredAnswer] = None
 
 
 # ---------------------------------------------------------------------------
@@ -198,6 +230,21 @@ class _ScriptedQuestion:
     explanation_title: str
     explanation_steps: Tuple[str, ...]
     skill_id: str
+    item_type: str = "mcq_single"
+    correct_text: Optional[str] = None
+    item_id: Optional[str] = None
+    difficulty: float = 0.0
+    lang: str = "en"
+    provenance: Tuple[Provenance, ...] = dataclass_field(
+        default_factory=lambda: (
+            Provenance(
+                source="LearnerVoiceTurnPlanner",
+                rule_id="scripted_content_bank",
+                confidence=1.0,
+                evidence_count=1,
+            ),
+        )
+    )
 
 
 def _opts(*pairs: Tuple[str, str]) -> Tuple[McqOption, ...]:
@@ -212,6 +259,179 @@ def _opts(*pairs: Tuple[str, str]) -> Tuple[McqOption, ...]:
 _JSS = frozenset({"Junior WAEC"})
 _SSS_NATIONAL = frozenset({"WAEC", "NECO"})  # School-leaving cert
 _SSS_ALL = frozenset({"WAEC", "NECO", "JAMB"})  # Includes JAMB UTME
+
+_MCQ_OPTION_RE = re.compile(r"^\s*\(?([A-Da-d])[\).]\s+(.+?)\s*$")
+_MCQ_ANSWER_RE = re.compile(r"^\s*\(?([A-Da-d])[\).]\s*(.*?)\s*$")
+_SKILL_YEAR_TO_CLASS: Dict[str, str] = {
+    "jss2": "JSS2",
+    "jss3": "JSS3",
+    "ss1": "SSS1",
+    "ss2": "SSS2",
+    "ss3": "SSS3",
+}
+
+
+def _clean_option_text(parts: List[str]) -> str:
+    return " ".join(part.strip() for part in parts if part.strip()).strip()
+
+
+def _parse_mcq_prompt(prompt: Any) -> Tuple[str, Tuple[McqOption, ...]]:
+    stem_lines: List[str] = []
+    option_label: Optional[str] = None
+    option_parts: List[str] = []
+    options: List[McqOption] = []
+
+    def flush_option() -> None:
+        nonlocal option_label, option_parts
+        if option_label is None:
+            return
+        text = _clean_option_text(option_parts)
+        if text:
+            options.append(McqOption(id=option_label.lower(), label=option_label, text=text))
+        option_label = None
+        option_parts = []
+
+    for line in str(prompt or "").splitlines():
+        match = _MCQ_OPTION_RE.match(line)
+        if match:
+            flush_option()
+            option_label = match.group(1).upper()
+            option_parts = [match.group(2)]
+            continue
+        if option_label is not None:
+            option_parts.append(line)
+        elif line.strip():
+            stem_lines.append(line.rstrip())
+    flush_option()
+
+    stem = "\n".join(stem_lines).strip()
+    return stem, tuple(options)
+
+
+def _normalise_text(value: Any) -> str:
+    return " ".join(str(value or "").strip().lower().split())
+
+
+def _provenance_metadata_values(item: Any, key: str) -> List[Any]:
+    values: List[Any] = []
+    for provenance in getattr(item, "provenance", []) or []:
+        metadata = getattr(provenance, "metadata", None) or {}
+        if isinstance(metadata, dict) and key in metadata:
+            values.append(metadata[key])
+    return values
+
+
+def _correct_option_id(item: Any, options: Tuple[McqOption, ...]) -> Optional[str]:
+    option_ids = {option.id for option in options}
+    for value in _provenance_metadata_values(item, "mcq_correct_letter"):
+        letter = str(value or "").strip().lower()
+        if letter in option_ids:
+            return letter
+
+    answer = str(getattr(item, "correct_answer", "") or "").strip()
+    match = _MCQ_ANSWER_RE.match(answer)
+    if match and match.group(1).lower() in option_ids:
+        return match.group(1).lower()
+
+    answer_text = _normalise_text(match.group(2) if match else answer)
+    for option in options:
+        if _normalise_text(option.text) == answer_text:
+            return option.id
+    return None
+
+
+def _class_year_for_item(item: Any) -> Optional[str]:
+    raw_year = getattr(item, "year_group", None)
+    if raw_year:
+        class_year = normalize_class_year(raw_year)
+        if isinstance(class_year, str) and class_year in _VALID_EXAMS_FOR_CLASS:
+            return class_year
+
+    skill_prefix = str(getattr(item, "skill_id", "") or "").split(".", 1)[0].lower()
+    return _SKILL_YEAR_TO_CLASS.get(skill_prefix)
+
+
+def _explanation_steps_for_item(item: Any) -> Tuple[str, ...]:
+    answer = str(getattr(item, "correct_answer", "") or "").strip()
+    if answer:
+        return (f"The correct answer is {answer}.",)
+    return ("Match the option label to the key idea in the question.",)
+
+
+def _free_response_explanation_steps(item: Any) -> Tuple[str, ...]:
+    answer = str(getattr(item, "correct_answer", "") or "").strip()
+    if answer:
+        return (f"A strong answer is: {answer}.",)
+    return ("Compare your answer with the key idea in the prompt.",)
+
+
+def exam_prep_scripted_questions(
+    banks: Iterable[Any],
+    *,
+    subject_slug_for: Callable[[Optional[str]], str],
+) -> Tuple[_ScriptedQuestion, ...]:
+    questions: List[_ScriptedQuestion] = []
+    for bank in banks:
+        subject = subject_slug_for(getattr(bank, "subject", None))
+        for item in getattr(bank, "items", []) or []:
+            item_type = str(getattr(item, "item_type", "") or "").strip()
+            skill_id = str(getattr(item, "skill_id", "") or "").strip()
+            class_year = _class_year_for_item(item)
+            if not skill_id or not class_year:
+                continue
+            exams = _VALID_EXAMS_FOR_CLASS.get(class_year, frozenset())
+            if not exams:
+                continue
+            if item_type == "mcq_single":
+                stem, options = _parse_mcq_prompt(getattr(item, "prompt", ""))
+                if not stem or len(options) < 2:
+                    continue
+                correct_option_id = _correct_option_id(item, options)
+                if not correct_option_id:
+                    continue
+                questions.append(
+                    _ScriptedQuestion(
+                        exams=exams,
+                        class_year=class_year,
+                        subject=subject,
+                        stem=stem,
+                        options=options,
+                        correct_option_id=correct_option_id,
+                        explanation_title="Check the answer",
+                        explanation_steps=_explanation_steps_for_item(item),
+                        skill_id=skill_id,
+                        item_type=item_type,
+                        item_id=str(getattr(item, "item_id", "") or "").strip(),
+                        difficulty=float(getattr(item, "difficulty", 0.0) or 0.0),
+                        lang=str(getattr(item, "lang", "en") or "en"),
+                        provenance=tuple(getattr(item, "provenance", []) or ()),
+                    )
+                )
+            elif item_type == "short_answer":
+                prompt = str(getattr(item, "prompt", "") or "").strip()
+                correct_text = str(getattr(item, "correct_answer", "") or "").strip()
+                if not prompt or not correct_text:
+                    continue
+                questions.append(
+                    _ScriptedQuestion(
+                        exams=exams,
+                        class_year=class_year,
+                        subject=subject,
+                        stem=prompt,
+                        options=tuple(),
+                        correct_option_id="",
+                        explanation_title="Check the answer",
+                        explanation_steps=_free_response_explanation_steps(item),
+                        skill_id=skill_id,
+                        item_type=item_type,
+                        correct_text=correct_text,
+                        item_id=str(getattr(item, "item_id", "") or "").strip(),
+                        difficulty=float(getattr(item, "difficulty", 0.0) or 0.0),
+                        lang=str(getattr(item, "lang", "en") or "en"),
+                        provenance=tuple(getattr(item, "provenance", []) or ()),
+                    )
+                )
+    return tuple(questions)
 
 
 _CONTENT_BANK: Tuple[_ScriptedQuestion, ...] = (
@@ -897,7 +1117,7 @@ class LearnerVoiceTurnPlanner:
         # forced lead skill so the planner can map a ``last_card_id`` back to its
         # question index. Keying on the forced skill keeps two learners sharing a
         # taxonomy but leading with different skills from colliding.
-        self._sessions: Dict[Tuple[Tuple[str, str, str], str], List[_ScriptedQuestion]] = {}
+        self._sessions: Dict[Tuple[Tuple[str, str, str], str, bool, int], List[_ScriptedQuestion]] = {}
         self._index_by_card: Dict[str, Tuple[Tuple[str, str, str], int]] = {}
 
     # ------------------------------------------------------------------
@@ -954,6 +1174,7 @@ class LearnerVoiceTurnPlanner:
                 skill_id=question.skill_id,
             )
             for question in matches
+            if question.item_type == "mcq_single"
         ]
 
     def next_turn(self, request: LearnerVoiceTurnRequest) -> LearnerVoiceTurnResponse:
@@ -962,7 +1183,12 @@ class LearnerVoiceTurnPlanner:
         if invalid_card is not None:
             return LearnerVoiceTurnResponse(card=invalid_card)
 
-        walkthrough = self._walkthrough_for(taxonomy, request.skill_id)
+        walkthrough = self._walkthrough_for(
+            taxonomy,
+            request.skill_id,
+            skill_strict=request.skill_strict,
+            max_questions=request.max_questions,
+        )
         if not walkthrough:
             return LearnerVoiceTurnResponse(card=self._no_content_card(taxonomy))
 
@@ -990,7 +1216,10 @@ class LearnerVoiceTurnPlanner:
                     taxonomy=taxonomy, walkthrough=walkthrough, index=0, prefix_greeting=False, total=total,
                 )
             question = walkthrough[prev_index]
-            if request.answer_option_id == question.correct_option_id:
+            response_text = str(request.answer_option_id or "").strip()
+            correct = response_text == question.correct_option_id
+            scored_answer = self._scored_answer(question, response_text, correct)
+            if correct:
                 next_index = prev_index + 1
                 if next_index >= total:
                     return LearnerVoiceTurnResponse(
@@ -1000,10 +1229,11 @@ class LearnerVoiceTurnPlanner:
                             total=total,
                         ),
                         session_complete=True,
+                        scored_answer=scored_answer,
                     )
-                return self._present_question(
+                return self._with_score(self._present_question(
                     taxonomy=taxonomy, walkthrough=walkthrough, index=next_index, prefix_greeting=False, total=total,
-                )
+                ), scored_answer)
             # Wrong answer -> show the worked example for this question.
             card = ExplanationCard(
                 speak=(
@@ -1014,7 +1244,42 @@ class LearnerVoiceTurnPlanner:
                 steps=list(question.explanation_steps),
             )
             self._index_by_card[card.card_id] = (taxonomy, prev_index)
-            return LearnerVoiceTurnResponse(card=card)
+            return LearnerVoiceTurnResponse(card=card, scored_answer=scored_answer)
+
+        if request.last_kind == "free-response":
+            if prev_index is None:
+                return self._present_question(
+                    taxonomy=taxonomy, walkthrough=walkthrough, index=0, prefix_greeting=False, total=total,
+                )
+            question = walkthrough[prev_index]
+            response_text = str(request.answer_text or "").strip()
+            correct = _normalise_text(response_text) == _normalise_text(question.correct_text)
+            scored_answer = self._scored_answer(question, response_text, correct)
+            if correct:
+                next_index = prev_index + 1
+                if next_index >= total:
+                    return LearnerVoiceTurnResponse(
+                        card=ProgressCard(
+                            speak="Nice work — you finished today's quick check.",
+                            completed=total,
+                            total=total,
+                        ),
+                        session_complete=True,
+                        scored_answer=scored_answer,
+                    )
+                return self._with_score(self._present_question(
+                    taxonomy=taxonomy, walkthrough=walkthrough, index=next_index, prefix_greeting=False, total=total,
+                ), scored_answer)
+            card = ExplanationCard(
+                speak=(
+                    f"Not quite — let me walk you through it. "
+                    f"{question.explanation_title}."
+                ),
+                title=question.explanation_title,
+                steps=list(question.explanation_steps),
+            )
+            self._index_by_card[card.card_id] = (taxonomy, prev_index)
+            return LearnerVoiceTurnResponse(card=card, scored_answer=scored_answer)
 
         if request.last_kind == "explanation":
             if prev_index is None:
@@ -1050,6 +1315,37 @@ class LearnerVoiceTurnPlanner:
         return (exam, class_year, subject)
 
     @staticmethod
+    def _scored_answer(
+        question: _ScriptedQuestion,
+        response_text: str,
+        correct: bool,
+    ) -> Optional[LearnerVoiceScoredAnswer]:
+        response = response_text.strip()
+        if not response:
+            return None
+        item_id = question.item_id or (
+            f"learner-voice:{question.class_year}:{question.subject}:{question.skill_id}"
+        )
+        return LearnerVoiceScoredAnswer(
+            item_id=item_id,
+            skill_id=question.skill_id,
+            response_text=response,
+            correct=correct,
+            item_difficulty=question.difficulty,
+            lang=question.lang,
+            provenance=list(question.provenance),
+        )
+
+    @staticmethod
+    def _with_score(
+        response: LearnerVoiceTurnResponse,
+        scored_answer: Optional[LearnerVoiceScoredAnswer],
+    ) -> LearnerVoiceTurnResponse:
+        if scored_answer is None:
+            return response
+        return response.model_copy(update={"scored_answer": scored_answer})
+
+    @staticmethod
     def _validate_taxonomy(taxonomy: Tuple[str, str, str]) -> Optional[MarkKnownCard]:
         exam, class_year, _subject = taxonomy
         allowed = _VALID_EXAMS_FOR_CLASS.get(class_year, frozenset())
@@ -1072,9 +1368,13 @@ class LearnerVoiceTurnPlanner:
         self,
         taxonomy: Tuple[str, str, str],
         forced_skill_id: Optional[str] = None,
+        *,
+        skill_strict: bool = False,
+        max_questions: Optional[int] = None,
     ) -> List[_ScriptedQuestion]:
         forced = (forced_skill_id or "").strip()
-        key = (taxonomy, forced)
+        limit = max(0, max_questions if max_questions is not None else self.MAX_QUESTIONS)
+        key = (taxonomy, forced, bool(skill_strict), limit)
         cached = self._sessions.get(key)
         if cached is not None:
             return cached
@@ -1085,10 +1385,12 @@ class LearnerVoiceTurnPlanner:
         # skill is never dropped off the tail.
         if forced:
             lead = [q for q in matches if q.skill_id == forced]
-            if lead:
+            if skill_strict:
+                matches = lead
+            elif lead:
                 rest = [q for q in matches if q.skill_id != forced]
                 matches = lead + rest
-        walkthrough = matches[: self.MAX_QUESTIONS]
+        walkthrough = matches[:limit]
         self._sessions[key] = walkthrough
         return walkthrough
 
@@ -1126,6 +1428,10 @@ class LearnerVoiceTurnPlanner:
             stem=question.stem,
             options=list(question.options),
             skill_id=question.skill_id,
+        ) if question.item_type == "mcq_single" else FreeResponseCard(
+            speak=f"{intro}Question {index + 1} of {total}. {question.stem}",
+            prompt=question.stem,
+            skill_id=question.skill_id,
         )
         self._index_by_card[card.card_id] = (taxonomy, index)
         return LearnerVoiceTurnResponse(card=card)
@@ -1136,11 +1442,14 @@ __all__ = [
     "GreetingCard",
     "McqOption",
     "McqTapCard",
+    "FreeResponseCard",
     "ExplanationCard",
     "ProgressCard",
     "MarkKnownCard",
     "LearnerVoiceCard",
+    "LearnerVoiceScoredAnswer",
     "LearnerVoiceTurnRequest",
     "LearnerVoiceTurnResponse",
     "LearnerVoiceTurnPlanner",
+    "exam_prep_scripted_questions",
 ]

@@ -161,9 +161,9 @@ const useStyles = makeStyles({
     transition: 'width 120ms ease',
   },
   errorBanner: {
-    background: 'rgba(255, 80, 80, 0.12)',
-    border: '1px solid rgba(255, 80, 80, 0.4)',
-    color: '#ffc1c1',
+    background: 'var(--pf-status-critical-bg)',
+    border: '1px solid var(--pf-status-critical-fg)',
+    color: 'var(--pf-status-critical-fg)',
     padding: '10px 14px',
     borderRadius: '10px',
     fontSize: '13px',
@@ -185,6 +185,9 @@ export interface PracticeFullscreenProps {
   /** Optional forced lead skill (goal intake "Start now"). The planner leads
    * with this skill's card when the resolved taxonomy contains it. */
   skillId?: string
+  skillStrict?: boolean
+  maxQuestions?: number
+  onSessionComplete?: () => void
 }
 
 export function PracticeFullscreen({
@@ -196,6 +199,9 @@ export function PracticeFullscreen({
   classYear,
   subject,
   skillId,
+  skillStrict,
+  maxQuestions,
+  onSessionComplete,
 }: PracticeFullscreenProps): JSX.Element | null {
   const styles = useStyles()
   const [card, setCard] = useState<LearnerVoiceCard | null>(null)
@@ -243,6 +249,7 @@ export function PracticeFullscreen({
     autoStartRecording: false,
     closeOnMicDeniedMs: null,
     startOnOpen: false,
+    suppressPassiveConnectionErrors: true,
   })
   const voiceCard = voiceSession.card
   const visibleCard = voiceCard ?? card
@@ -262,7 +269,14 @@ export function PracticeFullscreen({
     async (
       next: Omit<
         LearnerVoiceTurnRequest,
-        'child_id' | 'lang' | 'exam' | 'class_year' | 'subject' | 'skill_id'
+        | 'child_id'
+        | 'lang'
+        | 'exam'
+        | 'class_year'
+        | 'subject'
+        | 'skill_id'
+        | 'skill_strict'
+        | 'max_questions'
       >
     ) => {
       if (!childId) return
@@ -276,10 +290,13 @@ export function PracticeFullscreen({
           class_year: classYear ?? null,
           subject: subject ?? null,
           skill_id: skillId ?? null,
+          skill_strict: skillStrict ?? false,
+          max_questions: maxQuestions ?? null,
           ...next,
         })
         setCard(response.card)
         setSessionComplete(response.session_complete)
+        if (response.session_complete) onSessionComplete?.()
       } catch (err) {
         setError(
           err instanceof Error
@@ -290,7 +307,7 @@ export function PracticeFullscreen({
         setLoading(false)
       }
     },
-    [childId, lang, exam, classYear, subject, skillId]
+    [childId, lang, exam, classYear, subject, skillId, skillStrict, maxQuestions, onSessionComplete]
   )
 
   const handleClose = useCallback(() => {
@@ -356,6 +373,24 @@ export function PracticeFullscreen({
         last_card_id: visibleCard.card_id,
         last_kind: 'mcq-tap',
         answer_option_id: optionId,
+      })
+    },
+    [requestTurn, visibleCard, voiceCard, voiceSession]
+  )
+
+  const handleFreeResponseAnswer = useCallback(
+    (answerText: string) => {
+      if (!visibleCard || visibleCard.kind !== 'free-response') return
+      if (voiceCard) {
+        voiceSession.sendLearnerReply(
+          `My answer is ${answerText}. Previous card: ${visibleCard.card_id}.`
+        )
+        return
+      }
+      void requestTurn({
+        last_card_id: visibleCard.card_id,
+        last_kind: 'free-response',
+        answer_text: answerText,
       })
     },
     [requestTurn, visibleCard, voiceCard, voiceSession]
@@ -438,6 +473,7 @@ export function PracticeFullscreen({
               disabled={loading || voiceSession.state === 'thinking'}
               sessionComplete={visibleSessionComplete}
               onMcqAnswer={handleMcqAnswer}
+              onFreeResponseAnswer={handleFreeResponseAnswer}
               onAdvance={handleAdvance}
               onFinish={handleClose}
             />

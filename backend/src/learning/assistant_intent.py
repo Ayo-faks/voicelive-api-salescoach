@@ -77,7 +77,35 @@ _PRACTICE_PHRASES = (
     "i want to practice", "i want to practise", "i wanna practice",
     "can i practice", "can we practice", "can i practise", "can we practise",
     "let's do questions", "lets do questions", "work on questions",
+    "questions to practice", "questions to practise",
 )
+
+_SUBJECT_ALIASES: Dict[str, str] = {
+    "agric": "agricultural_science",
+    "agriculture": "agricultural_science",
+    "agric science": "agricultural_science",
+    "agricultural science": "agricultural_science",
+    "govt": "government",
+    "government": "government",
+    "history": "history",
+    "lit": "literature",
+    "literature": "literature",
+    "literature in english": "literature",
+    "economics": "economics",
+    "econs": "economics",
+    "biology": "biology",
+    "chemistry": "chemistry",
+    "physics": "physics",
+    "computer science": "computer_science",
+    "computers": "computer_science",
+    "data processing": "data_processing",
+    "ict": "data_processing",
+    "english": "english",
+    "english language": "english",
+    "math": "mathematics",
+    "maths": "mathematics",
+    "mathematics": "mathematics",
+}
 
 
 def _normalize(text: str) -> str:
@@ -140,6 +168,24 @@ def classify_keyword(question: str) -> Optional[str]:
         return None
     if any(phrase in norm for phrase in _PRACTICE_PHRASES):
         return INTENT_PRACTICE
+    return None
+
+
+def extract_subject(question: str, known_slugs: Optional[set[str]] = None) -> Optional[str]:
+    """Extract an exam-prep subject slug mentioned in a learner message."""
+    norm = _normalize(question)
+    if not norm:
+        return None
+
+    allowed = {slug.strip().lower() for slug in (known_slugs or set()) if slug.strip()}
+    for alias, slug in sorted(_SUBJECT_ALIASES.items(), key=lambda item: len(item[0]), reverse=True):
+        if alias in norm and (not allowed or slug in allowed):
+            return slug
+
+    for slug in sorted(allowed, key=len, reverse=True):
+        spoken = slug.replace("_", " ").replace("-", " ")
+        if spoken and spoken in norm:
+            return slug
     return None
 
 
@@ -297,6 +343,7 @@ __all__ = [
     "INTENT_QUESTION",
     "ModelIntentClassifier",
     "classify_keyword",
+    "extract_subject",
     "is_session_closing",
     "resolve_intent",
 ]

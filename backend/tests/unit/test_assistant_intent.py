@@ -13,6 +13,7 @@ from src.learning.assistant_intent import (
     INTENT_PRACTICE,
     INTENT_QUESTION,
     classify_keyword,
+    extract_subject,
     is_session_closing,
     resolve_intent,
 )
@@ -34,6 +35,31 @@ from src.learning.assistant_intent import (
 )
 def test_keyword_practice(text: str) -> None:
     assert classify_keyword(text) == INTENT_PRACTICE
+
+
+def test_keyword_practice_handles_subject_questions() -> None:
+    assert classify_keyword("give me agric questions to practice") == INTENT_PRACTICE
+
+
+@pytest.mark.parametrize(
+    "text, expected",
+    [
+        ("give me agric questions to practice", "agricultural_science"),
+        ("quiz me on government", "government"),
+        ("let's practise data processing", "data_processing"),
+        ("physics questions please", "physics"),
+    ],
+)
+def test_extract_subject_aliases(text: str, expected: str) -> None:
+    assert extract_subject(
+        text,
+        {
+            "agricultural_science",
+            "data_processing",
+            "government",
+            "physics",
+        },
+    ) == expected
 
 
 @pytest.mark.parametrize(

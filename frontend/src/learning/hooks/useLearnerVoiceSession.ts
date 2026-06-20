@@ -42,6 +42,7 @@ export interface LearnerVoiceSessionOptions {
   closeOnMicDeniedMs?: number | null
   startOnOpen?: boolean
   startPrompt?: string
+  suppressPassiveConnectionErrors?: boolean
   onClose?: () => void
   onVoiceStateChange?: (snapshot: TutorVoiceSnapshot) => void
 }
@@ -78,11 +79,7 @@ export function buildLearnerVoiceUrl({
   | 'lastKind'
 >): string {
   const endpoint = '/ws/voice'
-  const isLocalDevServer = location.port !== '' && location.port !== '8000'
-  const origin = isLocalDevServer
-    ? `${location.protocol}//${location.hostname}:8000`
-    : location.origin
-  const url = new URL(endpoint, origin)
+  const url = new URL(endpoint, location.origin)
   url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:'
   url.searchParams.set('scope', 'learner')
   url.searchParams.set('child_id', childId)
@@ -116,10 +113,12 @@ export function useLearnerVoiceSession({
   closeOnMicDeniedMs = 4000,
   startOnOpen = true,
   startPrompt = 'Start my tutoring session.',
+  suppressPassiveConnectionErrors = false,
   onClose,
   onVoiceStateChange,
 }: LearnerVoiceSessionOptions): LearnerVoiceSession {
   const wsRef = useRef<WebSocket | null>(null)
+  const interactionRef = useRef(false)
   const micRequestedRef = useRef(false)
   const recordingRef = useRef(false)
   const toggleRecordingRef = useRef<(() => Promise<void>) | null>(null)
@@ -160,6 +159,7 @@ export function useLearnerVoiceSession({
   }, [])
 
   const toggleRecordingWithError = useCallback(async () => {
+    interactionRef.current = true
     try {
       await toggleRecording()
     } catch {
@@ -289,6 +289,10 @@ export function useLearnerVoiceSession({
       // card, so a hard "connection failed" banner would be misleading. Let the
       // close handler decide if anything is actually broken.
       if (progressRef.current) return
+      if (suppressPassiveConnectionErrors && !interactionRef.current) {
+        setState('listening')
+        return
+      }
       if (openedRef.current) {
         setError(
           'The tutor disconnected before it could start. Tap the mic to try again.'
@@ -309,6 +313,10 @@ export function useLearnerVoiceSession({
       // A spontaneous close after the session produced content is a graceful
       // end, not a failure.
       if (progressRef.current) return
+      if (suppressPassiveConnectionErrors && !interactionRef.current) {
+        setState('listening')
+        return
+      }
       if (openedRef.current) {
         setError(
           'The tutor disconnected before it could start. Tap the mic to try again.'
@@ -326,7 +334,7 @@ export function useLearnerVoiceSession({
       ws.close()
       stopAudio()
     }
-  }, [open, playAudio, startOnOpen, startPrompt, stopAudio, wsUrl])
+  }, [open, playAudio, startOnOpen, startPrompt, stopAudio, suppressPassiveConnectionErrors, wsUrl])
 
   useEffect(() => {
     if (!open || !autoStartRecording || micRequestedRef.current) return
@@ -350,6 +358,7 @@ export function useLearnerVoiceSession({
 
   const sendLearnerReply = useCallback(
     (text: string) => {
+      interactionRef.current = true
       setState('thinking')
       send({
         type: 'conversation.item.create',

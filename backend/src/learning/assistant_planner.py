@@ -88,6 +88,7 @@ class UnifiedAssistantPlanner:
         walk_in_flight = voice_request is not None and (
             voice_request.last_card_id is not None
             or voice_request.answer_option_id is not None
+            or voice_request.answer_text is not None
             or voice_request.advance
         )
         if intent_norm in _PRACTICE_INTENTS or walk_in_flight:
@@ -140,6 +141,7 @@ class UnifiedAssistantPlanner:
         return AssistantTurnResult(
             blocks=blocks,
             session_complete=bool(getattr(response, "session_complete", False)),
+            scored_answer=getattr(response, "scored_answer", None),
         )
 
     def _plan_prose(self, question: str, context: Mapping[str, Any]) -> AssistantTurnResult:

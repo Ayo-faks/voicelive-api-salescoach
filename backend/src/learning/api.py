@@ -105,9 +105,11 @@ from src.learning.validator import (
 )
 from src.learning.voice import FlaskSockVoiceTransportAdapter, VoiceFrame
 from src.learning.learner_voice import (
+    _CONTENT_BANK,
     LearnerVoiceTurnPlanner,
     LearnerVoiceTurnRequest,
     LearnerVoiceTurnResponse,
+    exam_prep_scripted_questions,
     normalize_class_year,
 )
 from src.learning.assistant_blocks import PlanBlock, PlanStep, ProfileBlock, ProfileChip, ProseBlock
@@ -522,7 +524,6 @@ class LearningApi:
         self._durable_metrics_reader = durable_metrics_reader or DurableMetricsReader()
         self.selector = DeterministicItemSelector()
         self.voice_adapter = FlaskSockVoiceTransportAdapter()
-        self.learner_voice_planner = LearnerVoiceTurnPlanner()
         self.career_planner = self._load_career_planner()
         self.assistant_provider: AssistantProvider = (
             assistant_provider or DeterministicAssistantProvider()
@@ -530,6 +531,7 @@ class LearningApi:
         self._sessions: Dict[str, _SessionState] = {}
         self._student_estimates: Dict[Tuple[str, str], Dict[str, MasteryEstimate]] = {}
         self._student_classes: Dict[Tuple[str, str], str] = {}
+        self._voice_score_keys: set[str] = set()
         self._pending_plans: Dict[str, Dict[str, Any]] = {}
         self._audit_events: List[Dict[str, Any]] = []
         self._lock = threading.Lock()
@@ -558,6 +560,23 @@ class LearningApi:
             self._banks_by_subject_slug.setdefault(
                 _exam_prep_subject_slug(bank.subject), bank
             )
+
+        exam_prep_voice_questions = exam_prep_scripted_questions(
+            registry_banks,
+            subject_slug_for=_exam_prep_subject_slug,
+        )
+        learner_voice_bank = _CONTENT_BANK + exam_prep_voice_questions
+        self._exam_prep_voice_taxonomies_by_subject: Dict[str, List[Tuple[str, str]]] = {}
+        for question in exam_prep_voice_questions:
+            subject_taxonomies = self._exam_prep_voice_taxonomies_by_subject.setdefault(
+                question.subject,
+                [],
+            )
+            for exam in sorted(question.exams):
+                taxonomy = (exam, question.class_year)
+                if taxonomy not in subject_taxonomies:
+                    subject_taxonomies.append(taxonomy)
+        self.learner_voice_planner = LearnerVoiceTurnPlanner(bank=learner_voice_bank)
 
         seen: Dict[str, None] = {}
         for bank in registry_banks:
@@ -3206,7 +3225,7 @@ class LearningApi:
         voice_request: Optional[LearnerVoiceTurnRequest] = None
         has_practice_signal = any(
             payload.get(k) is not None
-            for k in ("last_card_id", "last_kind", "answer_option_id")
+            for k in ("last_card_id", "last_kind", "answer_option_id", "answer_text")
         ) or bool(payload.get("advance"))
 
         # Natural-language routing: the always-on composer only sends a
@@ -3239,6 +3258,12 @@ class LearningApi:
             )
             lang = str(payload.get("lang") or "en-NG")
             seed = self._practice_seed_from_context(payload)
+            skill_strict_raw = payload.get("skill_strict")
+            skill_strict = (
+                str(skill_strict_raw).strip().lower() in {"1", "true", "yes", "on"}
+                if isinstance(skill_strict_raw, str)
+                else bool(skill_strict_raw)
+            )
             try:
                 voice_request = LearnerVoiceTurnRequest(
                     child_id=child_id,
@@ -3246,11 +3271,14 @@ class LearningApi:
                     last_card_id=payload.get("last_card_id"),
                     last_kind=payload.get("last_kind"),
                     answer_option_id=payload.get("answer_option_id"),
+                    answer_text=payload.get("answer_text"),
                     advance=bool(payload.get("advance") or False),
                     exam=payload.get("exam") or seed.get("exam"),
                     class_year=payload.get("class_year") or seed.get("class_year"),
                     subject=payload.get("subject") or seed.get("subject"),
                     skill_id=payload.get("skill_id") or seed.get("skill_id"),
+                    skill_strict=skill_strict,
+                    max_questions=payload.get("max_questions"),
                 )
             except Exception:  # pydantic validation on the seeded taxonomy
                 # A seeded slot was invalid (e.g. an unmapped subject); retry
@@ -3263,10 +3291,13 @@ class LearningApi:
                         last_card_id=payload.get("last_card_id"),
                         last_kind=payload.get("last_kind"),
                         answer_option_id=payload.get("answer_option_id"),
+                        answer_text=payload.get("answer_text"),
                         advance=bool(payload.get("advance") or False),
                         exam=payload.get("exam"),
                         class_year=payload.get("class_year"),
                         subject=payload.get("subject"),
+                        skill_strict=skill_strict,
+                        max_questions=payload.get("max_questions"),
                     )
                 except Exception as exc:  # explicit client values were invalid
                     raise LearningApiError(
@@ -3285,7 +3316,19 @@ class LearningApi:
             profile_block=profile_block,
             plan_block=plan_block,
         )
+        mastery_update_payload = (
+            self._record_learner_voice_score(
+                payload,
+                voice_request,
+                result.scored_answer,
+            )
+            if voice_request is not None
+            else None
+        )
         out = result.model_dump()
+        out.pop("scored_answer", None)
+        if mastery_update_payload is not None:
+            out["mastery_estimate"] = mastery_update_payload
 
         # Keep spoken payloads safe across HTTP + websocket clients: normalize
         # math/LaTeX/backslash artifacts in ``speak`` so TTS never reads raw
@@ -3461,8 +3504,7 @@ class LearningApi:
             weak_topics=labels[:5],
         )
 
-    @staticmethod
-    def _practice_seed_from_context(payload: Mapping[str, Any]) -> Dict[str, Optional[str]]:
+    def _practice_seed_from_context(self, payload: Mapping[str, Any]) -> Dict[str, Optional[str]]:
         """Seed a practice walk from the learner's setup + daily plan.
 
         Maps the learner's subject slug and class year onto the voice planner's
@@ -3472,7 +3514,7 @@ class LearningApi:
         mapped is left ``None`` so the planner falls back to its default
         WAEC/SSS2/Mathematics walk rather than producing a "not offered" card.
         """
-        subject_by_slug = {
+        core_subject_by_slug = {
             "maths": "Mathematics",
             "math": "Mathematics",
             "mathematics": "Mathematics",
@@ -3483,6 +3525,23 @@ class LearningApi:
             "basic-science": "Basic Science",
             "science": "Basic Science",
         }
+        slug_aliases = {
+            "maths": "mathematics",
+            "math": "mathematics",
+            "english language": "english",
+            "english-language": "english",
+            "agric": "agricultural_science",
+            "agriculture": "agricultural_science",
+            "agric science": "agricultural_science",
+            "agricultural science": "agricultural_science",
+            "govt": "government",
+            "lit": "literature",
+            "literature in english": "literature",
+            "econs": "economics",
+            "computer science": "computer_science",
+            "data processing": "data_processing",
+            "ict": "data_processing",
+        }
         setup = payload.get("learner_setup") or {}
         seed: Dict[str, Optional[str]] = {
             "exam": None,
@@ -3491,8 +3550,27 @@ class LearningApi:
             "skill_id": None,
         }
 
-        subject_slug = str(setup.get("subject") or "").strip().lower()
-        seed["subject"] = subject_by_slug.get(subject_slug)
+        known_subject_slugs = set(self._exam_prep_voice_taxonomies_by_subject)
+        from src.learning.assistant_intent import extract_subject
+
+        extracted_subject = extract_subject(
+            str(payload.get("question") or ""),
+            known_subject_slugs,
+        )
+        subject_source = "question" if extracted_subject else "setup"
+
+        setup_subject_raw = str(setup.get("subject") or "").strip()
+        setup_subject_key = setup_subject_raw.lower()
+        setup_subject_slug = slug_aliases.get(
+            setup_subject_key,
+            setup_subject_key.replace(" ", "_").replace("-", "_"),
+        )
+        if extracted_subject:
+            seed["subject"] = extracted_subject
+        elif setup_subject_slug in known_subject_slugs and setup_subject_key not in core_subject_by_slug:
+            seed["subject"] = setup_subject_slug
+        else:
+            seed["subject"] = core_subject_by_slug.get(setup_subject_key)
 
         raw_year = setup.get("year_group") or setup.get("class_year")
         class_year = normalize_class_year(raw_year) if raw_year else None
@@ -3501,6 +3579,22 @@ class LearningApi:
             # Pick an exam valid for the class band so the planner never
             # short-circuits with a "not offered at this class" card.
             seed["exam"] = "Junior WAEC" if str(class_year).startswith("JSS") else "WAEC"
+
+        subject = seed.get("subject")
+        if subject in self._exam_prep_voice_taxonomies_by_subject:
+            available = self._exam_prep_voice_taxonomies_by_subject[subject]
+            current = (seed.get("exam"), seed.get("class_year"))
+            has_current = current in available
+            if subject_source == "question" or not has_current:
+                preferred = next(
+                    (
+                        taxonomy
+                        for taxonomy in available
+                        if taxonomy[0] in {"WAEC", "Junior WAEC"}
+                    ),
+                    available[0],
+                )
+                seed["exam"], seed["class_year"] = preferred
 
         for item in payload.get("daily_plan") or []:
             if isinstance(item, Mapping) and not item.get("done"):
@@ -3588,6 +3682,12 @@ class LearningApi:
         normalized_class_year = _VOICE_TURN_CLASS_YEAR_ALIASES.get(
             str(class_year or "").strip(), class_year
         )
+        skill_strict_raw = payload.get("skill_strict")
+        skill_strict = (
+            str(skill_strict_raw).strip().lower() in {"1", "true", "yes", "on"}
+            if isinstance(skill_strict_raw, str)
+            else bool(skill_strict_raw)
+        )
         try:
             request_model = LearnerVoiceTurnRequest(
                 child_id=str(payload.get("child_id") or "").strip(),
@@ -3595,15 +3695,23 @@ class LearningApi:
                 last_card_id=payload.get("last_card_id"),
                 last_kind=payload.get("last_kind"),
                 answer_option_id=payload.get("answer_option_id"),
+                answer_text=payload.get("answer_text"),
                 advance=bool(payload.get("advance") or False),
                 exam=payload.get("exam"),
                 class_year=normalized_class_year,
                 subject=payload.get("subject"),
                 skill_id=payload.get("skill_id"),
+                skill_strict=skill_strict,
+                max_questions=payload.get("max_questions"),
             )
         except Exception as exc:  # pydantic validation
             raise LearningApiError(f"invalid voice turn: {exc}", status_code=400) from exc
         response = self.learner_voice_planner.next_turn(request_model)
+        mastery_update_payload = self._record_learner_voice_score(
+            payload,
+            request_model,
+            response.scored_answer,
+        )
         # Episodic recall parity (Phase 5): open the voice session with the same
         # consent-gated cross-session trap nudge the text tutor uses. The
         # deterministic planner bakes its greeting into the *first* card's speak
@@ -3631,8 +3739,82 @@ class LearningApi:
                         update={"speak": f"{callback} {card.speak}".strip()}
                     ),
                     session_complete=response.session_complete,
+                    scored_answer=response.scored_answer,
                 )
-        return response.model_dump()
+        out = response.model_dump()
+        out.pop("scored_answer", None)
+        if mastery_update_payload is not None:
+            out["mastery_estimate"] = mastery_update_payload
+        return out
+
+    def _record_learner_voice_score(
+        self,
+        payload: Mapping[str, Any],
+        request_model: LearnerVoiceTurnRequest,
+        scored_answer: Optional[Any],
+    ) -> Optional[Dict[str, Any]]:
+        if scored_answer is None:
+            return None
+        tenant_id = str(payload.get("tenant_id") or PILOT_TENANT_ID)
+        class_id = str(payload.get("class_id") or PILOT_CLASS_ID)
+        student_id = request_model.child_id
+        idempotency_key = ":".join(
+            [
+                "learner_voice",
+                student_id,
+                scored_answer.item_id,
+                str(request_model.last_card_id or "no-card"),
+            ]
+        )
+        if idempotency_key in self._voice_score_keys:
+            return None
+
+        response = StudentResponse(
+            tenant_id=tenant_id,
+            student_id=student_id,
+            item_id=scored_answer.item_id,
+            skill_id=scored_answer.skill_id,
+            response_text=scored_answer.response_text,
+            correct=scored_answer.correct,
+            lang=scored_answer.lang,
+            provenance=scored_answer.provenance,
+        )
+        self.repository.save_student_response(
+            response,
+            idempotency_key=idempotency_key,
+        )
+
+        estimates = self._student_estimates.setdefault((tenant_id, student_id), {})
+        update = self.estimator.update(
+            MasteryUpdateInput(
+                tenant_id=tenant_id,
+                student_id=student_id,
+                skill_id=scored_answer.skill_id,
+                correct=scored_answer.correct,
+                prior_estimate=estimates.get(scored_answer.skill_id),
+                item_difficulty=scored_answer.item_difficulty,
+                lang=scored_answer.lang,
+                provenance=scored_answer.provenance,
+                now=datetime.now(timezone.utc),
+            )
+        )
+        estimates[scored_answer.skill_id] = update.estimate
+        self._student_classes[(tenant_id, student_id)] = class_id
+
+        mastery_event = MasteryEvent(
+            tenant_id=tenant_id,
+            student_id=student_id,
+            skill_id=scored_answer.skill_id,
+            response_id=response.response_id,
+            estimate=update.estimate,
+            lang=update.lang,
+            provenance=update.provenance,
+        )
+        statement = mastery_event_to_xapi(mastery_event)
+        self.repository.save_mastery_event(mastery_event, statement)
+        self._emit_xapi(tenant_id, student_id, statement)
+        self._voice_score_keys.add(idempotency_key)
+        return update.estimate.model_dump()
 
     def build_learner_plan(self, payload: Mapping[str, Any]) -> Dict[str, Any]:
         """Return an adaptive, mastery-ranked daily plan for one learner.

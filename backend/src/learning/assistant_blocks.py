@@ -35,7 +35,9 @@ from pydantic import BaseModel, Field
 
 from src.learning.learner_voice import (
     ExplanationCard,
+    FreeResponseCard,
     GreetingCard,
+    LearnerVoiceScoredAnswer,
     MarkKnownCard,
     McqTapCard,
     ProgressCard,
@@ -132,6 +134,7 @@ AssistantBlock = Union[
     ProseBlock,
     GreetingCard,
     McqTapCard,
+    FreeResponseCard,
     ExplanationCard,
     ProgressCard,
     MarkKnownCard,
@@ -151,6 +154,7 @@ class AssistantTurnResult(BaseModel):
 
     blocks: List[AssistantBlock] = Field(default_factory=list)
     session_complete: bool = False
+    scored_answer: Optional[LearnerVoiceScoredAnswer] = None
 
 
 __all__ = [

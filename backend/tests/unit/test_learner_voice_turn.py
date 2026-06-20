@@ -6,8 +6,8 @@ from pathlib import Path
 
 import pytest
 
-from src.learning.api import ITEM_BANK_PATH, LearningApi
-from src.learning.diagnostic import load_item_bank
+from src.learning.api import DIAGNOSTICS_DIR, ITEM_BANK_PATH, LearningApi
+from src.learning.diagnostic import load_item_bank, load_subject_diagnostics
 from src.learning.learner_voice import (
     ExplanationCard,
     LearnerVoiceTurnPlanner,
@@ -15,6 +15,8 @@ from src.learning.learner_voice import (
     MarkKnownCard,
     McqTapCard,
     ProgressCard,
+    FreeResponseCard,
+    exam_prep_scripted_questions,
     normalize_class_year,
 )
 
@@ -29,6 +31,14 @@ def _req(**kwargs):
 def learning_api() -> LearningApi:
     assert ITEM_BANK_PATH.exists(), f"item bank fixture missing at {ITEM_BANK_PATH}"
     return LearningApi(item_bank=load_item_bank(Path(ITEM_BANK_PATH)))
+
+
+def _subject_bank(subject: str):
+    return next(
+        bank
+        for bank in load_subject_diagnostics(DIAGNOSTICS_DIR)
+        if bank.subject == subject
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -157,6 +167,253 @@ def test_run_voice_turn_accepts_already_canonical_year(learning_api: LearningApi
         }
     )
     assert turn.get("card") is not None
+
+
+def test_run_voice_turn_unknown_subject_returns_no_content_card(
+    learning_api: LearningApi,
+):
+    turn = learning_api.run_learner_voice_turn(
+        {
+            "child_id": "stu-1",
+            "exam": "WAEC",
+            "class_year": "SSS3",
+            "subject": "space_science",
+        }
+    )
+    card = turn.get("card")
+    assert card is not None
+    assert card.get("kind") == "mark-known"
+    assert "space_science" in card.get("prompt", "")
+
+
+def test_exam_prep_mcq_bridge_parses_physics_prompt_options():
+    questions = exam_prep_scripted_questions(
+        [_subject_bank("physics")],
+        subject_slug_for=lambda value: str(value or "general"),
+    )
+
+    question = next(
+        item
+        for item in questions
+        if item.skill_id == "ss3.physics.measurements.phys_def"
+    )
+    assert question.subject == "physics"
+    assert question.class_year == "SSS3"
+    assert {"WAEC", "NECO", "JAMB"}.issubset(question.exams)
+    assert question.correct_option_id == "a"
+    assert "A)" not in question.stem
+    assert question.stem.startswith("Physics is best described")
+    assert [(opt.id, opt.label, opt.text) for opt in question.options[:2]] == [
+        ("a", "A", "Matter, energy and their interactions"),
+        ("b", "B", "Living organisms only"),
+    ]
+
+
+def test_run_voice_turn_serves_exam_prep_physics_mcq(
+    learning_api: LearningApi,
+):
+    turn = learning_api.run_learner_voice_turn(
+        {
+            "child_id": "stu-1",
+            "exam": "WAEC",
+            "class_year": "SS3",
+            "subject": "physics",
+            "skill_id": "ss3.physics.measurements.phys_def",
+            "skill_strict": True,
+            "max_questions": 1,
+        }
+    )
+    card = turn.get("card")
+    assert card is not None
+    assert card.get("kind") == "mcq-tap"
+    assert card.get("skill_id") == "ss3.physics.measurements.phys_def"
+    assert card.get("options", [])[0] == {
+        "id": "a",
+        "label": "A",
+        "text": "Matter, energy and their interactions",
+    }
+
+    completed = learning_api.run_learner_voice_turn(
+        {
+            "child_id": "stu-1",
+            "exam": "WAEC",
+            "class_year": "SS3",
+            "subject": "physics",
+            "skill_id": "ss3.physics.measurements.phys_def",
+            "skill_strict": True,
+            "max_questions": 1,
+            "last_card_id": card.get("card_id"),
+            "last_kind": "mcq-tap",
+            "answer_option_id": "a",
+        }
+    )
+    assert completed.get("session_complete") is True
+    assert completed.get("card", {}).get("kind") == "progress"
+    assert completed.get("mastery_estimate", {}).get("probability") > 0.5
+    assert "scored_answer" not in completed
+    mastery_events = getattr(learning_api.repository, "mastery_events", [])
+    assert mastery_events[-1]["skill_id"] == "ss3.physics.measurements.phys_def"
+    assert mastery_events[-1]["student_id"] == "stu-1"
+
+
+def test_run_voice_turn_free_response_updates_mastery(
+    learning_api: LearningApi,
+):
+    first = learning_api.run_learner_voice_turn(
+        {
+            "child_id": "stu-2",
+            "exam": "Junior WAEC",
+            "class_year": "JSS3",
+            "subject": "english",
+            "skill_id": "jss3.english.vocab.synonyms",
+            "skill_strict": True,
+            "max_questions": 1,
+        }
+    )
+    card = first.get("card")
+    assert card is not None
+    assert card.get("kind") == "free-response"
+
+    completed = learning_api.run_learner_voice_turn(
+        {
+            "child_id": "stu-2",
+            "exam": "Junior WAEC",
+            "class_year": "JSS3",
+            "subject": "english",
+            "skill_id": "jss3.english.vocab.synonyms",
+            "skill_strict": True,
+            "max_questions": 1,
+            "last_card_id": card.get("card_id"),
+            "last_kind": "free-response",
+            "answer_text": "unwilling",
+        }
+    )
+    assert completed.get("session_complete") is True
+    assert completed.get("mastery_estimate", {}).get("probability") > 0.5
+    assert "scored_answer" not in completed
+    mastery_events = getattr(learning_api.repository, "mastery_events", [])
+    assert mastery_events[-1]["skill_id"] == "jss3.english.vocab.synonyms"
+    assert mastery_events[-1]["student_id"] == "stu-2"
+
+
+def test_wrong_voice_answer_surfaces_as_weak_topic(
+    learning_api: LearningApi,
+):
+    first = learning_api.run_learner_voice_turn(
+        {
+            "child_id": "stu-weak",
+            "exam": "WAEC",
+            "class_year": "SS3",
+            "subject": "physics",
+            "skill_id": "ss3.physics.measurements.phys_def",
+            "skill_strict": True,
+            "max_questions": 1,
+        }
+    )
+    card = first.get("card")
+    assert card is not None
+
+    learning_api.run_learner_voice_turn(
+        {
+            "child_id": "stu-weak",
+            "exam": "WAEC",
+            "class_year": "SS3",
+            "subject": "physics",
+            "skill_id": "ss3.physics.measurements.phys_def",
+            "skill_strict": True,
+            "max_questions": 1,
+            "last_card_id": card.get("card_id"),
+            "last_kind": "mcq-tap",
+            "answer_option_id": "b",
+        }
+    )
+
+    plan = learning_api.build_learner_plan(
+        {
+            "student_id": "stu-weak",
+            "exam": "WAEC",
+            "class_year": "SS3",
+            "subject": "physics",
+        }
+    )
+    assert plan["source"] == "mastery"
+    assert plan["weak_topics"][0]["skill_id"] == "ss3.physics.measurements.phys_def"
+    assert plan["weak_topics"][0]["mastery"] < 50
+
+
+def test_exam_prep_short_answer_bridge_returns_free_response_card():
+    questions = exam_prep_scripted_questions(
+        [_subject_bank("english-jss3-ss3")],
+        subject_slug_for=lambda value: "english",
+    )
+    planner = LearnerVoiceTurnPlanner(bank=questions)
+
+    resp = planner.next_turn(
+        _req(
+            exam="Junior WAEC",
+            class_year="JSS3",
+            subject="english",
+            skill_id="jss3.english.vocab.synonyms",
+            skill_strict=True,
+            max_questions=1,
+        )
+    )
+
+    assert isinstance(resp.card, FreeResponseCard)
+    assert resp.card.kind == "free-response"
+    assert "reluctant" in resp.card.prompt
+    assert resp.card.skill_id == "jss3.english.vocab.synonyms"
+
+    done = planner.next_turn(
+        _req(
+            exam="Junior WAEC",
+            class_year="JSS3",
+            subject="english",
+            skill_id="jss3.english.vocab.synonyms",
+            skill_strict=True,
+            max_questions=1,
+            last_card_id=resp.card.card_id,
+            last_kind="free-response",
+            answer_text="  Unwilling ",
+        )
+    )
+    assert isinstance(done.card, ProgressCard)
+    assert done.session_complete is True
+
+
+def test_exam_prep_free_response_wrong_answer_returns_explanation():
+    questions = exam_prep_scripted_questions(
+        [_subject_bank("english-jss3-ss3")],
+        subject_slug_for=lambda value: "english",
+    )
+    planner = LearnerVoiceTurnPlanner(bank=questions)
+    first = planner.next_turn(
+        _req(
+            exam="Junior WAEC",
+            class_year="JSS3",
+            subject="english",
+            skill_id="jss3.english.vocab.synonyms",
+            skill_strict=True,
+            max_questions=1,
+        )
+    )
+
+    resp = planner.next_turn(
+        _req(
+            exam="Junior WAEC",
+            class_year="JSS3",
+            subject="english",
+            skill_id="jss3.english.vocab.synonyms",
+            skill_strict=True,
+            max_questions=1,
+            last_card_id=first.card.card_id,
+            last_kind="free-response",
+            answer_text="eager",
+        )
+    )
+
+    assert isinstance(resp.card, ExplanationCard)
+    assert "unwilling" in " ".join(resp.card.steps).lower()
 
 
 

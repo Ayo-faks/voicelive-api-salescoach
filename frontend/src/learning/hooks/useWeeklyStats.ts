@@ -24,7 +24,8 @@ export interface UseWeeklyStatsResult {
  * when the onboarding flag is off so flag-off demo builds and tests keep their
  * deterministic tiles. */
 export function useWeeklyStats(
-  studentId?: string | null
+  studentId?: string | null,
+  refreshKey = 0
 ): UseWeeklyStatsResult {
   const enabled = featureFlags.pathfinder_learner_onboarding_enabled
   const [status, setStatus] = useState<WeeklyStatsStatus>(
@@ -38,22 +39,23 @@ export function useWeeklyStats(
       return
     }
     let cancelled = false
+    const requestVersion = refreshKey
     setStatus('loading')
     fetchWeeklyStats(studentId ? { student_id: studentId } : {})
       .then(result => {
-        if (cancelled) return
+        if (cancelled || requestVersion !== refreshKey) return
         setStats(result)
         setStatus('ready')
       })
       .catch(err => {
-        if (cancelled) return
+        if (cancelled || requestVersion !== refreshKey) return
         console.warn('weekly stats fetch failed', err)
         setStatus('error')
       })
     return () => {
       cancelled = true
     }
-  }, [enabled, studentId])
+  }, [enabled, studentId, refreshKey])
 
   return { status, stats }
 }

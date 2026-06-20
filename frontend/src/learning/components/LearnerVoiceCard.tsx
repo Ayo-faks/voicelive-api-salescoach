@@ -1,6 +1,38 @@
 import { makeStyles } from '@fluentui/react-components'
+import { useEffect, useState, type FormEvent } from 'react'
 import type { LearnerVoiceCard } from '../api'
 import { InlineMarkdown } from './AssistantBlockRenderer'
+
+const QUESTION_PREFIX_RE = /\bQuestion\s+\d+\s+of\s+\d+\./
+const QUESTION_PARTS_RE = /^(Question\s+\d+\s+of\s+\d+)\.\s*(.*)$/s
+
+function questionText(card: LearnerVoiceCard): string | null {
+  if (card.kind === 'mcq-tap') return card.stem
+  if (card.kind === 'free-response') return card.prompt
+  return null
+}
+
+function visibleSpeak(card: LearnerVoiceCard): string {
+  const prompt = questionText(card)
+  if (!prompt) return card.speak
+  let text = card.speak.trim()
+  if (text.endsWith(prompt)) text = text.slice(0, -prompt.length).trim()
+  const questionPrefix = QUESTION_PREFIX_RE.exec(text)
+  if (questionPrefix) text = text.slice(0, questionPrefix.index).trim()
+  return text
+}
+
+function visibleQuestion(card: LearnerVoiceCard): string {
+  const prompt = questionText(card) ?? ''
+  const questionPrefix = QUESTION_PREFIX_RE.exec(card.speak)?.[0]
+  return questionPrefix ? `${questionPrefix} ${prompt}` : prompt
+}
+
+function splitQuestion(value: string): { counter: string | null; body: string } {
+  const match = QUESTION_PARTS_RE.exec(value.trim())
+  if (!match) return { counter: null, body: value }
+  return { counter: match[1], body: match[2] }
+}
 
 const useStyles = makeStyles({
   card: {
@@ -35,6 +67,23 @@ const useStyles = makeStyles({
     lineHeight: 1.45,
     color: 'var(--scrim-fg-strong)',
     margin: 0,
+  },
+  questionBlock: {
+    display: 'grid',
+    gap: '10px',
+  },
+  questionCounter: {
+    display: 'inline-flex',
+    width: 'fit-content',
+    alignItems: 'center',
+    minHeight: '28px',
+    padding: '4px 10px',
+    borderRadius: '999px',
+    border: '1px solid var(--scrim-line-strong)',
+    background: 'var(--scrim-chip)',
+    color: 'var(--scrim-fg-strong)',
+    fontSize: '12px',
+    fontWeight: 800,
   },
   options: {
     display: 'grid',
@@ -100,6 +149,22 @@ const useStyles = makeStyles({
     fontWeight: 700,
     color: '#ffffff',
   },
+  freeResponseForm: {
+    display: 'grid',
+    gap: '12px',
+  },
+  freeResponseInput: {
+    width: '100%',
+    minHeight: '96px',
+    resize: 'vertical',
+    borderRadius: '14px',
+    border: '1px solid var(--scrim-line-strong)',
+    background: 'var(--scrim-chip)',
+    color: 'var(--scrim-fg)',
+    padding: '14px 16px',
+    font: 'inherit',
+    lineHeight: 1.4,
+  },
 })
 
 export interface LearnerVoiceCardRendererProps {
@@ -107,6 +172,7 @@ export interface LearnerVoiceCardRendererProps {
   disabled: boolean
   sessionComplete: boolean
   onMcqAnswer: (optionId: string) => void
+  onFreeResponseAnswer: (answerText: string) => void
   onAdvance: () => void
   onFinish: () => void
 }
@@ -116,10 +182,29 @@ export function LearnerVoiceCardRenderer({
   disabled,
   sessionComplete,
   onMcqAnswer,
+  onFreeResponseAnswer,
   onAdvance,
   onFinish,
 }: LearnerVoiceCardRendererProps): JSX.Element {
   const styles = useStyles()
+  const [freeResponseText, setFreeResponseText] = useState('')
+  const cardId = card.card_id
+  const displaySpeak = visibleSpeak(card)
+  const displayQuestion = visibleQuestion(card)
+  const questionParts = splitQuestion(displayQuestion)
+
+  useEffect(() => {
+    if (!cardId) return
+    setFreeResponseText('')
+  }, [cardId])
+
+  const submitFreeResponse = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    const answer = freeResponseText.trim()
+    if (!answer || disabled || card.kind !== 'free-response') return
+    onFreeResponseAnswer(answer)
+  }
+
   return (
     <article
       className={styles.card}
@@ -127,7 +212,7 @@ export function LearnerVoiceCardRenderer({
       data-card-kind={card.kind}
       data-card-id={card.card_id}
     >
-      <p className={styles.speak}>{card.speak}</p>
+      {displaySpeak ? <p className={styles.speak}>{displaySpeak}</p> : null}
       {card.kind === 'greeting' ? (
         <>
           <h2 className={styles.headline}>{card.headline}</h2>
@@ -145,9 +230,19 @@ export function LearnerVoiceCardRenderer({
       ) : null}
       {card.kind === 'mcq-tap' ? (
         <>
-          <p className={styles.stem}>
-            <InlineMarkdown text={card.stem} />
-          </p>
+          <div className={styles.questionBlock}>
+            {questionParts.counter ? (
+              <strong
+                className={styles.questionCounter}
+                data-testid="practice-question-counter"
+              >
+                {questionParts.counter}
+              </strong>
+            ) : null}
+            <p className={styles.stem} data-testid="practice-question-text">
+              <InlineMarkdown text={questionParts.body} />
+            </p>
+          </div>
           <div className={styles.options}>
             {card.options.map(option => (
               <button
@@ -166,6 +261,39 @@ export function LearnerVoiceCardRenderer({
             ))}
           </div>
         </>
+      ) : null}
+      {card.kind === 'free-response' ? (
+        <form className={styles.freeResponseForm} onSubmit={submitFreeResponse}>
+          <div className={styles.questionBlock}>
+            {questionParts.counter ? (
+              <strong
+                className={styles.questionCounter}
+                data-testid="practice-question-counter"
+              >
+                {questionParts.counter}
+              </strong>
+            ) : null}
+            <p className={styles.stem} data-testid="practice-question-text">
+              <InlineMarkdown text={questionParts.body} />
+            </p>
+          </div>
+          <textarea
+            className={styles.freeResponseInput}
+            value={freeResponseText}
+            placeholder={card.placeholder ?? 'Type your answer, or say it out loud'}
+            onChange={event => setFreeResponseText(event.target.value)}
+            disabled={disabled}
+            data-testid="practice-free-response-input"
+          />
+          <button
+            type="submit"
+            className={styles.primaryAction}
+            disabled={disabled || freeResponseText.trim() === ''}
+            data-testid="practice-free-response-submit"
+          >
+            {card.submit_label ?? 'Check answer'}
+          </button>
+        </form>
       ) : null}
       {card.kind === 'explanation' ? (
         <>
