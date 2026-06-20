@@ -306,7 +306,10 @@ describe('StudentLearningHome weekly stats wiring', () => {
     })
     fireEvent.click(practiceButton)
     await waitFor(() => expect(practiceFullscreenProps).toHaveBeenCalled())
-    const latestProps = practiceFullscreenProps.mock.calls.at(-1)?.[0]
+    const latestProps =
+      practiceFullscreenProps.mock.calls[
+        practiceFullscreenProps.mock.calls.length - 1
+      ]?.[0]
     latestProps?.onSessionComplete?.()
 
     await waitFor(() => expect(fetchLearnerPlanMock).toHaveBeenCalledTimes(2))

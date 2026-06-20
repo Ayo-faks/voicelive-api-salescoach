@@ -676,6 +676,7 @@ export interface AssistantBlockRendererProps {
    */
   animate?: boolean
   onMcqAnswer: (optionId: string) => void
+  onFreeResponseAnswer?: (answerText: string) => void
   onAdvance: () => void
   onFinish: () => void
   onConfirm: (block: AssistantConfirmationBlock) => void
@@ -694,6 +695,7 @@ export function AssistantBlockRenderer({
   sessionComplete,
   animate = true,
   onMcqAnswer,
+  onFreeResponseAnswer,
   onAdvance,
   onFinish,
   onConfirm,
@@ -706,6 +708,7 @@ export function AssistantBlockRenderer({
         disabled={disabled}
         sessionComplete={sessionComplete}
         onMcqAnswer={onMcqAnswer}
+        onFreeResponseAnswer={onFreeResponseAnswer ?? (() => undefined)}
         onAdvance={onAdvance}
         onFinish={onFinish}
       />

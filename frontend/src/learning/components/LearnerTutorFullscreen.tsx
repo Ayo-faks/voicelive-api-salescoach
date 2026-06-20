@@ -419,6 +419,11 @@ export function LearnerTutorFullscreen({
                   `I choose option ${optionId}. Previous card: ${card.card_id}.`
                 )
               }
+              onFreeResponseAnswer={answerText =>
+                sendLearnerReply(
+                  `My answer is ${answerText}. Previous card: ${card.card_id}.`
+                )
+              }
               onAdvance={() =>
                 sendLearnerReply(
                   `Next card please. Previous card: ${card.card_id}.`
