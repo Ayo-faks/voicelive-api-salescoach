@@ -2,7 +2,11 @@ import { render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import StudentMasteryProfile from '../routes/StudentMasteryProfile'
 import { fetchLearningMasteryProfile } from '../api'
-import { api } from '../../services/api'
+import { api, type LearnerProfile } from '../../services/api'
+import {
+  useLearnerProfile,
+  type UseLearnerProfileResult,
+} from '../hooks/useLearnerProfile'
 import type { ChildMastery } from '../../types'
 
 vi.mock('../../services/api', () => ({
@@ -11,6 +15,10 @@ vi.mock('../../services/api', () => ({
 
 vi.mock('../api', () => ({
   fetchLearningMasteryProfile: vi.fn(),
+}))
+
+vi.mock('../hooks/useLearnerProfile', () => ({
+  useLearnerProfile: vi.fn(),
 }))
 
 const masteryFixture: ChildMastery = {
@@ -29,11 +37,36 @@ const masteryFixture: ChildMastery = {
   ],
 }
 
+/** Build a `useLearnerProfile` result for the mock. Only `setup` and
+ * `profile` drive the profile header; the rest fill the hook's return shape.
+ * Pass a `profile` to simulate the flag-on, server-driven path (the header
+ * then prefers the server class/year over the legacy SS2 default). */
+function mockLearnerProfileResult(
+  overrides: Partial<UseLearnerProfileResult> = {}
+): UseLearnerProfileResult {
+  return {
+    setup: { exam: 'WAEC', year: 'SS2', subject: 'Mathematics', firstName: '' },
+    updateSetup: vi.fn(),
+    profile: null,
+    needsOnboarding: false,
+    isLoading: false,
+    error: null,
+    refresh: vi.fn(),
+    patch: vi.fn(),
+    recordConsent: vi.fn(),
+    ...overrides,
+  } as UseLearnerProfileResult
+}
+
 beforeEach(() => {
   vi.mocked(api.getChildMastery).mockReset()
   vi.mocked(api.getChildMastery).mockResolvedValue(masteryFixture)
   vi.mocked(fetchLearningMasteryProfile).mockReset()
   vi.mocked(fetchLearningMasteryProfile).mockResolvedValue(masteryFixture)
+  // Default to the legacy/off-flag path (no server profile) so existing
+  // behaviour is unchanged; individual tests opt into the server-driven path.
+  vi.mocked(useLearnerProfile).mockReset()
+  vi.mocked(useLearnerProfile).mockReturnValue(mockLearnerProfileResult())
 })
 
 describe('StudentMasteryProfile', () => {
@@ -167,5 +200,81 @@ describe('StudentMasteryProfile', () => {
       screen.getByRole('heading', { level: 1, name: /Ada O\./ })
     ).toBeTruthy()
     expect(screen.getByText('Your focus this week')).toBeTruthy()
+  })
+
+  it('does not render a subject chip in the profile header by default', () => {
+    // The learner-level profile header is multi-skill: the legacy default
+    // setup used to leak a "Mathematics" subject chip — it must be gone.
+    render(<StudentMasteryProfile role="learner" learnerName="Ada O." />)
+
+    expect(screen.queryByText('Mathematics')).toBeNull()
+  })
+
+  it('uses the server learner profile class/year (SS3), not the legacy SS2 default', async () => {
+    // Flag-on, server-driven path: a populated `profile` means the header must
+    // prefer the server `year_group` over the localStorage default.
+    vi.mocked(useLearnerProfile).mockReturnValue(
+      mockLearnerProfileResult({
+        profile: {
+          display_name: 'Ada O.',
+          year_group: 'SS3',
+          subjects: ['Mathematics'],
+        } as LearnerProfile,
+        setup: {
+          exam: 'WAEC',
+          year: 'SS3',
+          subject: 'Mathematics',
+          firstName: 'Ada O.',
+        },
+      })
+    )
+
+    render(
+      <StudentMasteryProfile
+        role="learner"
+        learnerName="Ada O."
+        studentId="child-1"
+      />
+    )
+
+    expect(await screen.findByText('SS3')).toBeTruthy()
+    expect(screen.queryByText('SS2')).toBeNull()
+    // Subject is still never a header chip.
+    expect(screen.queryByText('Mathematics')).toBeNull()
+  })
+
+  it('ignores the server learner profile for staff viewers (legacy mastery unchanged)', async () => {
+    // Even with a populated server learner profile, a staff viewer keeps the
+    // legacy child-mastery endpoint and must not adopt the viewer's own class.
+    vi.mocked(useLearnerProfile).mockReturnValue(
+      mockLearnerProfileResult({
+        profile: {
+          display_name: 'Staff',
+          year_group: 'SS3',
+        } as LearnerProfile,
+        setup: {
+          exam: 'WAEC',
+          year: 'SS3',
+          subject: 'Mathematics',
+          firstName: 'Staff',
+        },
+      })
+    )
+
+    render(
+      <StudentMasteryProfile
+        role="admin"
+        learnerName="Ada O."
+        studentId="child-1"
+      />
+    )
+
+    expect(
+      await screen.findByText(/Ada O\. is strongest in plane geometry/i)
+    ).toBeTruthy()
+    expect(api.getChildMastery).toHaveBeenCalledWith('child-1')
+    expect(fetchLearningMasteryProfile).not.toHaveBeenCalled()
+    // Staff header does not adopt the viewer's own SS3 server class.
+    expect(screen.queryByText('SS3')).toBeNull()
   })
 })

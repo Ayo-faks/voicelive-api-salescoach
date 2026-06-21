@@ -21,6 +21,7 @@ import {
   CartesianGrid,
 } from 'recharts'
 import { useLearnerSetup } from '../hooks/useLearnerSetup'
+import { useLearnerProfile } from '../hooks/useLearnerProfile'
 import { pathfinderTokens as t } from '../theme/pathfinder-tokens'
 import { fetchLearningMasteryProfile } from '../api'
 import { api } from '../../services/api'
@@ -318,11 +319,31 @@ export default function StudentMasteryProfile({
   onSelectStudent,
 }: StudentMasteryProfileProps = {}) {
   const styles = useStyles()
-  const [setup] = useLearnerSetup()
+  const [legacySetup] = useLearnerSetup()
+  const learnerProfile = useLearnerProfile()
   const [mastery, setMastery] = useState<ChildMastery | null>(null)
   const [masteryLoading, setMasteryLoading] = useState(false)
   const [masteryError, setMasteryError] = useState<string | null>(null)
   const useLegacyChildMastery = role === 'therapist' || role === 'admin'
+
+  // This is the learner's OWN profile page, so for a learner/kid/student role
+  // we prefer the live server learner profile (`/api/learners/me/profile`).
+  // `useLearnerProfile().profile` is only populated when the onboarding flag
+  // is on and the server returns a profile, so its presence is a demo-safe
+  // proxy for "flag enabled". Staff viewers (parent/therapist/admin) and
+  // demo/off-flag mode keep the legacy localStorage setup.
+  const isLearnerRole =
+    role === 'learner' || role === 'kid' || role === 'student'
+  const serverProfile = isLearnerRole ? learnerProfile.profile : null
+  const headerSetup = serverProfile ? learnerProfile.setup : legacySetup
+
+  // Class/year chip must come from the server profile when onboarding is on —
+  // never the localStorage default (e.g. "SS2"). Fall back to the legacy setup
+  // only in demo/off-flag mode, and render the chip only when a class/year is
+  // actually known.
+  const resolvedYear = (
+    serverProfile ? serverProfile.year_group ?? '' : legacySetup.year
+  ).trim()
 
   // Pull the real per-child mastery profile (skill radar + weekly trajectory)
   // instead of demo fixtures (#1). Falls back to an empty state when the
@@ -387,14 +408,14 @@ export default function StudentMasteryProfile({
     role === 'parent' || role === 'therapist' || role === 'admin'
 
   // One identity source across surfaces (#7): the selected learner's name,
-  // falling back to the saved setup first name.
+  // falling back to the resolved profile/setup first name.
   const displayName =
-    learnerName?.trim() || setup.firstName.trim() || 'Your progress'
+    learnerName?.trim() || headerSetup.firstName.trim() || 'Your progress'
 
   // Parent-ready summary uses a readable first name (never the H1 fallback)
   // and is derived from the live mastery profile + real teacher review date.
   const summaryName =
-    learnerName?.trim() || setup.firstName.trim() || 'Your learner'
+    learnerName?.trim() || headerSetup.firstName.trim() || 'Your learner'
   const parentReadySummary = buildParentReadySummary(summaryName, mastery)
 
   // Real data drives the charts; the radar broadens to every skill the learner
@@ -434,8 +455,9 @@ export default function StudentMasteryProfile({
             {displayName}
           </Text>
           <div className={styles.metaBadges}>
-            <span className={styles.softBadge}>{setup.year}</span>
-            <span className={styles.softBadge}>{setup.subject}</span>
+            {resolvedYear && (
+              <span className={styles.softBadge}>{resolvedYear}</span>
+            )}
             {mastery?.has_data && (
               <span className={styles.softBadge}>
                 {mastery.scored_session_count} sessions
@@ -522,7 +544,11 @@ export default function StudentMasteryProfile({
               <RadarChart
                 data={radarData}
                 role="img"
-                aria-label={`Skill radar — mastery versus the ${setup.year} target of 75 percent: ${radarSummary}.`}
+                aria-label={
+                  resolvedYear
+                    ? `Skill radar — mastery versus the ${resolvedYear} target of 75 percent: ${radarSummary}.`
+                    : `Skill radar — mastery versus the 75 percent target: ${radarSummary}.`
+                }
               >
                 <PolarGrid stroke={'var(--pf-line)'} />
                 <PolarAngleAxis
