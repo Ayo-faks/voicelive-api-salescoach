@@ -3,7 +3,7 @@
  *
  * Fetches real per-learner weekly progress from
  * `GET /api/learning/weekly-stats` so the learner home card stops showing the
- * old hardcoded "4 / 5 · 7 days · +12%". The endpoint is flag-gated on
+ * old hardcoded "4 / 5 · 7 days · +12 pts". The endpoint is flag-gated on
  * `pathfinder_learner_onboarding_enabled`; when the flag is OFF (demo/tests)
  * the hook stays idle and the caller keeps its static demo tiles.
  */

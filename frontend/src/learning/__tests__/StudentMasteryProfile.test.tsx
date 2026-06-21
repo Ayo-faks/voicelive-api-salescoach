@@ -1,11 +1,16 @@
 import { render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import StudentMasteryProfile from '../routes/StudentMasteryProfile'
+import { fetchLearningMasteryProfile } from '../api'
 import { api } from '../../services/api'
 import type { ChildMastery } from '../../types'
 
 vi.mock('../../services/api', () => ({
   api: { getChildMastery: vi.fn() },
+}))
+
+vi.mock('../api', () => ({
+  fetchLearningMasteryProfile: vi.fn(),
 }))
 
 const masteryFixture: ChildMastery = {
@@ -27,6 +32,8 @@ const masteryFixture: ChildMastery = {
 beforeEach(() => {
   vi.mocked(api.getChildMastery).mockReset()
   vi.mocked(api.getChildMastery).mockResolvedValue(masteryFixture)
+  vi.mocked(fetchLearningMasteryProfile).mockReset()
+  vi.mocked(fetchLearningMasteryProfile).mockResolvedValue(masteryFixture)
 })
 
 describe('StudentMasteryProfile', () => {
@@ -64,6 +71,10 @@ describe('StudentMasteryProfile', () => {
     expect(
       await screen.findByText(/Ada O\. is strongest in plane geometry \(82%\)/i)
     ).toBeTruthy()
+    expect(fetchLearningMasteryProfile).toHaveBeenCalledWith({
+      student_id: 'child-1',
+    })
+    expect(api.getChildMastery).not.toHaveBeenCalled()
     expect(
       screen.getByText(
         /Ratio & proportion is the main learning gap this week \(45% against a 75% target\)/i
@@ -103,6 +114,41 @@ describe('StudentMasteryProfile', () => {
         name: /Mastery trajectory/i,
       })
     ).toBeTruthy()
+  })
+
+  it('keeps staff on the legacy child mastery endpoint', async () => {
+    render(
+      <StudentMasteryProfile
+        role="therapist"
+        learnerName="Ada O."
+        studentId="child-1"
+      />
+    )
+
+    expect(
+      await screen.findByText(/Ada O\. is strongest in plane geometry \(82%\)/i)
+    ).toBeTruthy()
+    expect(api.getChildMastery).toHaveBeenCalledWith('child-1')
+    expect(fetchLearningMasteryProfile).not.toHaveBeenCalled()
+  })
+
+  it('shows profile load failures instead of a no-practice empty state', async () => {
+    vi.mocked(fetchLearningMasteryProfile).mockRejectedValue(new Error('403'))
+
+    render(
+      <StudentMasteryProfile
+        role="learner"
+        learnerName="Ada O."
+        studentId="child-1"
+      />
+    )
+
+    expect(
+      await screen.findAllByText(
+        'Could not load progress right now. Try again in a moment.'
+      )
+    ).toHaveLength(2)
+    expect(screen.queryByText(/No practice sessions yet/i)).toBeNull()
   })
 
   it('gives learners a read-only encouraging view without counsellor controls (#3)', () => {

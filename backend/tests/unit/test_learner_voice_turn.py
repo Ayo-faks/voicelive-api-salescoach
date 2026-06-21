@@ -19,6 +19,7 @@ from src.learning.learner_voice import (
     exam_prep_scripted_questions,
     normalize_class_year,
 )
+from src.learning.repository import InMemoryLearningRepository
 
 
 def _req(**kwargs):
@@ -31,6 +32,25 @@ def _req(**kwargs):
 def learning_api() -> LearningApi:
     assert ITEM_BANK_PATH.exists(), f"item bank fixture missing at {ITEM_BANK_PATH}"
     return LearningApi(item_bank=load_item_bank(Path(ITEM_BANK_PATH)))
+
+
+class _PrerequisiteSpyRepository(InMemoryLearningRepository):
+    def __init__(self) -> None:
+        super().__init__()
+        self.calls = []
+
+    def ensure_learner_voice_score_prerequisites(self, **kwargs):
+        self.calls.append(("ensure_prerequisites", dict(kwargs)))
+        return super().ensure_learner_voice_score_prerequisites(**kwargs)
+
+    def save_student_response(self, response, idempotency_key=None):
+        self.calls.append(
+            (
+                "save_student_response",
+                {"response": response, "idempotency_key": idempotency_key},
+            )
+        )
+        return super().save_student_response(response, idempotency_key=idempotency_key)
 
 
 def _subject_bank(subject: str):
@@ -250,10 +270,65 @@ def test_run_voice_turn_serves_exam_prep_physics_mcq(
     assert completed.get("session_complete") is True
     assert completed.get("card", {}).get("kind") == "progress"
     assert completed.get("mastery_estimate", {}).get("probability") > 0.5
+    skill_mastery = completed.get("skill_mastery", {})
+    assert skill_mastery.get("skill_id") == "ss3.physics.measurements.phys_def"
+    assert skill_mastery.get("skill_label") == "Physics definition"
+    assert skill_mastery.get("probability") == completed.get("mastery_estimate", {}).get("probability")
+    assert skill_mastery.get("prior_probability") == pytest.approx(0.5)
+    assert skill_mastery.get("delta_probability") == pytest.approx(
+        skill_mastery.get("probability") - skill_mastery.get("prior_probability")
+    )
     assert "scored_answer" not in completed
     mastery_events = getattr(learning_api.repository, "mastery_events", [])
     assert mastery_events[-1]["skill_id"] == "ss3.physics.measurements.phys_def"
     assert mastery_events[-1]["student_id"] == "stu-1"
+
+
+def test_voice_score_ensures_prerequisites_before_saving_response():
+    repository = _PrerequisiteSpyRepository()
+    learning_api = LearningApi(
+        repository=repository,
+        item_bank=load_item_bank(Path(ITEM_BANK_PATH)),
+    )
+
+    first = learning_api.run_learner_voice_turn(
+        {
+            "child_id": "stu-guard",
+            "exam": "WAEC",
+            "class_year": "SS3",
+            "subject": "physics",
+            "skill_id": "ss3.physics.measurements.phys_def",
+            "skill_strict": True,
+            "max_questions": 1,
+        }
+    )
+    card = first.get("card") or {}
+    learning_api.run_learner_voice_turn(
+        {
+            "child_id": "stu-guard",
+            "exam": "WAEC",
+            "class_year": "SS3",
+            "subject": "physics",
+            "skill_id": "ss3.physics.measurements.phys_def",
+            "skill_strict": True,
+            "max_questions": 1,
+            "last_card_id": card.get("card_id"),
+            "last_kind": "mcq-tap",
+            "answer_option_id": "a",
+        }
+    )
+
+    call_names = [name for name, _payload in repository.calls]
+    assert call_names[:2] == ["ensure_prerequisites", "save_student_response"]
+    prerequisite_payload = repository.calls[0][1]
+    assert prerequisite_payload["student_id"] == "stu-guard"
+    assert prerequisite_payload["skill_id"] == "ss3.physics.measurements.phys_def"
+    assert prerequisite_payload["item_id"] == "physics-mcq-ss3-001"
+    assert prerequisite_payload["prompt"].startswith("Physics is best described")
+    assert prerequisite_payload["item_type"] == "mcq_single"
+    assert prerequisite_payload["skill_name"] == "Physics definition"
+    assert prerequisite_payload["subject"] == "physics"
+    assert prerequisite_payload["year_group"] == "SSS3"
 
 
 def test_run_voice_turn_free_response_updates_mastery(

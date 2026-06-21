@@ -51,6 +51,25 @@ class LearningRepository(Protocol):
     def save_mastery_event(self, event: MasteryEvent, statement: XAPIStatement) -> Dict[str, Any]:
         raise NotImplementedError
 
+    def ensure_learner_voice_score_prerequisites(
+        self,
+        *,
+        tenant_id: str,
+        class_id: str,
+        student_id: str,
+        skill_id: str,
+        item_id: str,
+        prompt: str,
+        item_type: str,
+        difficulty: float,
+        lang: str,
+        provenance: List[Provenance],
+        skill_name: Optional[str] = None,
+        subject: Optional[str] = None,
+        year_group: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        raise NotImplementedError
+
     def list_mastery_events_for_student(
         self, tenant_id: str, student_id: str, *, limit: int = 200
     ) -> List[Dict[str, Any]]:
@@ -252,6 +271,42 @@ class InMemoryLearningRepository:
         self.skills: Dict[tuple[str, str], CatalogueSkill] = {}
         self.memory_consents: Dict[str, Dict[str, Any]] = {}
         self.misconception_attempts: List[Dict[str, Any]] = []
+        self.learner_voice_prerequisites: List[Dict[str, Any]] = []
+
+    def ensure_learner_voice_score_prerequisites(
+        self,
+        *,
+        tenant_id: str,
+        class_id: str,
+        student_id: str,
+        skill_id: str,
+        item_id: str,
+        prompt: str,
+        item_type: str,
+        difficulty: float,
+        lang: str,
+        provenance: List[Provenance],
+        skill_name: Optional[str] = None,
+        subject: Optional[str] = None,
+        year_group: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        record = {
+            "tenant_id": tenant_id,
+            "class_id": class_id,
+            "student_id": student_id,
+            "skill_id": skill_id,
+            "item_id": item_id,
+            "prompt": prompt,
+            "item_type": item_type,
+            "difficulty": difficulty,
+            "lang": lang,
+            "provenance": [item.model_dump() for item in provenance],
+            "skill_name": skill_name,
+            "subject": subject,
+            "year_group": year_group,
+        }
+        self.learner_voice_prerequisites.append(record)
+        return record
 
     def save_student_response(self, response: StudentResponse, idempotency_key: Optional[str] = None) -> Dict[str, Any]:
         record = response.model_dump()
@@ -719,6 +774,166 @@ class LearningPostgresRepository:
 
     def __init__(self, storage: Any) -> None:
         self.storage = storage
+
+    def ensure_learner_voice_score_prerequisites(
+        self,
+        *,
+        tenant_id: str,
+        class_id: str,
+        student_id: str,
+        skill_id: str,
+        item_id: str,
+        prompt: str,
+        item_type: str,
+        difficulty: float,
+        lang: str,
+        provenance: List[Provenance],
+        skill_name: Optional[str] = None,
+        subject: Optional[str] = None,
+        year_group: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        created_at = self.storage._utc_now()
+        standard_id = f"learner-voice-standard:{tenant_id}"
+        resolved_year_group = (year_group or "learner-voice").strip() or "learner-voice"
+        resolved_prompt = prompt.strip() or f"Learner voice item {item_id}"
+        resolved_item_type = item_type.strip() or "learner_voice"
+        resolved_skill_name = (skill_name or skill_id).strip() or skill_id
+        provenance_json = self.storage._dumps_json([item.model_dump() for item in provenance])
+
+        def persist(connection: Any) -> None:
+            connection.execute(
+                """
+                INSERT INTO learning_classes (
+                    id, tenant_id, name, year_group, created_by_user_id,
+                    created_at, updated_at
+                )
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT (id) DO UPDATE SET
+                    name = EXCLUDED.name,
+                    year_group = EXCLUDED.year_group,
+                    updated_at = EXCLUDED.updated_at
+                WHERE learning_classes.tenant_id = EXCLUDED.tenant_id
+                """,
+                (
+                    class_id,
+                    tenant_id,
+                    f"Learner Voice {resolved_year_group}",
+                    resolved_year_group,
+                    "learner-voice-score",
+                    created_at,
+                    created_at,
+                ),
+            )
+            connection.execute(
+                """
+                INSERT INTO learning_students (
+                    id, tenant_id, class_id, display_name, year_group,
+                    created_at, updated_at
+                )
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT (id) DO UPDATE SET
+                    class_id = EXCLUDED.class_id,
+                    display_name = EXCLUDED.display_name,
+                    year_group = EXCLUDED.year_group,
+                    updated_at = EXCLUDED.updated_at
+                WHERE learning_students.tenant_id = EXCLUDED.tenant_id
+                """,
+                (
+                    student_id,
+                    tenant_id,
+                    class_id,
+                    f"Learner {student_id}",
+                    resolved_year_group,
+                    created_at,
+                    created_at,
+                ),
+            )
+            connection.execute(
+                """
+                INSERT INTO learning_standards (
+                    id, tenant_id, source, name, version, created_at, updated_at
+                )
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT (id) DO UPDATE SET
+                    name = EXCLUDED.name,
+                    updated_at = EXCLUDED.updated_at
+                WHERE learning_standards.tenant_id = EXCLUDED.tenant_id
+                """,
+                (
+                    standard_id,
+                    tenant_id,
+                    "learner_voice",
+                    "Learner Voice Embedded Catalogue",
+                    "v1",
+                    created_at,
+                    created_at,
+                ),
+            )
+            connection.execute(
+                """
+                INSERT INTO learning_skills (
+                    id, tenant_id, standard_id, name, description,
+                    created_at, updated_at
+                )
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT (id) DO UPDATE SET
+                    standard_id = EXCLUDED.standard_id,
+                    name = EXCLUDED.name,
+                    description = COALESCE(learning_skills.description, EXCLUDED.description),
+                    updated_at = EXCLUDED.updated_at
+                WHERE learning_skills.tenant_id = EXCLUDED.tenant_id
+                """,
+                (
+                    skill_id,
+                    tenant_id,
+                    standard_id,
+                    resolved_skill_name,
+                    subject,
+                    created_at,
+                    created_at,
+                ),
+            )
+            connection.execute(
+                """
+                INSERT INTO learning_diagnostic_items (
+                    id, tenant_id, skill_id, prompt, item_type, difficulty,
+                    correct_answer, lang, provenance_json, created_at, updated_at
+                )
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT (id) DO UPDATE SET
+                    skill_id = EXCLUDED.skill_id,
+                    prompt = EXCLUDED.prompt,
+                    item_type = EXCLUDED.item_type,
+                    difficulty = EXCLUDED.difficulty,
+                    lang = EXCLUDED.lang,
+                    provenance_json = EXCLUDED.provenance_json,
+                    updated_at = EXCLUDED.updated_at
+                WHERE learning_diagnostic_items.tenant_id = EXCLUDED.tenant_id
+                """,
+                (
+                    item_id,
+                    tenant_id,
+                    skill_id,
+                    resolved_prompt,
+                    resolved_item_type,
+                    difficulty,
+                    None,
+                    lang,
+                    provenance_json,
+                    created_at,
+                    created_at,
+                ),
+            )
+
+        self.storage._execute_write(persist)
+        return {
+            "tenant_id": tenant_id,
+            "class_id": class_id,
+            "student_id": student_id,
+            "skill_id": skill_id,
+            "item_id": item_id,
+            "created_at": created_at,
+        }
 
     def save_student_response(self, response: StudentResponse, idempotency_key: Optional[str] = None) -> Dict[str, Any]:
         created_at = self.storage._utc_now()

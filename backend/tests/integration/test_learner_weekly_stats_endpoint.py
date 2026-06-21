@@ -66,6 +66,9 @@ def test_flag_off_returns_404(client: FlaskClient, monkeypatch: pytest.MonkeyPat
     assert (
         client.get("/api/learning/weekly-stats", headers=headers).status_code == 404
     )
+    assert (
+        client.get("/api/learning/mastery-profile", headers=headers).status_code == 404
+    )
 
 
 def test_anonymous_caller_unauthorised(client: FlaskClient):
@@ -88,8 +91,22 @@ def test_cold_start_returns_zeroed_stats(client: FlaskClient):
     assert body == {
         "sessions": {"completed": 0, "target": 5},
         "streak_days": 0,
+        "current_mastery_pct": None,
         "mastery_delta_pct": 0.0,
         "mastery_focus_label": "",
+    }
+
+
+def test_mastery_profile_cold_start_returns_empty_profile(client: FlaskClient):
+    headers = _bootstrap_learner(client)
+    response = client.get("/api/learning/mastery-profile", headers=headers)
+    assert response.status_code == 200, response.get_data(as_text=True)
+    assert response.get_json() == {
+        "has_data": False,
+        "session_count": 0,
+        "scored_session_count": 0,
+        "skills": [],
+        "trajectory": [],
     }
 
 
@@ -97,6 +114,10 @@ def test_foreign_student_id_forbidden(client: FlaskClient):
     headers = _bootstrap_learner(client)
     response = client.get(
         "/api/learning/weekly-stats?student_id=not-my-child", headers=headers
+    )
+    assert response.status_code == 403
+    response = client.get(
+        "/api/learning/mastery-profile?student_id=not-my-child", headers=headers
     )
     assert response.status_code == 403
 

@@ -208,12 +208,13 @@ describe('StudentLearningHome weekly stats wiring', () => {
       expect(screen.getAllByText('3 / 5').length).toBeGreaterThan(0)
     })
     expect(screen.getAllByText('5 days').length).toBeGreaterThan(0)
-    expect(screen.getAllByText('62%').length).toBeGreaterThan(0)
-    expect(screen.getAllByText('Weekly change +8%').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Weekly change').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('+8 pts').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Differentiation').length).toBeGreaterThan(0)
     // The fabricated demo numbers must be gone.
     expect(screen.queryByText('4 / 5')).toBeNull()
     expect(screen.queryByText('7 days')).toBeNull()
-    expect(screen.queryByText('+12%')).toBeNull()
+    expect(screen.queryByText('+12 pts')).toBeNull()
   })
 
   it('shows an honest empty state for a cold-start learner (no fabricated progress)', async () => {
@@ -239,7 +240,7 @@ describe('StudentLearningHome weekly stats wiring', () => {
     expect(screen.getAllByText('0 / 5').length).toBeGreaterThan(0)
     expect(screen.getAllByText('0 days').length).toBeGreaterThan(0)
     // No invented mastery delta on a learner with no history.
-    expect(screen.queryByText('+12%')).toBeNull()
+    expect(screen.queryByText('+12 pts')).toBeNull()
   })
 
   it('keeps the empty state when the weekly-stats fetch fails', async () => {
@@ -259,7 +260,7 @@ describe('StudentLearningHome weekly stats wiring', () => {
     await waitFor(() => {
       expect(screen.getAllByText('No sessions yet').length).toBeGreaterThan(0)
     })
-    expect(screen.queryByText('+12%')).toBeNull()
+    expect(screen.queryByText('+12 pts')).toBeNull()
   })
 
   it('refetches weekly stats and weak-topic plan when practice completes', async () => {

@@ -149,6 +149,42 @@ const useStyles = makeStyles({
     fontWeight: 700,
     color: '#ffffff',
   },
+  skillMastery: {
+    display: 'grid',
+    gap: '10px',
+    padding: '16px 18px',
+    borderRadius: '16px',
+    border: '1px solid rgba(15, 23, 42, 0.08)',
+    background:
+      'linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(248, 250, 252, 0.88))',
+    boxShadow:
+      '0 1px 0 rgba(255, 255, 255, 0.9) inset, 0 12px 28px rgba(15, 23, 42, 0.06)',
+  },
+  skillMasteryEyebrow: {
+    fontSize: '11px',
+    fontWeight: 800,
+    letterSpacing: '0.08em',
+    textTransform: 'uppercase',
+    color: 'var(--scrim-fg-muted)',
+  },
+  skillMasteryValue: {
+    fontSize: '18px',
+    fontWeight: 800,
+    color: '#111827',
+  },
+  skillMasteryBadge: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    width: 'fit-content',
+    minHeight: '24px',
+    padding: '4px 11px',
+    borderRadius: '999px',
+    border: '1px solid rgba(0, 113, 227, 0.16)',
+    background: 'rgba(0, 113, 227, 0.08)',
+    color: '#0057b8',
+    fontSize: '12px',
+    fontWeight: 800,
+  },
   freeResponseForm: {
     display: 'grid',
     gap: '12px',
@@ -171,6 +207,11 @@ export interface LearnerVoiceCardRendererProps {
   card: LearnerVoiceCard
   disabled: boolean
   sessionComplete: boolean
+  masterySummary?: {
+    skillLabel: string
+    probabilityPct: number
+    deltaPts: number
+  } | null
   onMcqAnswer: (optionId: string) => void
   onFreeResponseAnswer: (answerText: string) => void
   onAdvance: () => void
@@ -181,6 +222,7 @@ export function LearnerVoiceCardRenderer({
   card,
   disabled,
   sessionComplete,
+  masterySummary,
   onMcqAnswer,
   onFreeResponseAnswer,
   onAdvance,
@@ -319,6 +361,24 @@ export function LearnerVoiceCardRenderer({
           <div className={styles.progressNumber}>
             {card.completed} / {card.total}
           </div>
+          {sessionComplete && masterySummary ? (
+            <div
+              className={styles.skillMastery}
+              data-testid="practice-skill-mastery"
+            >
+              <span className={styles.skillMasteryEyebrow}>
+                Current skill mastery
+              </span>
+              <span className={styles.skillMasteryValue}>
+                {masterySummary.skillLabel}: {masterySummary.probabilityPct}%
+              </span>
+              {masterySummary.deltaPts > 0 ? (
+                <span className={styles.skillMasteryBadge}>
+                  +{masterySummary.deltaPts} pts this session
+                </span>
+              ) : null}
+            </div>
+          ) : null}
           <button
             type="button"
             className={styles.primaryAction}

@@ -205,6 +205,10 @@ class LearnerVoiceScoredAnswer(BaseModel):
     response_text: str = Field(min_length=1)
     correct: bool
     item_difficulty: float = Field(default=0.0, ge=-5.0, le=5.0)
+    prompt: Optional[str] = None
+    item_type: Optional[str] = None
+    subject: Optional[str] = None
+    class_year: Optional[str] = None
     lang: str = "en"
     provenance: List[Provenance]
 
@@ -1332,6 +1336,10 @@ class LearnerVoiceTurnPlanner:
             response_text=response,
             correct=correct,
             item_difficulty=question.difficulty,
+            prompt=question.stem,
+            item_type=question.item_type,
+            subject=question.subject,
+            class_year=question.class_year,
             lang=question.lang,
             provenance=list(question.provenance),
         )

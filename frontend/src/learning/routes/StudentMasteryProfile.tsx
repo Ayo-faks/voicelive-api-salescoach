@@ -22,6 +22,7 @@ import {
 } from 'recharts'
 import { useLearnerSetup } from '../hooks/useLearnerSetup'
 import { pathfinderTokens as t } from '../theme/pathfinder-tokens'
+import { fetchLearningMasteryProfile } from '../api'
 import { api } from '../../services/api'
 import LearnerSelector from '../components/LearnerSelector'
 import type { ChildMastery, ChildProfile } from '../../types'
@@ -200,7 +201,7 @@ const useStyles = makeStyles({
     alignSelf: 'flex-start',
     minHeight: '24px',
     borderRadius: t.radius.pill,
-    border: `1px solid var(--pf-ink)`,
+    border: '1px solid var(--pf-ink)',
     backgroundColor: 'var(--pf-ink)',
     color: 'var(--pf-on-ink)',
     boxSizing: 'border-box',
@@ -320,6 +321,8 @@ export default function StudentMasteryProfile({
   const [setup] = useLearnerSetup()
   const [mastery, setMastery] = useState<ChildMastery | null>(null)
   const [masteryLoading, setMasteryLoading] = useState(false)
+  const [masteryError, setMasteryError] = useState<string | null>(null)
+  const useLegacyChildMastery = role === 'therapist' || role === 'admin'
 
   // Pull the real per-child mastery profile (skill radar + weekly trajectory)
   // instead of demo fixtures (#1). Falls back to an empty state when the
@@ -330,19 +333,31 @@ export default function StudentMasteryProfile({
     async (signal?: { cancelled: boolean }, opts?: { quiet?: boolean }) => {
       if (!studentId) {
         setMastery(null)
+        setMasteryError(null)
         return
       }
-      if (!opts?.quiet) setMasteryLoading(true)
+      if (!opts?.quiet) {
+        setMasteryLoading(true)
+        setMasteryError(null)
+      }
       try {
-        const data = await api.getChildMastery(studentId)
-        if (!signal?.cancelled) setMastery(data)
+        const data = useLegacyChildMastery
+          ? await api.getChildMastery(studentId)
+          : await fetchLearningMasteryProfile({ student_id: studentId })
+        if (!signal?.cancelled) {
+          setMastery(data)
+          setMasteryError(null)
+        }
       } catch {
-        if (!signal?.cancelled && !opts?.quiet) setMastery(null)
+        if (!signal?.cancelled && !opts?.quiet) {
+          setMastery(null)
+          setMasteryError('Could not load progress right now. Try again in a moment.')
+        }
       } finally {
         if (!signal?.cancelled && !opts?.quiet) setMasteryLoading(false)
       }
     },
-    [studentId]
+    [studentId, useLegacyChildMastery]
   )
 
   useEffect(() => {
@@ -497,6 +512,8 @@ export default function StudentMasteryProfile({
                 <Text size={200}>
                   {masteryLoading
                     ? 'Loading mastery…'
+                    : masteryError
+                      ? masteryError
                     : 'No practice sessions yet — the skill radar appears once this learner completes their first exercise.'}
                 </Text>
               </div>
@@ -612,6 +629,8 @@ export default function StudentMasteryProfile({
                 <Text size={200}>
                   {masteryLoading
                     ? 'Loading trajectory…'
+                    : masteryError
+                      ? masteryError
                     : 'The weekly trajectory appears after a couple of practice sessions.'}
                 </Text>
               </div>

@@ -8,6 +8,7 @@ from typing import Any, Dict, List, Tuple
 
 from src.learning.api import ITEM_BANK_PATH, LearningApi, PILOT_TEACHER_ID, register_learning_api
 from src.learning.diagnostic import load_item_bank
+from src.learning.models import Provenance
 from src.learning.repository import LearningPostgresRepository
 
 
@@ -115,3 +116,78 @@ def test_postgres_save_intervention_plan_persists_parent_plan_id_column() -> Non
     )
     assert "parent_plan_id" in insert_sql
     assert insert_params[-1] == queued["plan"].get("parent_plan_id")
+
+
+def test_postgres_ensure_learner_voice_score_prerequisites_upserts_fk_rows() -> None:
+    storage = _FakePostgresStorage()
+    repository = LearningPostgresRepository(storage)
+
+    repository.ensure_learner_voice_score_prerequisites(
+        tenant_id="tenant-phase-2",
+        class_id="class-ss3-a",
+        student_id="child-prod-1",
+        skill_id="ss3.physics.measurements.phys_def",
+        item_id="physics-mcq-ss3-001",
+        prompt="Physics is best described as the study of:",
+        item_type="mcq_single",
+        difficulty=0.1,
+        lang="en-NG",
+        provenance=[
+            Provenance(
+                source="learner_voice_test",
+                rule_id="fixture",
+                confidence=1.0,
+                evidence_count=1,
+            )
+        ],
+        skill_name="Physics definition",
+        subject="physics",
+        year_group="SSS3",
+    )
+
+    executions = storage.connection.executions
+    expected_tables = [
+        "learning_classes",
+        "learning_students",
+        "learning_standards",
+        "learning_skills",
+        "learning_diagnostic_items",
+    ]
+    assert len(executions) == len(expected_tables)
+    for table_name, (sql, _params) in zip(expected_tables, executions):
+        assert table_name in sql
+    class_params = executions[0][1]
+    assert class_params[:4] == (
+        "class-ss3-a",
+        "tenant-phase-2",
+        "Learner Voice SSS3",
+        "SSS3",
+    )
+    student_params = executions[1][1]
+    assert student_params[:5] == (
+        "child-prod-1",
+        "tenant-phase-2",
+        "class-ss3-a",
+        "Learner child-prod-1",
+        "SSS3",
+    )
+    skill_params = executions[3][1]
+    assert skill_params[:5] == (
+        "ss3.physics.measurements.phys_def",
+        "tenant-phase-2",
+        "learner-voice-standard:tenant-phase-2",
+        "Physics definition",
+        "physics",
+    )
+    item_params = executions[4][1]
+    assert item_params[:8] == (
+        "physics-mcq-ss3-001",
+        "tenant-phase-2",
+        "ss3.physics.measurements.phys_def",
+        "Physics is best described as the study of:",
+        "mcq_single",
+        0.1,
+        None,
+        "en-NG",
+    )
+    assert json.loads(item_params[8])[0]["source"] == "learner_voice_test"

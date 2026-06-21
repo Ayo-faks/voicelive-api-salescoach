@@ -6,6 +6,7 @@ import {
   runLearnerVoiceTurn,
   type LearnerVoiceCard,
   type LearnerVoiceTurnRequest,
+  type SkillMasteryPayload,
 } from '../api'
 import { useTtsPlayer } from '../hooks/useTtsPlayer'
 import { useLearnerVoiceSession } from '../hooks/useLearnerVoiceSession'
@@ -174,6 +175,29 @@ const useStyles = makeStyles({
 /** localStorage key for the learner's "read each card aloud" preference. */
 const PRACTICE_VOICE_PREF_KEY = 'pf-practice-voice-enabled'
 
+type PracticeMasterySummary = {
+  skillLabel: string
+  probabilityPct: number
+  deltaPts: number
+}
+
+function toMasterySummary(
+  skillMastery?: SkillMasteryPayload | null
+): PracticeMasterySummary | null {
+  if (!skillMastery || typeof skillMastery.probability !== 'number') return null
+  const deltaProbability =
+    typeof skillMastery.delta_probability === 'number'
+      ? skillMastery.delta_probability
+      : typeof skillMastery.prior_probability === 'number'
+        ? skillMastery.probability - skillMastery.prior_probability
+        : 0
+  return {
+    skillLabel: skillMastery.skill_label || 'Current skill',
+    probabilityPct: Math.round(skillMastery.probability * 100),
+    deltaPts: Math.round(deltaProbability * 100),
+  }
+}
+
 export interface PracticeFullscreenProps {
   open: boolean
   onClose: () => void
@@ -208,6 +232,7 @@ export function PracticeFullscreen({
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [sessionComplete, setSessionComplete] = useState(false)
+  const [masterySummary, setMasterySummary] = useState<PracticeMasterySummary | null>(null)
   const {
     supported: ttsSupported,
     playing: ttsPlaying,
@@ -296,6 +321,11 @@ export function PracticeFullscreen({
         })
         setCard(response.card)
         setSessionComplete(response.session_complete)
+        setMasterySummary(
+          response.session_complete
+            ? toMasterySummary(response.skill_mastery)
+            : null
+        )
         if (response.session_complete) onSessionComplete?.()
       } catch (err) {
         setError(
@@ -340,11 +370,13 @@ export function PracticeFullscreen({
       stop()
       setCard(null)
       setSessionComplete(false)
+      setMasterySummary(null)
       setError(null)
       return
     }
     setCard(null)
     setSessionComplete(false)
+    setMasterySummary(null)
     setError(null)
     void requestTurn({})
   }, [open, requestTurn, stop])
@@ -472,6 +504,7 @@ export function PracticeFullscreen({
               card={visibleCard}
               disabled={loading || voiceSession.state === 'thinking'}
               sessionComplete={visibleSessionComplete}
+              masterySummary={voiceCard ? null : masterySummary}
               onMcqAnswer={handleMcqAnswer}
               onFreeResponseAnswer={handleFreeResponseAnswer}
               onAdvance={handleAdvance}

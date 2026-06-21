@@ -8,6 +8,8 @@
  * pilot demo, but we keep parity with `src/services/api.ts`.
  */
 
+import type { ChildMastery } from '../types'
+
 export type DiagnosticItemPayload = {
   item_id: string
   skill_id: string
@@ -25,6 +27,16 @@ export type MasteryEstimatePayload = {
   b?: number | null
   rating?: number | null
   deviation?: number | null
+  prior_probability?: number | null
+  delta_probability?: number | null
+}
+
+export type SkillMasteryPayload = {
+  skill_id: string
+  skill_label: string
+  probability: number
+  prior_probability?: number | null
+  delta_probability?: number | null
 }
 
 export type ClassMasteryCell = {
@@ -563,6 +575,17 @@ export async function fetchWeeklyStats(
   return jsonOrThrow<LearnerWeeklyStatsResponse>(response)
 }
 
+export async function fetchLearningMasteryProfile(
+  query: { student_id?: string } = {}
+): Promise<ChildMastery> {
+  const search = toSearchParams(query)
+  const url = search
+    ? `/api/learning/mastery-profile?${search}`
+    : '/api/learning/mastery-profile'
+  const response = await fetch(url, withDefaults({ method: 'GET' }))
+  return jsonOrThrow<ChildMastery>(response)
+}
+
 export async function fetchExamPrepTopics(): Promise<ExamPrepTopicsResponse> {
   const response = await fetch(
     '/api/learning/exam-prep/topics',
@@ -976,6 +999,8 @@ export interface LearnerVoiceTurnRequest {
 export interface LearnerVoiceTurnResponse {
   card: LearnerVoiceCard
   session_complete: boolean
+  mastery_estimate?: MasteryEstimatePayload | null
+  skill_mastery?: SkillMasteryPayload | null
 }
 
 export async function runLearnerVoiceTurn(

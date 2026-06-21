@@ -84,12 +84,17 @@ vi.mock('../../hooks/useAudioPlayer', () => ({
   }),
 }))
 
+const ttsMock = vi.hoisted(() => ({
+  play: vi.fn(),
+  stop: vi.fn(),
+}))
+
 vi.mock('../hooks/useTtsPlayer', () => ({
   useTtsPlayer: () => ({
     supported: true,
     playing: false,
-    play: vi.fn(),
-    stop: vi.fn(),
+    play: ttsMock.play,
+    stop: ttsMock.stop,
   }),
 }))
 
@@ -290,10 +295,22 @@ describe('PracticeFullscreen voice answers', () => {
 
   it('notifies the host when a practice session completes', async () => {
     const onSessionComplete = vi.fn()
+    let completed = false
     apiMock.runLearnerVoiceTurn.mockReset()
     apiMock.runLearnerVoiceTurn.mockImplementation((payload: { answer_option_id?: string }) => {
-      if (payload.answer_option_id) {
-        return Promise.resolve({ card: progressCard, session_complete: true })
+      if (payload.answer_option_id || completed) {
+        completed = true
+        return Promise.resolve({
+          card: progressCard,
+          session_complete: true,
+          skill_mastery: {
+            skill_id: 'ss3.physics.measurements.phys_def',
+            skill_label: 'Physics definition',
+            probability: 0.67,
+            prior_probability: 0.5,
+            delta_probability: 0.17,
+          },
+        })
       }
       return Promise.resolve({ card: firstCard, session_complete: false })
     })
@@ -311,5 +328,9 @@ describe('PracticeFullscreen voice answers', () => {
     fireEvent.click(screen.getByTestId('practice-option-b'))
 
     await waitFor(() => expect(onSessionComplete).toHaveBeenCalledTimes(1))
+    const mastery = await screen.findByTestId('practice-skill-mastery')
+    expect(mastery.textContent).toContain('Current skill mastery')
+    expect(mastery.textContent).toContain('Physics definition: 67%')
+    expect(mastery.textContent).toContain('+17 pts this session')
   })
 })

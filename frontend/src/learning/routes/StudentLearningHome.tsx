@@ -196,7 +196,7 @@ const fallbackTodaysPath: Activity[] = [
 const weeklyTiles: Array<{ label: string; value: string; delta: string }> = [
   { label: 'Sessions', value: '4 / 5', delta: 'On pace' },
   { label: 'Streak', value: '7 days', delta: 'Personal best' },
-  { label: 'Mastery', value: '+12%', delta: 'Ratio focus' },
+  { label: 'Weekly change', value: '+12 pts', delta: 'Ratio focus' },
 ]
 
 type WeeklyTile = { label: string; value: string; delta: string }
@@ -206,12 +206,12 @@ type WeeklyTile = { label: string; value: string; delta: string }
 const weeklyLoadingTiles: WeeklyTile[] = [
   { label: 'Sessions', value: '…', delta: 'Loading' },
   { label: 'Streak', value: '…', delta: 'Loading' },
-  { label: 'Mastery', value: '…', delta: 'Loading' },
+  { label: 'Weekly change', value: '…', delta: 'Loading' },
 ]
 const weeklyEmptyTiles: WeeklyTile[] = [
   { label: 'Sessions', value: '0 / 5', delta: 'No sessions yet' },
   { label: 'Streak', value: '0 days', delta: 'Start a streak' },
-  { label: 'Mastery', value: '—', delta: 'Practise to see progress' },
+  { label: 'Weekly change', value: '—', delta: 'Practise to see progress' },
 ]
 
 /** Derive the three "This week" tiles from real per-learner stats. Cold-start
@@ -249,16 +249,20 @@ function deriveWeeklyTiles(stats: {
       ? `${Math.round(stats.current_mastery_pct)}%`
       : '—'
   const pct = Math.round(stats.mastery_delta_pct)
-  const weeklyChange = `${pct > 0 ? '+' : ''}${pct}%`
+  const weeklyChange = currentMastery === '—' && pct === 0
+    ? '—'
+    : `${pct > 0 ? '+' : ''}${pct} pts`
   const masteryDelta =
-    currentMastery === '—'
-      ? 'No mastery yet'
-      : `Weekly change ${weeklyChange}`
+    focus !== ''
+      ? focus
+      : currentMastery === '—'
+        ? 'Practise to see progress'
+        : `Current mastery ${currentMastery}`
 
   return [
     { label: 'Sessions', value: `${completed} / ${target}`, delta: sessionsDelta },
     { label: 'Streak', value: streakValue, delta: streakDelta },
-    { label: 'Mastery', value: currentMastery, delta: masteryDelta },
+    { label: 'Weekly change', value: weeklyChange, delta: masteryDelta },
   ]
 }
 
@@ -4167,11 +4171,11 @@ export default function StudentLearningHome({
         </article>
       </aside>
 
-      {practiceOpen && (
+      {practiceOpen && studentId && (
         <PracticeFullscreen
           open={practiceOpen}
           onClose={closePractice}
-          childId={studentId ?? 'demo-student'}
+          childId={studentId}
           exam={learnerSetup.exam}
           classYear={learnerSetup.year}
           subject={learnerSetup.subject}

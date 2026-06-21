@@ -2237,6 +2237,19 @@ def learner_weekly_stats():
     return _learning_api_response(lambda: learning_api.weekly_stats({"student_id": student_id, "tenant_id": PILOT_TENANT_ID}))
 
 
+@app.route("/api/learning/mastery-profile", methods=["GET"])
+def learner_mastery_profile():
+    if not _flag_enabled(LEARNER_ONBOARDING_FLAG):
+        return jsonify({"error": "Not found"}), HTTP_NOT_FOUND
+    user, guard_response = _require_learner_or_parent_user()
+    if guard_response is not None or user is None:
+        return guard_response
+    student_id, student_guard = _learner_request_student_id(user)
+    if student_guard is not None or not student_id:
+        return student_guard
+    return _learning_api_response(lambda: learning_api.mastery_profile({"student_id": student_id, "tenant_id": PILOT_TENANT_ID}))
+
+
 @app.route("/api/learning/learner/careers", methods=["GET"])
 def learner_career_plan():
     if not _flag_enabled(LEARNER_ONBOARDING_FLAG):

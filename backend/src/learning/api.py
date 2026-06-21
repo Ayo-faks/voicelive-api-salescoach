@@ -3745,6 +3745,17 @@ class LearningApi:
         out.pop("scored_answer", None)
         if mastery_update_payload is not None:
             out["mastery_estimate"] = mastery_update_payload
+            scored_answer = response.scored_answer
+            if scored_answer is not None:
+                skill_id = str(scored_answer.skill_id or "")
+                skill_labels = self._skill_label_lookup()
+                out["skill_mastery"] = {
+                    "skill_id": skill_id,
+                    "skill_label": _display_skill_label(skill_id, skill_labels),
+                    "probability": mastery_update_payload.get("probability"),
+                    "prior_probability": mastery_update_payload.get("prior_probability"),
+                    "delta_probability": mastery_update_payload.get("delta_probability"),
+                }
         return out
 
     def _record_learner_voice_score(
@@ -3769,6 +3780,37 @@ class LearningApi:
         if idempotency_key in self._voice_score_keys:
             return None
 
+        ensure_score_prerequisites = getattr(
+            self.repository,
+            "ensure_learner_voice_score_prerequisites",
+            None,
+        )
+        if callable(ensure_score_prerequisites):
+            ensure_score_prerequisites(
+                tenant_id=tenant_id,
+                class_id=class_id,
+                student_id=student_id,
+                skill_id=scored_answer.skill_id,
+                item_id=scored_answer.item_id,
+                prompt=str(
+                    getattr(scored_answer, "prompt", None)
+                    or f"Learner voice item {scored_answer.item_id}"
+                ),
+                item_type=str(getattr(scored_answer, "item_type", None) or "learner_voice"),
+                difficulty=float(scored_answer.item_difficulty),
+                lang=scored_answer.lang,
+                provenance=scored_answer.provenance,
+                skill_name=_display_skill_label(
+                    scored_answer.skill_id,
+                    self._skill_label_lookup(),
+                ),
+                subject=getattr(scored_answer, "subject", None),
+                year_group=(
+                    getattr(scored_answer, "class_year", None)
+                    or request_model.class_year
+                ),
+            )
+
         response = StudentResponse(
             tenant_id=tenant_id,
             student_id=student_id,
@@ -3785,13 +3827,15 @@ class LearningApi:
         )
 
         estimates = self._student_estimates.setdefault((tenant_id, student_id), {})
+        prior_estimate = estimates.get(scored_answer.skill_id)
+        prior_probability = prior_estimate.probability if prior_estimate is not None else 0.5
         update = self.estimator.update(
             MasteryUpdateInput(
                 tenant_id=tenant_id,
                 student_id=student_id,
                 skill_id=scored_answer.skill_id,
                 correct=scored_answer.correct,
-                prior_estimate=estimates.get(scored_answer.skill_id),
+                prior_estimate=prior_estimate,
                 item_difficulty=scored_answer.item_difficulty,
                 lang=scored_answer.lang,
                 provenance=scored_answer.provenance,
@@ -3814,7 +3858,10 @@ class LearningApi:
         self.repository.save_mastery_event(mastery_event, statement)
         self._emit_xapi(tenant_id, student_id, statement)
         self._voice_score_keys.add(idempotency_key)
-        return update.estimate.model_dump()
+        estimate_payload = update.estimate.model_dump()
+        estimate_payload["prior_probability"] = prior_probability
+        estimate_payload["delta_probability"] = update.estimate.probability - prior_probability
+        return estimate_payload
 
     def build_learner_plan(self, payload: Mapping[str, Any]) -> Dict[str, Any]:
         """Return an adaptive, mastery-ranked daily plan for one learner.
@@ -4223,19 +4270,7 @@ class LearningApi:
             return empty
 
         # 1. Normalise each event to a tz-aware UTC datetime + probability.
-        timeline: List[tuple[datetime, str, Optional[float]]] = []
-        for record in events:
-            occurred = self._mastery_event_datetime(record)
-            if occurred is None:
-                continue
-            skill_id = str(record.get("skill_id") or "")
-            probability: Optional[float] = None
-            raw_estimate = record.get("estimate")
-            if isinstance(raw_estimate, Mapping):
-                value = raw_estimate.get("probability")
-                if isinstance(value, (int, float)):
-                    probability = float(value)
-            timeline.append((occurred, skill_id, probability))
+        timeline = self._mastery_event_timeline(events)
         if not timeline:
             return empty
 
@@ -4323,11 +4358,7 @@ class LearningApi:
             focus_skill = max(timeline, key=lambda row: row[0])[1]
 
         skill_labels = self._skill_label_lookup()
-        focus_label = (
-            skill_labels.get(focus_skill) or _humanize_skill_id(focus_skill)
-            if focus_skill
-            else ""
-        )
+        focus_label = _display_skill_label(focus_skill, skill_labels) if focus_skill else ""
 
         return {
             "sessions": {
@@ -4339,6 +4370,101 @@ class LearningApi:
             "mastery_delta_pct": mastery_delta_pct,
             "mastery_focus_label": focus_label,
         }
+
+    def mastery_profile(self, payload: Mapping[str, Any]) -> Dict[str, Any]:
+        """Return learner/parent mastery radar + trajectory from MasteryEvents."""
+        tenant_id = str(payload.get("tenant_id") or PILOT_TENANT_ID)
+        student_id = str(payload.get("student_id") or "").strip()
+        if not student_id:
+            raise LearningApiError("student_id is required", status_code=400)
+
+        empty: Dict[str, Any] = {
+            "has_data": False,
+            "session_count": 0,
+            "scored_session_count": 0,
+            "skills": [],
+            "trajectory": [],
+        }
+        try:
+            events = self.repository.list_mastery_events_for_student(
+                tenant_id, student_id, limit=500
+            )
+        except Exception:  # noqa: BLE001 - profile charts degrade to empty on storage errors
+            events = []
+        timeline = self._mastery_event_timeline(events)
+        scored = [
+            (occurred, skill_id, probability)
+            for occurred, skill_id, probability in timeline
+            if skill_id and probability is not None
+        ]
+        if not scored:
+            return empty
+
+        latest_by_skill: Dict[str, tuple[datetime, float]] = {}
+        skill_days: Dict[str, set[Any]] = {}
+        for occurred, skill_id, probability in sorted(
+            scored,
+            key=lambda row: row[0],
+            reverse=True,
+        ):
+            skill_days.setdefault(skill_id, set()).add(occurred.date())
+            if skill_id not in latest_by_skill:
+                latest_by_skill[skill_id] = (occurred, probability)
+
+        skill_labels = self._skill_label_lookup()
+        skills = [
+            {
+                "skill": _display_skill_label(skill_id, skill_labels),
+                "mastery": round(probability * 100.0),
+                "target": 75,
+                "sessions": len(skill_days.get(skill_id, set())),
+            }
+            for skill_id, (_occurred, probability) in latest_by_skill.items()
+        ]
+        skills.sort(key=lambda row: (str(row["skill"]).lower(), row["skill"]))
+
+        weekly_probs: Dict[tuple[int, int], List[float]] = {}
+        for occurred, _skill_id, probability in scored:
+            iso = occurred.isocalendar()
+            weekly_probs.setdefault((iso.year, iso.week), []).append(probability)
+        weeks = sorted(weekly_probs)[-6:]
+        trajectory = [
+            {
+                "week": f"W{index}",
+                "score": round(
+                    sum(weekly_probs[week]) / len(weekly_probs[week]) * 100.0
+                ),
+                "iso_year": week[0],
+                "iso_week": week[1],
+            }
+            for index, week in enumerate(weeks, start=1)
+        ]
+        active_days = {occurred.date() for occurred, _skill_id, _probability in scored}
+        return {
+            "has_data": True,
+            "session_count": len(active_days),
+            "scored_session_count": len(active_days),
+            "skills": skills,
+            "trajectory": trajectory,
+        }
+
+    def _mastery_event_timeline(
+        self, events: Sequence[Mapping[str, Any]]
+    ) -> List[tuple[datetime, str, Optional[float]]]:
+        timeline: List[tuple[datetime, str, Optional[float]]] = []
+        for record in events:
+            occurred = self._mastery_event_datetime(record)
+            if occurred is None:
+                continue
+            skill_id = str(record.get("skill_id") or "")
+            probability: Optional[float] = None
+            raw_estimate = record.get("estimate")
+            if isinstance(raw_estimate, Mapping):
+                value = raw_estimate.get("probability")
+                if isinstance(value, (int, float)):
+                    probability = float(value)
+            timeline.append((occurred, skill_id, probability))
+        return timeline
 
     @staticmethod
     def _mastery_event_datetime(record: Mapping[str, Any]) -> Optional[datetime]:
@@ -4695,6 +4821,20 @@ def _humanize_skill_id(skill_id: str) -> str:
     if not cleaned:
         return "Practice"
     return " ".join(part.capitalize() for part in cleaned.split())
+
+
+def _display_skill_label(skill_id: str, labels: Mapping[str, str]) -> str:
+    label = str(labels.get(skill_id) or "").strip()
+    if not label:
+        return _humanize_skill_id(skill_id)
+    if ":" in label:
+        label = label.split(":")[-1].strip()
+    replacements = {
+        "phys": "Physics",
+        "def": "definition",
+    }
+    parts = [replacements.get(part.lower(), part) for part in label.split()]
+    return " ".join(parts) if parts else _humanize_skill_id(skill_id)
 
 
 # ---------------------------------------------------------------------------

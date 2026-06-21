@@ -97,6 +97,66 @@ def test_answer_drives_mastery_and_completes(client, learning_api: LearningApi):
     assert result["completion_xapi"]["verb"]["id"].endswith("completed")
 
 
+def test_mastery_profile_cold_start_is_empty(learning_api: LearningApi):
+    profile = learning_api.mastery_profile({"student_id": "new-student"})
+    assert profile == {
+        "has_data": False,
+        "session_count": 0,
+        "scored_session_count": 0,
+        "skills": [],
+        "trajectory": [],
+    }
+
+
+def test_mastery_profile_uses_learner_voice_mastery_events(
+    learning_api: LearningApi,
+):
+    first = learning_api.run_learner_voice_turn(
+        {
+            "child_id": "profile-student",
+            "exam": "WAEC",
+            "class_year": "SS3",
+            "subject": "physics",
+            "skill_id": "ss3.physics.measurements.phys_def",
+            "skill_strict": True,
+            "max_questions": 1,
+        }
+    )
+    card = first.get("card") or {}
+    completed = learning_api.run_learner_voice_turn(
+        {
+            "child_id": "profile-student",
+            "exam": "WAEC",
+            "class_year": "SS3",
+            "subject": "physics",
+            "skill_id": "ss3.physics.measurements.phys_def",
+            "skill_strict": True,
+            "max_questions": 1,
+            "last_card_id": card.get("card_id"),
+            "last_kind": "mcq-tap",
+            "answer_option_id": "a",
+        }
+    )
+
+    probability = completed["skill_mastery"]["probability"]
+    profile = learning_api.mastery_profile({"student_id": "profile-student"})
+    assert profile["has_data"] is True
+    assert profile["session_count"] == 1
+    assert profile["scored_session_count"] == 1
+    assert profile["skills"] == [
+        {
+            "skill": "Physics definition",
+            "mastery": round(probability * 100),
+            "target": 75,
+            "sessions": 1,
+        }
+    ]
+    assert profile["trajectory"][0]["week"] == "W1"
+    assert profile["trajectory"][0]["score"] == round(probability * 100)
+    assert profile["trajectory"][0]["iso_year"] >= 2026
+    assert 1 <= profile["trajectory"][0]["iso_week"] <= 53
+
+
 def test_class_mastery_and_pending_plans_are_scoped_by_class(client, learning_api: LearningApi):
     jss1 = client.post(
         "/api/learning/diagnostic/start",

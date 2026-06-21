@@ -419,6 +419,42 @@ describe('StudentLearningHome', () => {
     )
   })
 
+  it('waits for a real student id before opening deep-linked practice', async () => {
+    mockVoiceConfig()
+
+    const { rerender } = render(
+      <MemoryRouter
+        initialEntries={['/home?startPractice=1&skillId=trigonometry']}
+      >
+        <StudentLearningHome studentId={null} />
+      </MemoryRouter>
+    )
+
+    expect(screen.queryByTestId('practice-fullscreen-mock')).toBeNull()
+    expect(practiceFullscreenMock).not.toHaveBeenCalled()
+
+    rerender(
+      <MemoryRouter
+        initialEntries={['/home?startPractice=1&skillId=trigonometry']}
+      >
+        <StudentLearningHome studentId="student-001" />
+      </MemoryRouter>
+    )
+
+    expect(await screen.findByTestId('practice-fullscreen-mock')).toBeTruthy()
+    const lastProps =
+      practiceFullscreenMock.mock.calls[
+        practiceFullscreenMock.mock.calls.length - 1
+      ]?.[0]
+    expect(lastProps).toEqual(
+      expect.objectContaining({
+        open: true,
+        childId: 'student-001',
+        skillId: 'trigonometry',
+      })
+    )
+  })
+
   it('opens the learner tutor from the hero CTA with the selected taxonomy', async () => {
     mockVoiceConfig()
 
