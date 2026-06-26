@@ -39,6 +39,10 @@ export type HeatmapCellView = {
 
 export type PendingApprovalPlanView = {
   planId: string
+  objective?: string | null
+  supportType?: string | null
+  durationMinutes?: number | null
+  followUpCheck?: string | null
   targetSkillIds: string[]
   targetStudentIds: string[]
   itemTypes: string[]
@@ -72,6 +76,7 @@ type PendingApprovalCardProps = {
   plan: PendingApprovalPlanView
   onApprove?: (planId: string) => void | Promise<void>
   onReject?: (planId: string) => void | Promise<void>
+  onDefer?: (planId: string, reason: string) => void | Promise<void>
   onEditApprove?: (
     planId: string,
     edits: PendingApprovalPlanEdits,
@@ -85,6 +90,7 @@ type PathfinderPhase2DemoProps = {
   onSubmitIntent?: (value: string) => void
   onApprove?: (planId: string) => void
   onReject?: (planId: string) => void
+  onDefer?: PendingApprovalCardProps['onDefer']
   onEditApprove?: PendingApprovalCardProps['onEditApprove']
 }
 
@@ -171,14 +177,14 @@ const useStyles = makeStyles({
   primaryButton: {
     minHeight: '36px',
     borderRadius: t.radius.pill,
-    border: `1px solid var(--pf-ink)`,
+    border: '1px solid var(--pf-ink)',
     backgroundColor: 'var(--pf-ink)',
     color: 'var(--pf-on-ink)',
     fontWeight: 800,
     ':hover': {
       backgroundColor: 'var(--pf-ink-muted)',
       color: 'var(--pf-on-ink)',
-      border: `1px solid var(--pf-ink-muted)`,
+      border: '1px solid var(--pf-ink-muted)',
     },
   },
   secondaryButton: {
@@ -203,7 +209,7 @@ const useStyles = makeStyles({
     minWidth: '38px',
     minHeight: '38px',
     borderRadius: t.radius.pill,
-    border: `1px solid var(--pf-ink)`,
+    border: '1px solid var(--pf-ink)',
     backgroundColor: 'var(--pf-ink)',
     color: 'var(--pf-on-ink)',
     cursor: 'pointer',
@@ -211,7 +217,7 @@ const useStyles = makeStyles({
     ':hover': {
       backgroundColor: 'var(--pf-ink-muted)',
       color: 'var(--pf-on-ink)',
-      border: `1px solid var(--pf-ink-muted)`,
+      border: '1px solid var(--pf-ink-muted)',
     },
     ':disabled': {
       cursor: 'not-allowed',
@@ -543,6 +549,7 @@ export function PendingApprovalCard({
   plan,
   onApprove,
   onReject,
+  onDefer,
   onEditApprove,
 }: PendingApprovalCardProps) {
   const styles = useStyles()
@@ -550,12 +557,14 @@ export function PendingApprovalCard({
   const [reviewing, setReviewing] = useState(false)
   const [editing, setEditing] = useState(false)
   const [submittingEdit, setSubmittingEdit] = useState(false)
+  const [deferReason, setDeferReason] = useState('Need one more evidence check before deciding')
   const [draft, setDraft] = useState(() => formFromPlan(plan))
 
   useEffect(() => {
     setDraft(formFromPlan(plan))
     setReviewing(false)
     setEditing(false)
+    setDeferReason('Need one more evidence check before deciding')
   }, [plan])
 
   const parsedEdits: PendingApprovalPlanEdits = {
@@ -571,10 +580,21 @@ export function PendingApprovalCard({
     parsedEdits.itemTypes.length > 0 &&
     parsedEdits.rationale.length > 0
   const practicePlanSummary = [
-    { label: 'Duration', value: '1-2 weeks' },
+    {
+      label: 'Objective',
+      value: plan.objective || 'Move evidence into a teacher-reviewed support action',
+    },
+    {
+      label: 'Duration',
+      value: plan.durationMinutes ? `${plan.durationMinutes} minutes` : '1-2 weeks',
+    },
     {
       label: 'Learners',
       value: learnerCountLabel(plan.targetStudentIds.length),
+    },
+    {
+      label: 'Support type',
+      value: plan.supportType ? plan.supportType.replace(/_/g, ' ') : 'Targeted practice',
     },
     { label: 'Focus', value: listToText(plan.targetSkillIds) },
     { label: 'Practice mix', value: listToText(plan.itemTypes) },
@@ -615,6 +635,7 @@ export function PendingApprovalCard({
           {languageLabel(plan.lang)} review
         </span>
         <span className={styles.metaBadge}>Teacher approval required</span>
+        <span className={styles.metaBadge}>Pending — not learner-visible</span>
       </div>
       <Text>{plan.rationale}</Text>
       <div
@@ -653,6 +674,12 @@ export function PendingApprovalCard({
           <Text weight="semibold">Read plan before decision</Text>
           <div className={styles.planReviewGrid}>
             <div className={styles.planReviewRow}>
+              <span className={styles.planReviewLabel}>Objective</span>
+              <span className={styles.planReviewValue}>
+                {plan.objective || 'Move evidence into a teacher-reviewed support action'}
+              </span>
+            </div>
+            <div className={styles.planReviewRow}>
               <span className={styles.planReviewLabel}>Learners</span>
               <span className={styles.planReviewValue}>
                 {listToText(plan.targetStudentIds)}
@@ -677,10 +704,29 @@ export function PendingApprovalCard({
               </span>
             </div>
             <div className={styles.planReviewRow}>
+              <span className={styles.planReviewLabel}>Follow-up check</span>
+              <span className={styles.planReviewValue}>
+                {plan.followUpCheck || 'Exit-ticket evidence before learner-facing follow-up'}
+              </span>
+            </div>
+            <div className={styles.planReviewRow}>
               <span className={styles.planReviewLabel}>Rationale</span>
               <span className={styles.planReviewValue}>{plan.rationale}</span>
             </div>
           </div>
+          {onDefer ? (
+            <label className={styles.editLabel} htmlFor={`${editIdPrefix}-defer-reason`}>
+              <Text size={200} weight="semibold">
+                Defer reason
+              </Text>
+              <Input
+                id={`${editIdPrefix}-defer-reason`}
+                aria-label="Defer reason"
+                value={deferReason}
+                onChange={(_, data) => setDeferReason(data.value)}
+              />
+            </label>
+          ) : null}
           <div className={styles.planActions}>
             <Button
               appearance="primary"
@@ -700,6 +746,16 @@ export function PendingApprovalCard({
             >
               Reject
             </Button>
+            {onDefer ? (
+              <Button
+                appearance="secondary"
+                className={styles.secondaryButton}
+                disabled={!deferReason.trim()}
+                onClick={() => onDefer(plan.planId, deferReason.trim())}
+              >
+                Defer
+              </Button>
+            ) : null}
             {onEditApprove ? (
               <Button
                 appearance="secondary"
@@ -853,6 +909,7 @@ export function PathfinderPhase2Demo({
   onSubmitIntent = () => {},
   onApprove,
   onReject,
+  onDefer,
   onEditApprove,
 }: PathfinderPhase2DemoProps) {
   const styles = useStyles()
@@ -865,6 +922,7 @@ export function PathfinderPhase2Demo({
         plan={pendingPlan}
         onApprove={onApprove}
         onReject={onReject}
+        onDefer={onDefer}
         onEditApprove={onEditApprove}
       />
     </section>

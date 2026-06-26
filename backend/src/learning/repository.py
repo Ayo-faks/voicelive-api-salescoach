@@ -41,7 +41,7 @@ LEARNING_RLS_PROTECTED_TABLES = (
     "learning_student_fact_decisions",
 )
 LEARNING_REQUEST_GUCS = ("app.tenant_id", "app.class_id", "app.user_id", "app.role")
-APPROVAL_STATUSES = ("draft", "pending", "approved", "edited_approved", "rejected", "auto_approved")
+APPROVAL_STATUSES = ("draft", "pending", "approved", "edited_approved", "rejected", "deferred", "auto_approved")
 
 
 class LearningRepository(Protocol):
@@ -369,7 +369,8 @@ class InMemoryLearningRepository:
             if plan["id"] == event.plan_id and plan["tenant_id"] == event.tenant_id:
                 plan["status"] = event.action
                 plan["updated_at"] = record["created_at"]
-                plan["approved_at"] = record["created_at"] if event.action != "rejected" else None
+                if event.action in {"approved", "edited_approved"}:
+                    plan["approved_at"] = record["created_at"]
         return record
 
     def save_student_fact(
@@ -1102,7 +1103,8 @@ class LearningPostgresRepository:
             connection.execute(
                 """
                 UPDATE learning_intervention_plans
-                SET status = %s, updated_at = %s, approved_at = CASE WHEN %s = 'rejected' THEN approved_at ELSE %s END
+                SET status = %s, updated_at = %s,
+                    approved_at = CASE WHEN %s IN ('approved', 'edited_approved') THEN %s ELSE approved_at END
                 WHERE id = %s AND tenant_id = %s
                 """,
                 (event.action, created_at, event.action, created_at, event.plan_id, event.tenant_id),

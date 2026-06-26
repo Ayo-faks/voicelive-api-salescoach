@@ -79,6 +79,10 @@ class StubLearningPlanner:
         plan = InterventionPlan(
             lang=request.lang,
             provenance=provenance,
+            objective="Move the group from diagnostic evidence to supported practice on the target skill.",
+            support_type="targeted_practice",
+            duration_minutes=20,
+            follow_up_check="One exit-ticket item after the support block, reviewed before learner-facing follow-up.",
             target_skill_ids=target_skill_ids,
             target_student_ids=target_student_ids,
             item_types=["reteach", "guided_practice"],

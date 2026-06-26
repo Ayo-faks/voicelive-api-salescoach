@@ -9,6 +9,8 @@ import type {
   ParentProgressViewModel,
   VoiceQueueView,
 } from './components/PathfinderPhase3'
+import type { DifferentiationGroupRecord as LearningDifferentiationGroupRecord } from './api'
+import type { FollowUpRecord } from './api'
 
 export const provenance: ProvenanceView[] = [
   {
@@ -70,6 +72,10 @@ export const heatmapCells: HeatmapCellView[] = [
 
 export const pendingPlan: PendingApprovalPlanView = {
   planId: 'plan-jss2-ratio-recovery',
+  objective: 'Move the group from ratio evidence into supported practice.',
+  supportType: 'targeted_practice',
+  durationMinutes: 20,
+  followUpCheck: 'One exit-ticket ratio question before learner-facing follow-up.',
   targetSkillIds: ['ratio-proportion', 'fraction-operations'],
   targetStudentIds: ['student-001', 'student-014', 'student-022'],
   itemTypes: ['worked_example', 'short_answer', 'exit_ticket'],
@@ -84,6 +90,104 @@ export const pendingPlan: PendingApprovalPlanView = {
   lang: 'en-NG',
   provenance,
 }
+
+export const differentiationGroups: LearningDifferentiationGroupRecord[] = [
+  {
+    group_id: 'group-reteach-ratio-proportion',
+    support_type: 'reteach',
+    target_skill_id: 'ratio-proportion',
+    target_skill_label: 'Ratio',
+    student_ids: ['student-001', 'student-003', 'student-005'],
+    learner_count: 3,
+    confidence: 0.8,
+    uncertainty: 0.2,
+    uncertainty_label: 'strong_evidence',
+    mastery_estimate: 0.37,
+    rationale:
+      '3 learners share low mastery evidence in Ratio; start with a short reteach before practice.',
+    evidence_summary: 'Average mastery 37%; uncertainty 20% across 3 learners.',
+    next_action: 'Run a 12-minute reteach on Ratio, then check one exit question.',
+  },
+  {
+    group_id: 'group-targeted-practice-fraction-operations',
+    support_type: 'targeted_practice',
+    target_skill_id: 'fraction-operations',
+    target_skill_label: 'Fractions',
+    student_ids: ['student-002', 'student-006', 'student-008'],
+    learner_count: 3,
+    confidence: 0.72,
+    uncertainty: 0.28,
+    uncertainty_label: 'thin_evidence',
+    mastery_estimate: 0.58,
+    rationale:
+      '3 learners are developing Fractions; targeted practice can gather more evidence and close the gap.',
+    evidence_summary: 'Average mastery 58%; uncertainty 28% across 3 learners.',
+    next_action: 'Assign focused practice on Fractions with one scaffolded hint.',
+  },
+  {
+    group_id: 'group-review-linear-equations',
+    support_type: 'review',
+    target_skill_id: 'linear-equations',
+    target_skill_label: 'Linear eq.',
+    student_ids: ['student-004', 'student-007'],
+    learner_count: 2,
+    confidence: 0.55,
+    uncertainty: 0.45,
+    uncertainty_label: 'needs_more_evidence',
+    mastery_estimate: 0.64,
+    rationale:
+      '2 learners have needs more evidence for Linear eq.; use a brief check before deciding the next support.',
+    evidence_summary: 'Average mastery 64%; uncertainty 45% across 2 learners.',
+    next_action: 'Collect two quick evidence points for Linear eq. before grouping further.',
+  },
+  {
+    group_id: 'group-extension-plane-geometry',
+    support_type: 'extension',
+    target_skill_id: 'plane-geometry',
+    target_skill_label: 'Geometry',
+    student_ids: ['student-002', 'student-004', 'student-006'],
+    learner_count: 3,
+    confidence: 0.9,
+    uncertainty: 0.1,
+    uncertainty_label: 'strong_evidence',
+    mastery_estimate: 0.89,
+    rationale:
+      '3 learners show secure evidence in Geometry; offer an extension task while monitoring transfer.',
+    evidence_summary: 'Average mastery 89%; uncertainty 10% across 3 learners.',
+    next_action: 'Set a transfer challenge that applies Geometry in a new context.',
+  },
+]
+
+export const followUpRecords: FollowUpRecord[] = [
+  {
+    plan_id: 'plan-jss2-ratio-recovery',
+    status: 'approved',
+    target_skill_ids: ['ratio-proportion'],
+    target_student_ids: ['student-001', 'student-014', 'student-022'],
+    follow_up_check: 'One exit-ticket ratio question before learner-facing follow-up.',
+    before_mastery: 0.42,
+    after_mastery: 0.5,
+    delta_mastery: 0.08,
+    uncertainty: 0.34,
+    uncertainty_label: 'thin_evidence',
+    evidence_summary:
+      '3 learner-skill follow-up signals; movement is reviewed, not automatic.',
+    movements: [
+      {
+        student_id: 'student-001',
+        skill_id: 'ratio-proportion',
+        skill_label: 'Ratio',
+        before_mastery: 0.42,
+        after_mastery: 0.5,
+        delta_mastery: 0.08,
+        before_uncertainty: 0.42,
+        after_uncertainty: 0.34,
+        uncertainty_label: 'thin_evidence',
+        source: 'mock_follow_up',
+      },
+    ],
+  },
+]
 
 export const careerPlan: CareerPlanView = {
   planId: 'career-plan-001',

@@ -1331,7 +1331,7 @@ def test_choose_role_teacher_transition(client: FlaskClient, monkeypatch: pytest
 
     resp = client.post("/api/auth/choose-role", headers=headers, json={"intent": "teacher"})
     assert resp.status_code == 200
-    assert resp.get_json()["role"] == "pending_therapist"
+    assert resp.get_json()["role"] == "teacher"
 
 
 def test_choose_role_rejects_invalid_intent(client: FlaskClient, monkeypatch: pytest.MonkeyPatch):

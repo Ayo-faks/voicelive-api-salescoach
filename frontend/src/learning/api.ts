@@ -56,6 +56,74 @@ export type ClassMasteryResponse = {
   source: string
 }
 
+export type SupportType =
+  | 'reteach'
+  | 'targeted_practice'
+  | 'extension'
+  | 'monitor'
+  | 'review'
+
+export type DifferentiationGroupRecord = {
+  group_id: string
+  support_type: SupportType
+  target_skill_id: string
+  target_skill_label: string
+  student_ids: string[]
+  learner_count: number
+  confidence: number
+  uncertainty: number
+  uncertainty_label: 'strong_evidence' | 'thin_evidence' | 'needs_more_evidence'
+  mastery_estimate: number
+  rationale: string
+  evidence_summary: string
+  next_action: string
+}
+
+export type ClassGroupsResponse = {
+  tenant_id: string
+  class_id: string
+  diagnostic_id: string
+  groups: DifferentiationGroupRecord[]
+  count: number
+  source: string
+}
+
+export type FollowUpMovementRecord = {
+  student_id: string
+  skill_id: string
+  skill_label: string
+  before_mastery: number
+  after_mastery: number
+  delta_mastery: number
+  before_uncertainty: number
+  after_uncertainty: number
+  uncertainty_label: 'strong_evidence' | 'thin_evidence' | 'needs_more_evidence'
+  source: 'mastery_events' | 'current_mastery_with_mock_baseline' | 'mock_follow_up' | string
+}
+
+export type FollowUpRecord = {
+  plan_id: string
+  status: 'approved' | 'edited_approved' | string
+  target_skill_ids: string[]
+  target_student_ids: string[]
+  follow_up_check: string
+  before_mastery: number
+  after_mastery: number
+  delta_mastery: number
+  uncertainty: number
+  uncertainty_label: 'strong_evidence' | 'thin_evidence' | 'needs_more_evidence'
+  evidence_summary: string
+  movements: FollowUpMovementRecord[]
+}
+
+export type ClassFollowUpResponse = {
+  tenant_id: string
+  class_id: string
+  follow_ups: FollowUpRecord[]
+  count: number
+  source: string
+}
+
 export type StudentProfileSkill = {
   skill_id: string
   skill_label: string
@@ -337,6 +405,10 @@ export type PendingPlanRecord = {
   plan: {
     plan_id: string
     parent_plan_id?: string | null
+    objective?: string | null
+    support_type?: string | null
+    duration_minutes?: number | null
+    follow_up_check?: string | null
     target_skill_ids: string[]
     target_student_ids: string[]
     item_types: string[]
@@ -405,7 +477,7 @@ export type DecisionResponse = {
   ok: boolean
   plan_id: string
   edited_plan_id?: string
-  action: 'approved' | 'edited_approved' | 'rejected'
+  action: 'approved' | 'edited_approved' | 'rejected' | 'deferred'
   plan?: PendingPlanRecord['plan']
   xapi_id: string
   xapi_statement: Record<string, unknown>
@@ -528,6 +600,34 @@ export async function getClassMastery(
     : '/api/learning/class/mastery'
   const response = await fetch(url, withDefaults({ method: 'GET' }))
   return jsonOrThrow<ClassMasteryResponse>(response)
+}
+
+export async function getClassGroups(
+  query: {
+    tenant_id?: string
+    class_id?: string
+  } = {}
+): Promise<ClassGroupsResponse> {
+  const search = toSearchParams(query)
+  const url = search
+    ? `/api/learning/class/groups?${search}`
+    : '/api/learning/class/groups'
+  const response = await fetch(url, withDefaults({ method: 'GET' }))
+  return jsonOrThrow<ClassGroupsResponse>(response)
+}
+
+export async function getClassFollowUp(
+  query: {
+    tenant_id?: string
+    class_id?: string
+  } = {}
+): Promise<ClassFollowUpResponse> {
+  const search = toSearchParams(query)
+  const url = search
+    ? `/api/learning/class/follow-up?${search}`
+    : '/api/learning/class/follow-up'
+  const response = await fetch(url, withDefaults({ method: 'GET' }))
+  return jsonOrThrow<ClassFollowUpResponse>(response)
 }
 
 export async function getStudentProfile(
@@ -666,6 +766,17 @@ export async function rejectLearningPlan(
 ): Promise<DecisionResponse> {
   const response = await fetch(
     `/api/learning/approvals/${encodeURIComponent(planId)}/reject`,
+    withDefaults({ method: 'POST', body: JSON.stringify(payload) })
+  )
+  return jsonOrThrow<DecisionResponse>(response)
+}
+
+export async function deferLearningPlan(
+  planId: string,
+  payload: { actor_id?: string; class_id?: string; reason: string }
+): Promise<DecisionResponse> {
+  const response = await fetch(
+    `/api/learning/approvals/${encodeURIComponent(planId)}/defer`,
     withDefaults({ method: 'POST', body: JSON.stringify(payload) })
   )
   return jsonOrThrow<DecisionResponse>(response)
@@ -1125,6 +1236,8 @@ export interface AssistantTurnRequest {
   exam?: string | null
   class_year?: string | null
   subject?: string | null
+  skill_id?: string | null
+  skill_strict?: boolean
   // Personalisation context (the learner's own data only).
   weak_topics?: Array<{ skill_id?: string; label?: string }>
   daily_plan?: Array<{ id?: string; title?: string; skill_id?: string; done?: boolean }>

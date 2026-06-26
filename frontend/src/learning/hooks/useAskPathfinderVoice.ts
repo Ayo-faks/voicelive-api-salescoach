@@ -39,8 +39,8 @@ interface UseAskPathfinderVoiceOptions {
    * full-duplex transport.
    */
   scope?: string
-  /** Opening instruction spoken by the agent when the session connects. */
-  openingPrompt?: string
+  /** Opening instruction spoken by the agent when the session connects; null suppresses the bootstrap. */
+  openingPrompt?: string | null
   /** A grounded, safeguarded gen-UI block produced by the assistant brain. */
   onBlock: (block: AssistantBlock, sessionComplete: boolean) => void
   /** The learner's own spoken question, once transcribed at the edge. */
@@ -169,24 +169,26 @@ export function useAskPathfinderVoice({
     ws.onopen = () => {
       setVoiceState('listening')
       ws.send(JSON.stringify({ type: 'session.update', session: {} }))
-      ws.send(
-        JSON.stringify({
-          type: 'conversation.item.create',
-          item: {
-            type: 'message',
-            role: 'user',
-            content: [
-              {
-                type: 'input_text',
-                text:
-                  openingPromptRef.current ||
-                  'Say a brief, friendly hello and ask what I would like help with today.',
-              },
-            ],
-          },
-        })
-      )
-      ws.send(JSON.stringify({ type: 'response.create' }))
+      if (openingPromptRef.current !== null) {
+        ws.send(
+          JSON.stringify({
+            type: 'conversation.item.create',
+            item: {
+              type: 'message',
+              role: 'user',
+              content: [
+                {
+                  type: 'input_text',
+                  text:
+                    openingPromptRef.current ||
+                    'Say a brief, friendly hello and ask what I would like help with today.',
+                },
+              ],
+            },
+          })
+        )
+        ws.send(JSON.stringify({ type: 'response.create' }))
+      }
     }
     ws.onmessage = event => {
       let parsed: AskVoiceIncoming

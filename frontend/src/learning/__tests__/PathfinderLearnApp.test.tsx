@@ -177,11 +177,14 @@ describe('Pathfinder role routing helpers', () => {
   })
 
   it('routes teachers to class dashboards and admins to governed oversight surfaces', () => {
-    const teacherLabels = navItemsForRole('therapist').map(item => item.label)
+    const therapistLabels = navItemsForRole('therapist').map(item => item.label)
+    const teacherLabels = navItemsForRole('teacher').map(item => item.label)
     const adminLabels = navItemsForRole('admin').map(item => item.label)
 
+    expect(defaultPathForRole('teacher')).toBe('/teacher')
     expect(defaultPathForRole('therapist')).toBe('/teacher')
     expect(defaultPathForRole('parent')).toBe('/family')
+    expect(therapistLabels).toEqual(['Teacher'])
     expect(teacherLabels).toEqual(['Teacher'])
     expect(adminLabels).toEqual([
       'Teacher',

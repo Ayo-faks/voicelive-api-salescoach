@@ -29,13 +29,11 @@ export type HomeChipInputs = {
   planItems: Array<{ skillId: string; label: string }>
   /** Ask Wulo overlay reachable from this surface (AskSurfaceProvider mounted). */
   askAvailable: boolean
-  /** Learner voice fully available (flag + config + safety gate). */
-  voiceAvailable: boolean
   /**
    * Unified assistant surface active. When true, the standalone text "Ask
    * Wulo" chip is dropped: the one morphing surface (reached via Study with
-   * Wulo / voice) already opens with a text composer, so a separate typed
-   * entry is redundant clutter. Voice keeps its own chip. Default false.
+   * Wulo) already opens with a text composer, so a separate typed entry is
+   * redundant clutter. Default false.
    */
   unified?: boolean
 }
@@ -56,7 +54,6 @@ export function deriveHomeChips(inputs: HomeChipInputs): HomeChip[] {
     weakTopics,
     planItems,
     askAvailable,
-    voiceAvailable,
     unified = false,
   } = inputs
   const chips: HomeChip[] = []
@@ -107,21 +104,13 @@ export function deriveHomeChips(inputs: HomeChipInputs): HomeChip[] {
   if (askAvailable) {
     // Unified surface folds free-form typed asking into the one morphing
     // surface (it opens with a composer), so the standalone text chip is
-    // dropped to cut clutter; Study with Wulo + voice remain the entries.
+    // dropped to cut clutter; Study with Wulo is the contextual assistant entry.
     if (!unified) {
       chips.push({
         id: 'ask-wulo',
         label: 'Ask Wulo something',
         ariaLabel: 'Ask Wulo a question by typing',
         action: { kind: 'ask', mode: 'text' },
-      })
-    }
-    if (voiceAvailable) {
-      chips.push({
-        id: 'talk-it-through',
-        label: 'Talk it through',
-        ariaLabel: 'Talk it through with Wulo by voice',
-        action: { kind: 'ask', mode: 'voice' },
       })
     }
   }

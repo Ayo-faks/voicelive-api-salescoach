@@ -280,6 +280,10 @@ class LearnerDailyPlan(ContractModel):
 class InterventionPlan(LanguageAndProvenanceModel):
     plan_id: str = Field(default_factory=lambda: f"intervention-plan-{uuid4().hex[:12]}")
     parent_plan_id: Optional[str] = None
+    objective: Optional[str] = None
+    support_type: Optional[str] = None
+    duration_minutes: Optional[int] = Field(default=None, ge=1, le=240)
+    follow_up_check: Optional[str] = None
     target_skill_ids: List[str] = Field(min_length=1)
     target_student_ids: List[str] = Field(min_length=1)
     item_types: List[str] = Field(min_length=1)

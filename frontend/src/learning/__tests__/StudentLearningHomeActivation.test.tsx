@@ -192,7 +192,7 @@ describe('StudentLearningHome activation surfaces (flags on)', () => {
     )
     expect(screen.getByTestId('home-chip-how-am-i-doing')).toBeTruthy()
     expect(screen.getByTestId('home-chip-ask-wulo')).toBeTruthy()
-    expect(screen.getByTestId('home-chip-talk-it-through')).toBeTruthy()
+    expect(screen.queryByTestId('home-chip-talk-it-through')).toBeNull()
     // The chip supersedes the Today's-path "Study with Wulo" button — one
     // flagship entry, not two.
     expect(screen.queryByTestId('start-learner-tutor')).toBeNull()
@@ -211,7 +211,7 @@ describe('StudentLearningHome activation surfaces (flags on)', () => {
     ).toBe(true)
   })
 
-  it('routes ask chips into the Ask surface with the right mode', async () => {
+  it('routes the typed ask chip into the Ask surface', async () => {
     mockConfigFetch()
     fetchLearnerPlanMock.mockResolvedValue(adaptivePlan)
     fetchWeeklyStatsMock.mockResolvedValue(warmStats)
@@ -219,8 +219,6 @@ describe('StudentLearningHome activation surfaces (flags on)', () => {
 
     fireEvent.click(await screen.findByTestId('home-chip-ask-wulo'))
     expect(screen.getByTestId('ask-probe').textContent).toBe('text')
-    fireEvent.click(screen.getByTestId('home-chip-talk-it-through'))
-    expect(screen.getByTestId('ask-probe').textContent).toBe('voice')
   })
 
   it('renders actionable stat cards with meaning lines and practice-opening CTAs', async () => {
@@ -275,7 +273,6 @@ describe('StudentLearningHome activation surfaces (flags on)', () => {
 
     await screen.findByTestId('home-chip-study-with-wulo')
     expect(screen.queryByTestId('voice-entry-card')).toBeNull()
-    // The voice chip also disappears — never a dead-end chip.
     expect(screen.queryByTestId('home-chip-talk-it-through')).toBeNull()
   })
 

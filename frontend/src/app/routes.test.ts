@@ -28,6 +28,22 @@ describe('route helpers', () => {
     ).toBe(APP_ROUTES.home)
   })
 
+  it('prioritizes teacher onboarding before workspace routes', () => {
+    expect(
+      getDefaultAuthenticatedRoute({
+        onboardingComplete: false,
+        role: 'teacher',
+      })
+    ).toBe(APP_ROUTES.onboarding)
+
+    expect(
+      getDefaultAuthenticatedRoute({
+        onboardingComplete: true,
+        role: 'teacher',
+      })
+    ).toBe(APP_ROUTES.home)
+  })
+
   it('defaults authenticated users into the home route', () => {
     expect(
       getDefaultAuthenticatedRoute({

@@ -48,7 +48,7 @@ class ApprovalEvent(LanguageAndProvenanceModel):
     tenant_id: str = Field(min_length=1)
     actor_id: str = Field(min_length=1)
     plan_id: str = Field(min_length=1)
-    action: Literal["approved", "edited_approved", "rejected"]
+    action: Literal["approved", "edited_approved", "rejected", "deferred"]
     reason: Optional[str] = None
 
 

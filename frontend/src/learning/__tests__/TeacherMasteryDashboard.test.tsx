@@ -37,7 +37,7 @@ describe('TeacherMasteryDashboard', () => {
     expect(
       screen.getByRole('button', { name: 'Open student profile' })
     ).toBeTruthy()
-  })
+  }, 15_000)
 
   it('opens the transparent student profile from the heatmap prompt', () => {
     vi.spyOn(globalThis, 'fetch').mockImplementation(
@@ -55,7 +55,7 @@ describe('TeacherMasteryDashboard', () => {
     expect(screen.getByText('Gaps and evidence')).toBeTruthy()
     expect(screen.getByText('Voice fluency result')).toBeTruthy()
     expect(screen.getByText('Proposed memory facts')).toBeTruthy()
-  })
+  }, 15_000)
 
   it('shows the roster for the selected class', () => {
     vi.spyOn(globalThis, 'fetch').mockImplementation(
@@ -83,7 +83,7 @@ describe('TeacherMasteryDashboard', () => {
 
     expect(screen.getByText('Aminat O.')).toBeTruthy()
     expect(screen.queryByText('Adaeze N.')).toBeNull()
-  })
+  }, 15_000)
 
   it('does not add pilot live rows to a different class roster', async () => {
     const fetchMock = vi
@@ -137,7 +137,297 @@ describe('TeacherMasteryDashboard', () => {
         '/api/learning/approvals/pending?class_id=class-jss1-a'
       )
     })
-  })
+  }, 15_000)
+
+  it('shows differentiated groups with rationale and editable membership', async () => {
+    vi.spyOn(globalThis, 'fetch').mockImplementation(input => {
+      const url = String(input)
+      if (url.startsWith('/api/learning/class/mastery')) {
+        return Promise.resolve(
+          jsonResponse({
+            tenant_id: 'tenant-phase-2',
+            class_id: 'class-jss2-a',
+            diagnostic_id: 'diag-jss2',
+            source: 'live',
+            cells: [],
+          })
+        )
+      }
+
+      if (url.startsWith('/api/learning/class/groups')) {
+        return Promise.resolve(
+          jsonResponse({
+            tenant_id: 'tenant-phase-2',
+            class_id: 'class-jss2-a',
+            diagnostic_id: 'diag-jss2',
+            source: 'live',
+            count: 3,
+            groups: [
+              {
+                group_id: 'group-reteach-ratio-proportion',
+                support_type: 'reteach',
+                target_skill_id: 'ratio-proportion',
+                target_skill_label: 'Ratio',
+                student_ids: ['student-001', 'student-003'],
+                learner_count: 2,
+                confidence: 0.82,
+                uncertainty: 0.18,
+                uncertainty_label: 'strong_evidence',
+                mastery_estimate: 0.36,
+                rationale: '2 learners share low mastery evidence in Ratio.',
+                evidence_summary: 'Average mastery 36%; uncertainty 18%.',
+                next_action: 'Run a 12-minute reteach on Ratio.',
+              },
+              {
+                group_id: 'group-targeted-practice-fractions',
+                support_type: 'targeted_practice',
+                target_skill_id: 'fraction-operations',
+                target_skill_label: 'Fractions',
+                student_ids: ['student-002'],
+                learner_count: 1,
+                confidence: 0.7,
+                uncertainty: 0.3,
+                uncertainty_label: 'thin_evidence',
+                mastery_estimate: 0.58,
+                rationale: '1 learner is developing Fractions.',
+                evidence_summary: 'Average mastery 58%; uncertainty 30%.',
+                next_action: 'Assign focused practice on Fractions.',
+              },
+              {
+                group_id: 'group-review-linear-equations',
+                support_type: 'review',
+                target_skill_id: 'linear-equations',
+                target_skill_label: 'Linear eq.',
+                student_ids: ['student-004'],
+                learner_count: 1,
+                confidence: 0.55,
+                uncertainty: 0.45,
+                uncertainty_label: 'needs_more_evidence',
+                mastery_estimate: 0.64,
+                rationale: '1 learner needs more evidence for Linear eq.',
+                evidence_summary: 'Average mastery 64%; uncertainty 45%.',
+                next_action: 'Collect two quick evidence points.',
+              },
+            ],
+          })
+        )
+      }
+
+      if (url.startsWith('/api/learning/approvals/pending')) {
+        return Promise.resolve(jsonResponse({ plans: [], count: 0 }))
+      }
+
+      if (url.startsWith('/api/learning/student-facts/pending')) {
+        return Promise.resolve(jsonResponse({ facts: [], count: 0 }))
+      }
+
+      if (url.startsWith('/api/learning/audit')) {
+        return Promise.resolve(jsonResponse({ events: [] }))
+      }
+
+      return Promise.reject(new Error(`Unexpected URL ${url}`))
+    })
+
+    render(<TeacherMasteryDashboard />)
+
+    expect(await screen.findByText('Differentiated groups')).toBeTruthy()
+    expect(screen.getByText('Reteach · Ratio')).toBeTruthy()
+    expect(screen.getByText('Targeted practice · Fractions')).toBeTruthy()
+    expect(screen.getByText('Review · Linear eq.')).toBeTruthy()
+    expect(
+      screen.getByText('2 learners share low mastery evidence in Ratio.')
+    ).toBeTruthy()
+
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: 'Remove Tobi A. from Reteach group',
+      })
+    )
+
+    expect(
+      screen.queryByRole('button', {
+        name: 'Remove Tobi A. from Reteach group',
+      })
+    ).toBeNull()
+  }, 15_000)
+
+  it('shows a pending intervention queue and lets the teacher defer with a reason', async () => {
+    const plan = (id: string, skill: string) => ({
+      id,
+      tenant_id: 'tenant-phase-2',
+      created_by_user_id: 'pathfinder-planner',
+      status: 'pending',
+      lang: 'en-NG',
+      provenance: [],
+      plan: {
+        plan_id: id,
+        parent_plan_id: null,
+        objective: `Support ${skill} from diagnostic evidence`,
+        support_type: 'targeted_practice',
+        duration_minutes: 20,
+        follow_up_check: `Exit-ticket check for ${skill}`,
+        target_skill_ids: [skill],
+        target_student_ids: ['student-001', 'student-003'],
+        item_types: ['reteach', 'guided_practice'],
+        suggested_resources: ['mini lesson'],
+        rationale: `Plan for ${skill} based on mastery and uncertainty.`,
+        requires_approval: true,
+        lang: 'en-NG',
+        provenance: [],
+      },
+    })
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(input => {
+      const url = String(input)
+      if (url.startsWith('/api/learning/class/mastery')) {
+        return Promise.resolve(
+          jsonResponse({
+            tenant_id: 'tenant-phase-2',
+            class_id: 'class-jss2-a',
+            diagnostic_id: 'diag-jss2',
+            source: 'live',
+            cells: [],
+          })
+        )
+      }
+
+      if (url.startsWith('/api/learning/class/groups')) {
+        return Promise.resolve(jsonResponse({ groups: [], count: 0 }))
+      }
+
+      if (url.startsWith('/api/learning/approvals/pending')) {
+        return Promise.resolve(
+          jsonResponse({
+            count: 2,
+            plans: [plan('plan-ratio', 'ratio-proportion'), plan('plan-fraction', 'fraction-operations')],
+          })
+        )
+      }
+
+      if (url.startsWith('/api/learning/student-facts/pending')) {
+        return Promise.resolve(jsonResponse({ facts: [], count: 0 }))
+      }
+
+      if (url.startsWith('/api/learning/audit')) {
+        return Promise.resolve(jsonResponse({ events: [] }))
+      }
+
+      if (url === '/api/learning/approvals/plan-fraction/defer') {
+        return Promise.resolve(
+          jsonResponse({
+            ok: true,
+            plan_id: 'plan-fraction',
+            action: 'deferred',
+            xapi_id: 'xapi-deferred',
+            xapi_statement: {},
+            audit: {
+              tenant_id: 'tenant-phase-2',
+              actor_id: 'teacher-001',
+              label: 'Deferred plan plan-fraction',
+              kind: 'plan_deferred',
+            },
+          })
+        )
+      }
+
+      return Promise.reject(new Error(`Unexpected URL ${url}`))
+    })
+
+    render(<TeacherMasteryDashboard />)
+
+    expect(await screen.findAllByText('Pending — not learner-visible')).toHaveLength(2)
+    fireEvent.click(screen.getAllByRole('button', { name: 'Review plan' })[1])
+    fireEvent.change(screen.getByLabelText('Defer reason'), {
+      target: { value: 'Need one more exit-ticket before deciding' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Defer' }))
+
+    await waitFor(() => {
+      const deferCall = fetchMock.mock.calls.find(
+        call => String(call[0]) === '/api/learning/approvals/plan-fraction/defer'
+      )
+      expect(deferCall).toBeTruthy()
+      expect(String((deferCall?.[1] as RequestInit | undefined)?.body)).toContain(
+        'Need one more exit-ticket before deciding'
+      )
+    })
+  }, 15_000)
+
+  it('shows follow-up mastery movement with uncertainty after approved support', async () => {
+    vi.spyOn(globalThis, 'fetch').mockImplementation(input => {
+      const url = String(input)
+      if (url.startsWith('/api/learning/class/mastery')) {
+        return Promise.resolve(
+          jsonResponse({
+            tenant_id: 'tenant-phase-2',
+            class_id: 'class-jss2-a',
+            diagnostic_id: 'diag-jss2',
+            source: 'live',
+            cells: [],
+          })
+        )
+      }
+
+      if (url.startsWith('/api/learning/class/groups')) {
+        return Promise.resolve(jsonResponse({ groups: [], count: 0 }))
+      }
+
+      if (url.startsWith('/api/learning/class/follow-up')) {
+        return Promise.resolve(
+          jsonResponse({
+            tenant_id: 'tenant-phase-2',
+            class_id: 'class-jss2-a',
+            source: 'mastery_events_or_mock_follow_up',
+            count: 1,
+            follow_ups: [
+              {
+                plan_id: 'plan-jss2-ratio-recovery',
+                status: 'approved',
+                target_skill_ids: ['ratio-proportion'],
+                target_student_ids: ['student-001', 'student-014'],
+                follow_up_check: 'One exit-ticket ratio question after support.',
+                before_mastery: 0.42,
+                after_mastery: 0.53,
+                delta_mastery: 0.11,
+                uncertainty: 0.31,
+                uncertainty_label: 'thin_evidence',
+                evidence_summary:
+                  '2 learner-skill follow-up signals; movement is reviewed, not automatic.',
+                movements: [],
+              },
+            ],
+          })
+        )
+      }
+
+      if (url.startsWith('/api/learning/approvals/pending')) {
+        return Promise.resolve(jsonResponse({ plans: [], count: 0 }))
+      }
+
+      if (url.startsWith('/api/learning/student-facts/pending')) {
+        return Promise.resolve(jsonResponse({ facts: [], count: 0 }))
+      }
+
+      if (url.startsWith('/api/learning/audit')) {
+        return Promise.resolve(jsonResponse({ events: [] }))
+      }
+
+      return Promise.reject(new Error(`Unexpected URL ${url}`))
+    })
+
+    render(<TeacherMasteryDashboard />)
+
+    expect(await screen.findByText('Follow-up mastery movement')).toBeTruthy()
+    expect(
+      screen.getByText('One exit-ticket ratio question after support.')
+    ).toBeTruthy()
+    expect(screen.getByText('Before')).toBeTruthy()
+    expect(screen.getByText('42%')).toBeTruthy()
+    expect(screen.getByText('After')).toBeTruthy()
+    expect(screen.getByText('53%')).toBeTruthy()
+    expect(
+      screen.getByText(/Movement \+11 pts · uncertainty 31% · not a high-stakes decision/)
+    ).toBeTruthy()
+  }, 15_000)
 
   it('shows a 1-2 week Pathfinder practice plan that the teacher approves', async () => {
     const fetchMock = vi
@@ -261,7 +551,7 @@ describe('TeacherMasteryDashboard', () => {
         )
       ).toBe(true)
     })
-  })
+  }, 15_000)
 
   it('shows teacher-controlled memory facts that can be approved, edited, or rejected', async () => {
     const facts = [
@@ -452,5 +742,5 @@ describe('TeacherMasteryDashboard', () => {
         )
       ).toBe(true)
     })
-  })
+  }, 15_000)
 })

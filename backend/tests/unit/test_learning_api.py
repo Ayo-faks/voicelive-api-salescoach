@@ -25,6 +25,7 @@ from src.learning.api import (
     register_learning_api,
 )
 from src.learning.diagnostic import load_item_bank
+from src.learning.models import MasteryEstimate
 
 
 def _bank_path() -> Path:
@@ -204,6 +205,39 @@ def test_class_mastery_and_pending_plans_are_scoped_by_class(client, learning_ap
     assert any(record["id"] == PILOT_PENDING_PLAN_ID for record in jss2_pending["plans"])
 
 
+def test_class_groups_are_built_from_scoped_mastery(client, learning_api: LearningApi):
+    skill_id = learning_api.item_bank.skills[0].skill_id
+    class_id = "class-jss2-a"
+    for student_id, probability, uncertainty in [
+        ("student-reteach", 0.32, 0.2),
+        ("student-practice", 0.52, 0.34),
+        ("student-extension", 0.86, 0.18),
+    ]:
+        learning_api._student_classes[(PILOT_TENANT_ID, student_id)] = class_id
+        learning_api._student_estimates[(PILOT_TENANT_ID, student_id)] = {
+            skill_id: MasteryEstimate(
+                kind="beta",
+                probability=probability,
+                uncertainty=uncertainty,
+                a=2.0,
+                b=2.0,
+            )
+        }
+
+    response = client.get(
+        "/api/learning/class/groups",
+        query_string={"tenant_id": PILOT_TENANT_ID, "class_id": class_id},
+    )
+    assert response.status_code == 200, response.get_data(as_text=True)
+    body = response.get_json()
+
+    assert body["class_id"] == class_id
+    assert body["count"] >= 3
+    support_types = {group["support_type"] for group in body["groups"]}
+    assert {"reteach", "targeted_practice", "extension"}.issubset(support_types)
+    assert all(group["rationale"] for group in body["groups"])
+
+
 def test_pilot_pending_practice_plan_is_seeded_for_teacher_demo(client):
     pending = client.get(
         "/api/learning/approvals/pending",
@@ -268,6 +302,75 @@ def test_diagnostic_to_approval_roundtrip(client, learning_api: LearningApi):
 
 
 def test_reject_marks_plan_rejected(client, learning_api: LearningApi):
+
+
+    def test_defer_marks_plan_deferred_and_requires_reason(client, learning_api: LearningApi):
+        started = _start(client)
+        session_id = started["session_id"]
+        current_item = started["item"]
+        plan_id = None
+        while current_item is not None:
+            bank_item = next(
+                entry for entry in learning_api.item_bank.items if entry.item_id == current_item["item_id"]
+            )
+            result = _answer(client, session_id, current_item, bank_item.correct_answer or "")
+            current_item = result["next_item"]
+            if result.get("pending_plan"):
+                plan_id = result["pending_plan"]["id"]
+        assert plan_id is not None
+
+        missing_reason = client.post(
+            f"/api/learning/approvals/{plan_id}/defer",
+            json={"actor_id": PILOT_TEACHER_ID},
+        )
+        assert missing_reason.status_code == 400
+
+        response = client.post(
+            f"/api/learning/approvals/{plan_id}/defer",
+            json={
+                "actor_id": PILOT_TEACHER_ID,
+                "reason": "Need one more exit-ticket before deciding",
+            },
+        )
+        assert response.status_code == 200, response.get_data(as_text=True)
+        body = response.get_json()
+        assert body["action"] == "deferred"
+        assert body["audit"]["kind"] == "plan_deferred"
+        assert learning_api._pending_plans[plan_id].get("approved_at") is None
+
+
+    def test_class_follow_up_shows_movement_for_approved_plan(client):
+        approve = client.post(
+            f"/api/learning/approvals/{PILOT_PENDING_PLAN_ID}/approve",
+            json={
+                "actor_id": PILOT_TEACHER_ID,
+                "class_id": "class-jss2-a",
+                "reason": "Teacher reviewed the pilot plan",
+            },
+        )
+        assert approve.status_code == 200, approve.get_data(as_text=True)
+
+        response = client.get(
+            "/api/learning/class/follow-up",
+            query_string={"tenant_id": PILOT_TENANT_ID, "class_id": "class-jss2-a"},
+        )
+        assert response.status_code == 200, response.get_data(as_text=True)
+        body = response.get_json()
+
+        assert body["count"] >= 1
+        follow_up = body["follow_ups"][0]
+        assert follow_up["plan_id"] == PILOT_PENDING_PLAN_ID
+        assert follow_up["delta_mastery"] > 0
+        assert follow_up["uncertainty_label"] in {
+            "strong_evidence",
+            "thin_evidence",
+            "needs_more_evidence",
+        }
+        assert follow_up["movements"][0]["source"] in {
+            "mastery_events",
+            "current_mastery_with_mock_baseline",
+            "mock_follow_up",
+        }
     started = _start(client)
     session_id = started["session_id"]
     current_item = started["item"]

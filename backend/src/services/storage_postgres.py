@@ -22,6 +22,7 @@ DEFAULT_CHILDREN = (
     {"id": "child-zuri", "name": "Zuri"},
 )
 ROLE_THERAPIST = "therapist"
+ROLE_TEACHER = "teacher"
 ROLE_PARENT = "parent"
 ROLE_ADMIN = "admin"
 ROLE_PENDING_THERAPIST = "pending_therapist"
@@ -598,6 +599,7 @@ class PostgresStorageService:
             return ROLE_PARENT
         if normalized in {
             ROLE_THERAPIST,
+            ROLE_TEACHER,
             ROLE_PARENT,
             ROLE_ADMIN,
             ROLE_PENDING_THERAPIST,
@@ -682,7 +684,7 @@ class PostgresStorageService:
                     """,
                     (email, name, provider, resolved_role, user_id),
                 )
-                if resolved_role in {ROLE_THERAPIST, ROLE_ADMIN}:
+                if resolved_role in {ROLE_THERAPIST, ROLE_TEACHER, ROLE_ADMIN}:
                     if resolved_role == ROLE_THERAPIST and existing_role == ROLE_PENDING_THERAPIST:
                         self._bootstrap_existing_children_for_user(connection, user_id, CHILD_RELATIONSHIP_THERAPIST)
                     self._ensure_personal_workspace_for_user(connection, user_id, name, email)
@@ -752,7 +754,7 @@ class PostgresStorageService:
 
     def update_user_role(self, user_id: str, role: str) -> Optional[Dict[str, Any]]:
         normalized_role = self._normalize_user_role(role)
-        if normalized_role not in {ROLE_THERAPIST, ROLE_PARENT, ROLE_ADMIN, ROLE_LEARNER, ROLE_PENDING_THERAPIST}:
+        if normalized_role not in {ROLE_THERAPIST, ROLE_TEACHER, ROLE_PARENT, ROLE_ADMIN, ROLE_LEARNER, ROLE_PENDING_THERAPIST}:
             raise ValueError("Unsupported role")
 
         def persist_role(connection: psycopg.Connection[Any]) -> int:
@@ -767,7 +769,7 @@ class PostgresStorageService:
                 "UPDATE users SET role = %s WHERE id = %s",
                 (normalized_role, user_id),
             )
-            if cursor.rowcount > 0 and normalized_role in {ROLE_THERAPIST, ROLE_ADMIN, ROLE_LEARNER}:
+            if cursor.rowcount > 0 and normalized_role in {ROLE_THERAPIST, ROLE_TEACHER, ROLE_ADMIN, ROLE_LEARNER}:
                 self._ensure_personal_workspace_for_user(
                     connection,
                     user_id,

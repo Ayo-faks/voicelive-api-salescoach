@@ -151,16 +151,20 @@ export async function migrateLegacySetup(
   return response
 }
 
-export function useLearnerProfile(): UseLearnerProfileResult {
+export function useLearnerProfile(
+  options: { enabled?: boolean } = {}
+): UseLearnerProfileResult {
+  const enabled = options.enabled ?? true
   const flagEnabled = featureFlags.pathfinder_learner_onboarding_enabled
+  const serverEnabled = flagEnabled && enabled
   const [legacySetup, legacyUpdate] = useLearnerSetup()
   const [profile, setProfile] = useState<LearnerProfile | null>(null)
   const [consentsLoaded, setConsentsLoaded] = useState(false)
   // Assume onboarding is needed until the GET proves otherwise. Otherwise
   // route guards that read `needsOnboarding` see `false` on first render and
   // briefly admit a fresh learner into `/home` before the API resolves.
-  const [needsOnboarding, setNeedsOnboarding] = useState(flagEnabled)
-  const [isLoading, setIsLoading] = useState(flagEnabled)
+  const [needsOnboarding, setNeedsOnboarding] = useState(serverEnabled)
+  const [isLoading, setIsLoading] = useState(serverEnabled)
   const [error, setError] = useState<string | null>(null)
   const migrationDone = useRef(false)
 
@@ -171,8 +175,10 @@ export function useLearnerProfile(): UseLearnerProfileResult {
   }, [])
 
   const refresh = useCallback(async () => {
-    if (!flagEnabled) {
+    if (!serverEnabled) {
       setIsLoading(false)
+      setNeedsOnboarding(false)
+      setProfile(null)
       return
     }
     setIsLoading(true)
@@ -192,7 +198,7 @@ export function useLearnerProfile(): UseLearnerProfileResult {
     } finally {
       setIsLoading(false)
     }
-  }, [applyResponse, flagEnabled])
+  }, [applyResponse, serverEnabled])
 
   const patch = useCallback(
     async (next: LearnerProfilePatch): Promise<LearnerProfileResponse> => {
@@ -214,7 +220,7 @@ export function useLearnerProfile(): UseLearnerProfileResult {
 
   // Initial load + legacy migration.
   useEffect(() => {
-    if (!flagEnabled) return
+    if (!serverEnabled) return
     let cancelled = false
     void (async () => {
       await refresh()
@@ -233,7 +239,7 @@ export function useLearnerProfile(): UseLearnerProfileResult {
     return () => {
       cancelled = true
     }
-  }, [flagEnabled, refresh])
+  }, [serverEnabled, refresh])
 
   const setup: LearnerSetup =
     flagEnabled && profile ? profileToSetup(profile, legacySetup) : legacySetup

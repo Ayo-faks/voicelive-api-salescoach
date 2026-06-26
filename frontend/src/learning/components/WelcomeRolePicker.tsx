@@ -136,10 +136,8 @@ const TILES: Tile[] = [
   {
     intent: 'teacher',
     title: "I'm a teacher (schools)",
-    body: 'Wulo Academy for schools — invite codes and class workspaces are on the way.',
+    body: 'Review class evidence, approve support plans, and track mastery after follow-up.',
     icon: UserGroupIcon,
-    disabled: true,
-    comingSoon: true,
   },
 ]
 

@@ -2195,9 +2195,17 @@ const chipIcons: Record<string, typeof SparklesIcon> = {
   'study-with-wulo': BookOpenIcon,
   'how-am-i-doing': ChartBarIcon,
   'ask-wulo': SparklesIcon,
-  'talk-it-through': MicrophoneIcon,
   'first-goal': AcademicCapIcon,
   'quick-quiz': CalculatorIcon,
+}
+
+function resumeExerciseHint(exercise: PendingExercise): string {
+  const preview =
+    exercise.stem.length > 90
+      ? `${exercise.stem.slice(0, 90)}…`
+      : exercise.stem
+  const suffix = /[.!?…]$/.test(preview.trim()) ? '' : '.'
+  return `You stopped mid-exercise — jump back into “${preview}”${suffix}`
 }
 
 export default function StudentLearningHome({
@@ -2673,7 +2681,6 @@ export default function StudentLearningHome({
       })),
       planItems,
       askAvailable: Boolean(askSurface),
-      voiceAvailable,
       unified: featureFlags.pathfinder_unified_assistant_enabled,
     })
   }, [
@@ -2684,7 +2691,6 @@ export default function StudentLearningHome({
     weakTopicProfile,
     todaysPath,
     askSurface,
-    voiceAvailable,
   ])
   const actionableCards = useMemo<ActionableStatCard[]>(() => {
     if (!actionableStatsEnabled || !weeklyStatsData) return []
@@ -2741,16 +2747,17 @@ export default function StudentLearningHome({
   // is off, falls back to the same demo diagnostic the old panel button used.
   function startStudySession(
     focus: LearnerFocusItem | null,
-    entryPoint: string
+    entryPoint: string,
+    focusLabel?: string | null
   ) {
     // Unified surface: a study session is just a practice intent handed to the
     // one presentation-aware assistant, which morphs into its tutor view.
     if (featureFlags.pathfinder_unified_assistant_enabled && askSurface) {
       logEvent('tutor_opened', { entry_point: entryPoint, surface: 'unified' })
-      askSurface.openAsk('text', {
+      askSurface.openAsk(voiceAvailable ? 'voice' : 'text', {
         kind: 'study',
         skillId: focus?.skillId ?? null,
-        skillLabel: focus?.stem ?? null,
+        skillLabel: focusLabel ?? focus?.stem ?? null,
       })
       return
     }
@@ -2780,7 +2787,8 @@ export default function StudentLearningHome({
                 scored: false,
               }
             : null,
-          'chip'
+          'chip',
+          chip.action.skillLabel
         )
         break
       case 'quiz':
@@ -2837,7 +2845,8 @@ export default function StudentLearningHome({
         skillId: pendingExercise.skillId ?? undefined,
         scored: false,
       },
-      'resume_card'
+      'resume_card',
+      pendingExercise.stem
     )
   }
 
@@ -2856,7 +2865,7 @@ export default function StudentLearningHome({
     // as a study intent so it opens in the focused tutor presentation.
     if (featureFlags.pathfinder_unified_assistant_enabled && askSurface) {
       logEvent('tutor_opened', { entry_point: 'path_item', surface: 'unified' })
-      askSurface.openAsk('text', {
+      askSurface.openAsk(voiceAvailable ? 'voice' : 'text', {
         kind: 'study',
         skillId: item.skillId ?? null,
         skillLabel: item.title ?? null,
@@ -3206,7 +3215,7 @@ export default function StudentLearningHome({
                     </Text>
                     <p className={styles.voiceEntryHint}>
                       {resumableExercise
-                        ? `You stopped mid-exercise — jump back into “${resumableExercise.stem.length > 90 ? `${resumableExercise.stem.slice(0, 90)}…` : resumableExercise.stem}”.`
+                        ? resumeExerciseHint(resumableExercise)
                         : askSurface?.voiceSessionDismissed
                           ? 'Your last voice session is saved — resume any time.'
                           : 'Stuck on something? Say it out loud and work through it together.'}

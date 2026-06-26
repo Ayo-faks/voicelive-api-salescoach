@@ -59,6 +59,17 @@ import { featureFlags } from '../utils/featureFlags'
 
 type Mode = 'text' | 'voice'
 
+type SpeakOptions = {
+  force?: boolean
+  prefix?: string
+}
+
+type DispatchTurnOptions = {
+  forceSpeak?: boolean
+  speakPrefix?: string
+  bypassVoiceSocket?: boolean
+}
+
 type TranscriptItem =
   | { id: string; role: 'user'; text: string }
   | { id: string; role: 'assistant'; block: AssistantBlock }
@@ -75,6 +86,12 @@ let counter = 0
 function nextId(prefix: string): string {
   counter += 1
   return `${prefix}-${Date.now().toString(36)}-${counter}`
+}
+
+function sentenceLabel(label: string): string {
+  const trimmed = label.trim()
+  if (!trimmed) return ''
+  return /[.!?]$/.test(trimmed) ? trimmed : `${trimmed}.`
 }
 
 // Map a saved-thread message (backend shape) into the live transcript items the
@@ -715,6 +732,9 @@ export function AskPathfinder({
   const [sessionComplete, setSessionComplete] = useState(false)
   const [listening, setListening] = useState(false)
   const [voiceError, setVoiceError] = useState<string | null>(null)
+  const [voiceOpeningPrompt, setVoiceOpeningPrompt] = useState<
+    string | null | undefined
+  >(undefined)
   // Explicit tutor⟷ask switch. `null` means "follow the content" (a practice
   // card shows the focused tutor view; prose shows the conversational ask
   // view). The in-surface toggle button sets this so the learner can flip
@@ -931,10 +951,12 @@ export function AskPathfinder({
   const ttsPlay = tts.play
   const ttsStop = tts.stop
   const speak = useCallback(
-    (result: AssistantTurnResult) => {
-      if (mode !== 'voice') return
-      const line = result.blocks
-        .map(block => ('speak' in block ? block.speak : ''))
+    (result: AssistantTurnResult, options: SpeakOptions = {}) => {
+      if (!options.force && mode !== 'voice') return
+      const line = [
+        options.prefix ?? '',
+        ...result.blocks.map(block => ('speak' in block ? block.speak : '')),
+      ]
         .filter(Boolean)
         .join(' ')
       if (!line) return
@@ -989,6 +1011,7 @@ export function AskPathfinder({
     childId: learner.userId ?? '',
     subject: learner.learnerSetup?.subject,
     classYear: learner.learnerSetup?.yearGroup,
+    openingPrompt: voiceOpeningPrompt,
     onBlock: appendVoiceBlock,
     onUserTranscript: appendUserUtterance,
     onError: code => {
@@ -1003,7 +1026,11 @@ export function AskPathfinder({
   })
 
   const dispatchTurn = useCallback(
-    async (partial: Partial<AssistantTurnRequest>, userText?: string) => {
+    async (
+      partial: Partial<AssistantTurnRequest>,
+      userText?: string,
+      options: DispatchTurnOptions = {}
+    ) => {
       if (busy) return
       if (userText) {
         setTranscript(prev => [
@@ -1019,7 +1046,11 @@ export function AskPathfinder({
       }
       setBusy(true)
       setVoiceError(null)
-      if (mode === 'voice' && socketRef.current?.isOpen()) {
+      if (
+        !options.bypassVoiceSocket &&
+        mode === 'voice' &&
+        socketRef.current?.isOpen()
+      ) {
         // Result arrives asynchronously via the socket onResult handler.
         socketRef.current.send(payload as Record<string, unknown>)
         return
@@ -1031,7 +1062,10 @@ export function AskPathfinder({
         const result = await runAssistantTurn(payload)
         if (result.conversation_id) setConversationId(result.conversation_id)
         appendResult(result)
-        speak(result)
+        speak(result, {
+          force: options.forceSpeak,
+          prefix: options.speakPrefix,
+        })
       } catch (err) {
         const timedOut = err instanceof AssistantTurnTimeoutError
         appendResult({
@@ -1192,6 +1226,7 @@ export function AskPathfinder({
 
   const enterTextMode = useCallback(() => {
     setMode('text')
+    setVoiceOpeningPrompt(undefined)
     stopListening()
     closeSocket()
   }, [closeSocket, stopListening])
@@ -1204,6 +1239,7 @@ export function AskPathfinder({
     }
     setOpen(false)
     setMode('text')
+    setVoiceOpeningPrompt(undefined)
     stopListening()
     closeSocket()
     // Reopening remounts the whole transcript; nothing in it is "fresh" then.
@@ -1223,23 +1259,43 @@ export function AskPathfinder({
       return
     }
     lastOpenNonceRef.current = askOpenRequest.nonce
+    const intent = askOpenRequest.intent
+    const opensStudy = intent?.kind === 'study'
+    const opensVoice = askOpenRequest.mode === 'voice'
     setOpen(true)
     setVoiceSessionDismissed?.(false)
+    setVoiceOpeningPrompt(opensStudy && opensVoice ? null : undefined)
     if (askOpenRequest.mode === 'voice') enterVoiceMode()
     else enterTextMode()
     // A study intent seeds a practice walk on open, so the surface returns a
     // tutor card and morphs into its focused tutor presentation — the unified
     // replacement for the standalone tutor entry point.
-    const intent = askOpenRequest.intent
     if (intent?.kind === 'study') {
       // Open straight into the focused tutor view (the thinking indicator holds
       // it until the first card lands), clearing any earlier ask override.
       setPresentationOverride('tutor')
+      const label = intent.skillLabel?.trim()
+      const labelSentence = label ? sentenceLabel(label) : ''
+      const requestText = label
+        ? `Let's continue from ${labelSentence}`
+        : "Let's start a practice session."
+      const spokenIntro = opensVoice
+        ? label
+          ? `Welcome back. Let's continue from ${labelSentence}`
+          : "Welcome back. Let's continue your practice."
+        : undefined
       void dispatchTurn(
-        { intent: 'practice' },
-        intent.skillLabel
-          ? `Let's practise ${intent.skillLabel}.`
-          : "Let's start a practice session."
+        {
+          intent: 'practice',
+          skill_id: intent.skillId ?? null,
+          skill_strict: Boolean(intent.skillId),
+        },
+        requestText,
+        {
+          forceSpeak: opensVoice,
+          speakPrefix: spokenIntro,
+          bypassVoiceSocket: true,
+        }
       )
     } else {
       // A plain open (Ask / talk-it-through) follows the content.
@@ -1401,7 +1457,10 @@ export function AskPathfinder({
   const handleMicToggle = useCallback(() => {
     if (voiceLiveEnabled) {
       if (isVoice) enterTextMode()
-      else enterVoiceMode()
+      else {
+        setVoiceOpeningPrompt(undefined)
+        enterVoiceMode()
+      }
       return
     }
     if (listening) stopListening()

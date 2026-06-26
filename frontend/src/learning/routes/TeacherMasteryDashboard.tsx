@@ -15,6 +15,8 @@ import {
   type PendingApprovalPlanView,
 } from '../components/PathfinderPhase2'
 import {
+  differentiationGroups as fixtureDifferentiationGroups,
+  followUpRecords as fixtureFollowUpRecords,
   heatmapCells,
   pendingPlan as fixturePendingPlan,
   provenance,
@@ -23,17 +25,22 @@ import { pathfinderTokens as t } from '../theme/pathfinder-tokens'
 import {
   approveLearningPlan,
   approveStudentFact,
+  deferLearningPlan,
   editAndApproveLearningPlan,
   editAndApproveStudentFact,
+  getClassGroups,
+  getClassFollowUp,
   getClassMastery,
-  listAudit,
   listPendingApprovals,
   listPendingStudentFacts,
   rejectLearningPlan,
   rejectStudentFact,
   submitIntent,
   type ClassMasteryCell,
+  type DifferentiationGroupRecord,
+  type FollowUpRecord,
   type PendingPlanRecord,
+  type SupportType,
   type StudentFactRecord,
   type StudentProfileSkill,
 } from '../api'
@@ -149,6 +156,23 @@ type WeakSkillSummary = {
   label: string
   averageMastery: number
   needsSupportCount: number
+}
+
+const supportTypeLabels: Record<SupportType, string> = {
+  reteach: 'Reteach',
+  targeted_practice: 'Targeted practice',
+  extension: 'Extension',
+  monitor: 'Monitor',
+  review: 'Review',
+}
+
+const uncertaintyLabels: Record<
+  DifferentiationGroupRecord['uncertainty_label'],
+  string
+> = {
+  strong_evidence: 'Strong evidence',
+  thin_evidence: 'Thin evidence',
+  needs_more_evidence: 'Needs more evidence',
 }
 
 const classRows: Row[] = [
@@ -838,6 +862,30 @@ const useStyles = makeStyles({
     fontSize: '0.72rem',
     lineHeight: 1.35,
   },
+  groupGrid: {
+    display: 'grid',
+    gap: '10px',
+  },
+  learnerChipRow: {
+    display: 'flex',
+    gap: '6px',
+    flexWrap: 'wrap',
+  },
+  learnerChip: {
+    appearance: 'none',
+    border: 'var(--pf-hairline)',
+    borderRadius: t.radius.pill,
+    backgroundColor: 'var(--pf-surface)',
+    color: 'var(--pf-text-secondary)',
+    cursor: 'pointer',
+    font: 'inherit',
+    fontSize: '0.7rem',
+    fontWeight: 750,
+    lineHeight: 1.35,
+    minHeight: '24px',
+    paddingRight: '9px',
+    paddingLeft: '9px',
+  },
   memoryTrustCopy: {
     margin: 0,
     color: 'var(--pf-text-secondary)',
@@ -1005,6 +1053,10 @@ function weakestSkillSummaries(rows: Row[]): WeakSkillSummary[] {
 function planRecordToView(record: PendingPlanRecord): PendingApprovalPlanView {
   return {
     planId: record.id,
+    objective: record.plan.objective,
+    supportType: record.plan.support_type,
+    durationMinutes: record.plan.duration_minutes,
+    followUpCheck: record.plan.follow_up_check,
     targetSkillIds: record.plan.target_skill_ids,
     targetStudentIds: record.plan.target_student_ids,
     itemTypes: record.plan.item_types,
@@ -1087,6 +1139,10 @@ export default function TeacherMasteryDashboard() {
     'Teacher approval workflow active',
   ])
   const [liveCells, setLiveCells] = useState<ClassMasteryCell[]>([])
+  const [differentiationGroups, setDifferentiationGroups] = useState<
+    DifferentiationGroupRecord[]
+  >(fixtureDifferentiationGroups)
+  const [followUps, setFollowUps] = useState<FollowUpRecord[]>(fixtureFollowUpRecords)
   const [pendingPlans, setPendingPlans] = useState<PendingPlanRecord[]>([])
   const [pendingStudentFacts, setPendingStudentFacts] =
     useState<StudentFactRecord[]>(fallbackStudentFacts)
@@ -1094,6 +1150,12 @@ export default function TeacherMasteryDashboard() {
     'loading' | 'live' | 'offline'
   >('loading')
   const [studentFactQueueState, setStudentFactQueueState] = useState<
+    'loading' | 'live' | 'offline'
+  >('loading')
+  const [groupQueueState, setGroupQueueState] = useState<
+    'loading' | 'live' | 'offline'
+  >('loading')
+  const [followUpState, setFollowUpState] = useState<
     'loading' | 'live' | 'offline'
   >('loading')
   const [editingStudentFactId, setEditingStudentFactId] = useState<
@@ -1113,6 +1175,38 @@ export default function TeacherMasteryDashboard() {
     try {
       const mastery = await getClassMastery({ class_id: selectedClassId })
       setLiveCells(mastery.cells)
+      try {
+        const groups = await getClassGroups({ class_id: selectedClassId })
+        setDifferentiationGroups(
+          groups.groups.length > 0
+            ? groups.groups
+            : selectedClassId === 'class-jss2-a'
+              ? fixtureDifferentiationGroups
+              : []
+        )
+        setGroupQueueState('live')
+      } catch {
+        setDifferentiationGroups(
+          selectedClassId === 'class-jss2-a' ? fixtureDifferentiationGroups : []
+        )
+        setGroupQueueState('offline')
+      }
+      try {
+        const followUp = await getClassFollowUp({ class_id: selectedClassId })
+        setFollowUps(
+          followUp.follow_ups.length > 0
+            ? followUp.follow_ups
+            : selectedClassId === 'class-jss2-a'
+              ? fixtureFollowUpRecords
+              : []
+        )
+        setFollowUpState('live')
+      } catch {
+        setFollowUps(
+          selectedClassId === 'class-jss2-a' ? fixtureFollowUpRecords : []
+        )
+        setFollowUpState('offline')
+      }
       try {
         const approvals = await listPendingApprovals({
           class_id: selectedClassId,
@@ -1134,23 +1228,17 @@ export default function TeacherMasteryDashboard() {
         setStudentFactQueueState('offline')
       }
       setApprovalQueueState('live')
-      try {
-        const audit = await listAudit()
-        if (audit.events.length > 0) {
-          setAuditEvents(cur => {
-            const baseline = cur.filter(value => !value.startsWith('[live]'))
-            return [
-              ...baseline,
-              ...audit.events.map(event => `[live] ${event.label}`),
-            ]
-          })
-        }
-      } catch {
-        // Audit is admin-scoped; teacher dashboards still render live class data.
-      }
     } catch {
       setApprovalQueueState('offline')
       setStudentFactQueueState('offline')
+      setGroupQueueState('offline')
+      setFollowUpState('offline')
+      setDifferentiationGroups(
+        selectedClassId === 'class-jss2-a' ? fixtureDifferentiationGroups : []
+      )
+      setFollowUps(
+        selectedClassId === 'class-jss2-a' ? fixtureFollowUpRecords : []
+      )
       setPendingStudentFacts(
         selectedClassId === 'class-jss2-a' ? fallbackStudentFacts : []
       )
@@ -1172,17 +1260,18 @@ export default function TeacherMasteryDashboard() {
     isFlaggedForIntervention
   ).length
   const weakestSkills = weakestSkillSummaries(allRows)
+  const studentNameById = new Map(allRows.map(row => [row.studentId, row.name]))
   const proposedStudentFactCount = pendingStudentFacts.length
   const selectedFallbackSkills = rowToProfileSkills(
     allRows.find(row => row.studentId === selectedStudentId)
   )
-  const visiblePlan: PendingApprovalPlanView | null =
+  const pendingPlanViews: PendingApprovalPlanView[] =
     pendingPlans.length > 0
-      ? planRecordToView(pendingPlans[0])
+      ? pendingPlans.map(planRecordToView)
       : approvalQueueState === 'offline' &&
           selectedClass.classId === 'class-jss2-a'
-        ? fixturePendingPlan
-        : null
+        ? [fixturePendingPlan]
+        : []
   const profileEntryStudent = visibleRows[0]
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const _pendingApprovalCount =
@@ -1204,8 +1293,43 @@ export default function TeacherMasteryDashboard() {
     setEditingStudentFactId(null)
     setStudentFactDraft(emptyStudentFactDraft)
     setLiveCells([])
+    setDifferentiationGroups(
+      classId === 'class-jss2-a' ? fixtureDifferentiationGroups : []
+    )
+    setFollowUps(classId === 'class-jss2-a' ? fixtureFollowUpRecords : [])
     setPendingStudentFacts(
       classId === 'class-jss2-a' ? fallbackStudentFacts : []
+    )
+  }
+
+  function handleRemoveGroupLearner(groupId: string, studentId: string) {
+    setDifferentiationGroups(current =>
+      current.map(group =>
+        group.group_id === groupId
+          ? {
+              ...group,
+              student_ids: group.student_ids.filter(id => id !== studentId),
+              learner_count: Math.max(0, group.learner_count - 1),
+            }
+          : group
+      )
+    )
+    pushEvent(`Adjusted group ${groupId}: removed ${studentId}`)
+  }
+
+  function handleAddGroupLearner(groupId: string) {
+    setDifferentiationGroups(current =>
+      current.map(group => {
+        if (group.group_id !== groupId) return group
+        const nextStudent = allRows.find(row => !group.student_ids.includes(row.studentId))
+        if (!nextStudent) return group
+        pushEvent(`Adjusted group ${groupId}: added ${nextStudent.studentId}`)
+        return {
+          ...group,
+          student_ids: [...group.student_ids, nextStudent.studentId],
+          learner_count: group.learner_count + 1,
+        }
+      })
     )
   }
 
@@ -1254,6 +1378,20 @@ export default function TeacherMasteryDashboard() {
       await refresh()
     } catch (err) {
       pushEvent(`Reject failed: ${(err as Error).message}`)
+    }
+  }
+
+  async function handleDefer(planId: string, reason: string) {
+    pushEvent(`Deferring plan ${planId}…`)
+    try {
+      await deferLearningPlan(planId, {
+        class_id: selectedClass.classId,
+        reason,
+      })
+      pushEvent(`Deferred plan ${planId}: ${reason}`)
+      await refresh()
+    } catch (err) {
+      pushEvent(`Defer failed: ${(err as Error).message}`)
     }
   }
 
@@ -1624,6 +1762,78 @@ export default function TeacherMasteryDashboard() {
 
           <Card className={styles.auditCard}>
             <CardHeader
+              header={<Text weight="semibold">Differentiated groups</Text>}
+              description={
+                <Text size={200}>
+                  Suggested support groups from mastery and uncertainty evidence
+                </Text>
+              }
+            />
+            <div className={styles.groupGrid} data-testid="differentiation-groups">
+              {differentiationGroups.slice(0, 5).map(group => (
+                <div key={group.group_id} className={styles.insightItem}>
+                  <div className={styles.insightRow}>
+                    <Text weight="semibold">
+                      {supportTypeLabels[group.support_type]} · {group.target_skill_label}
+                    </Text>
+                    <span className={styles.softBadge}>
+                      {uncertaintyLabels[group.uncertainty_label]}
+                    </span>
+                  </div>
+                  <div className={styles.insightMeta}>{group.evidence_summary}</div>
+                  <Text size={200}>{group.rationale}</Text>
+                  <div className={styles.insightMeta}>{group.next_action}</div>
+                  <div className={styles.learnerChipRow}>
+                    {group.student_ids.map(studentId => (
+                      <button
+                        key={studentId}
+                        type="button"
+                        className={styles.learnerChip}
+                        aria-label={`Remove ${studentNameById.get(studentId) ?? studentId} from ${supportTypeLabels[group.support_type]} group`}
+                        onClick={() => handleRemoveGroupLearner(group.group_id, studentId)}
+                      >
+                        {studentNameById.get(studentId) ?? studentId} ×
+                      </button>
+                    ))}
+                  </div>
+                  <div className={styles.factActions}>
+                    <button
+                      type="button"
+                      className={styles.filterBadge}
+                      onClick={() => handleAddGroupLearner(group.group_id)}
+                    >
+                      Add learner
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.filterBadgeActive}
+                      disabled={group.student_ids.length === 0 || intentBusy}
+                      onClick={() =>
+                        void handleSubmitIntent(
+                          `Draft a ${supportTypeLabels[group.support_type].toLowerCase()} plan for ${group.target_skill_label} with learners ${group.student_ids.join(', ')}`
+                        )
+                      }
+                    >
+                      Draft plan
+                    </button>
+                  </div>
+                </div>
+              ))}
+              {differentiationGroups.length === 0 ? (
+                <div className={styles.insightMeta}>
+                  No groups yet. Run a diagnostic or gather more evidence for this class.
+                </div>
+              ) : null}
+              {groupQueueState === 'offline' ? (
+                <div className={styles.insightMeta}>
+                  Showing deterministic pilot groups while live grouping is unavailable.
+                </div>
+              ) : null}
+            </div>
+          </Card>
+
+          <Card className={styles.auditCard}>
+            <CardHeader
               header={<Text weight="semibold">Teacher-controlled memory</Text>}
               description={
                 <Text size={200}>
@@ -1772,13 +1982,17 @@ export default function TeacherMasteryDashboard() {
             />
           </div>
 
-          {visiblePlan ? (
-            <PendingApprovalCard
-              plan={visiblePlan}
-              onApprove={id => void handleApprove(id)}
-              onReject={id => void handleReject(id)}
-              onEditApprove={handleEditApprove}
-            />
+          {pendingPlanViews.length > 0 ? (
+            pendingPlanViews.map(plan => (
+              <PendingApprovalCard
+                key={plan.planId}
+                plan={plan}
+                onApprove={id => void handleApprove(id)}
+                onReject={id => void handleReject(id)}
+                onDefer={(id, reason) => void handleDefer(id, reason)}
+                onEditApprove={handleEditApprove}
+              />
+            ))
           ) : (
             <Card className={styles.auditCard}>
               <CardHeader
@@ -1794,6 +2008,59 @@ export default function TeacherMasteryDashboard() {
               />
             </Card>
           )}
+
+          <Card className={styles.auditCard}>
+            <CardHeader
+              header={<Text weight="semibold">Follow-up mastery movement</Text>}
+              description={
+                <Text size={200}>
+                  Before/after evidence after teacher-approved support
+                </Text>
+              }
+            />
+            <div className={styles.insightList} data-testid="follow-up-tracker">
+              {followUps.map(record => (
+                <div key={record.plan_id} className={styles.insightItem}>
+                  <div className={styles.insightRow}>
+                    <Text weight="semibold">Plan {record.plan_id}</Text>
+                    <span className={styles.softBadge}>
+                      {uncertaintyLabels[record.uncertainty_label]}
+                    </span>
+                  </div>
+                  <div className={styles.insightMeta}>{record.follow_up_check}</div>
+                  <Text size={200}>{record.evidence_summary}</Text>
+                  <div className={styles.summaryGrid}>
+                    <div className={styles.summaryTile}>
+                      <div className={styles.summaryLabel}>Before</div>
+                      <div className={styles.summaryValue}>
+                        {Math.round(record.before_mastery * 100)}%
+                      </div>
+                    </div>
+                    <div className={styles.summaryTile}>
+                      <div className={styles.summaryLabel}>After</div>
+                      <div className={styles.summaryValue}>
+                        {Math.round(record.after_mastery * 100)}%
+                      </div>
+                    </div>
+                  </div>
+                  <div className={styles.insightMeta}>
+                    Movement +{Math.round(record.delta_mastery * 100)} pts · uncertainty{' '}
+                    {Math.round(record.uncertainty * 100)}% · not a high-stakes decision
+                  </div>
+                </div>
+              ))}
+              {followUps.length === 0 ? (
+                <div className={styles.insightMeta}>
+                  Approve a plan to track follow-up mastery movement.
+                </div>
+              ) : null}
+              {followUpState === 'offline' ? (
+                <div className={styles.insightMeta}>
+                  Showing pilot follow-up evidence while live tracking is unavailable.
+                </div>
+              ) : null}
+            </div>
+          </Card>
 
           <Card className={styles.auditCard}>
             <CardHeader

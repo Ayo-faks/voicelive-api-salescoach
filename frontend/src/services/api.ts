@@ -64,6 +64,7 @@ export interface AuthSession {
   provider: string
   role:
     | 'therapist'
+    | 'teacher'
     | 'parent'
     | 'admin'
     | 'pending_therapist'

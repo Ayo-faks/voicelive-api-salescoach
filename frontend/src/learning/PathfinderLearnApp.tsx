@@ -167,7 +167,7 @@ const navItems: NavItem[] = [
     label: 'Teacher',
     hint: 'Class',
     icon: ChartBarIcon,
-    allowedRoles: ['therapist', 'admin'],
+    allowedRoles: ['therapist', 'teacher', 'admin'],
     testId: 'pf-nav-teacher',
   },
   {
@@ -255,6 +255,7 @@ const _accountActions: AccountAction[] = [
 function formatRoleLabel(role: LearningRole | 'loading'): string {
   if (role === 'loading') return 'Loading account'
   if (role === 'pending_therapist') return 'Pending therapist'
+  if (role === 'teacher') return 'Teacher'
   if (role === 'learner' || role === 'kid' || role === 'student') return 'Student'
   return role.charAt(0).toUpperCase() + role.slice(1)
 }
@@ -264,6 +265,7 @@ export function normalizeLearningRole(
 ): LearningRole {
   if (
     role === 'therapist' ||
+    role === 'teacher' ||
     role === 'parent' ||
     role === 'admin' ||
     role === 'pending_therapist'
@@ -284,7 +286,7 @@ export function navItemsForRole(role: LearningRole): NavItem[] {
 }
 
 export function defaultPathForRole(role: LearningRole): string {
-  if (role === 'therapist' || role === 'admin') return '/teacher'
+  if (role === 'therapist' || role === 'teacher' || role === 'admin') return '/teacher'
   if (role === 'parent') return '/family'
   return '/home'
 }
@@ -1564,10 +1566,10 @@ function PathfinderLearnAppShell() {
 
   const onboardingFlagEnabled =
     featureFlags.pathfinder_learner_onboarding_enabled
-  const isLearnerLikeRole = ['learner', 'kid', 'student'].includes(
-    effectiveRole
-  )
-  const learnerProfileGate = useLearnerProfile()
+  const isLearnerLikeRole =
+    learningRole !== 'loading' &&
+    ['learner', 'kid', 'student'].includes(effectiveRole)
+  const learnerProfileGate = useLearnerProfile({ enabled: isLearnerLikeRole })
   const learnerProfileGateLoading =
     onboardingFlagEnabled && isLearnerLikeRole && learnerProfileGate.isLoading
   const learnerNeedsOnboarding =
@@ -2177,7 +2179,7 @@ function PathfinderLearnAppShell() {
               <Route
                 path="/teacher"
                 element={routeForRole(
-                  ['therapist', 'admin'],
+                  ['therapist', 'teacher', 'admin'],
                   <TeacherMasteryDashboard />
                 )}
               />

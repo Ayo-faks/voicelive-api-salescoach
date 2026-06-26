@@ -212,7 +212,7 @@ AUTH_REQUIRED = "Authentication required"
 THERAPIST_ROLE_REQUIRED = "Therapist role required"
 SESSION_NOT_FOUND = "Session not found"
 USER_NOT_FOUND = "User not found"
-INVALID_ROLE = "Role must be 'therapist', 'parent', or 'admin'"
+INVALID_ROLE = "Role must be 'therapist', 'teacher', 'parent', or 'admin'"
 INVALID_FEEDBACK_RATING = "Feedback rating must be 'up' or 'down'"
 PLAN_NOT_FOUND = "Practice plan not found"
 REPORT_NOT_FOUND = "Progress report not found"
@@ -232,6 +232,7 @@ HTTP_INTERNAL_SERVER_ERROR = 500
 HTTP_TOO_MANY_REQUESTS = 429
 
 ROLE_THERAPIST = "therapist"
+ROLE_TEACHER = "teacher"
 ROLE_PARENT = "parent"
 ROLE_ADMIN = "admin"
 ROLE_PENDING_THERAPIST = "pending_therapist"
@@ -757,9 +758,7 @@ def _normalize_identity_provider(provider: Any) -> str:
 
 def _resolve_local_dev_role() -> str:
     role = _normalize_context_value(os.environ.get("LOCAL_DEV_USER_ROLE")).lower()
-    if role == "teacher":
-        return ROLE_THERAPIST
-    if role in {ROLE_THERAPIST, ROLE_PARENT, ROLE_ADMIN, ROLE_LEARNER, ROLE_KID, ROLE_STUDENT}:
+    if role in {ROLE_THERAPIST, ROLE_TEACHER, ROLE_PARENT, ROLE_ADMIN, ROLE_LEARNER, ROLE_KID, ROLE_STUDENT}:
         return role
 
     if role:
@@ -1369,7 +1368,7 @@ def _learning_student_guard(user: Mapping[str, Any], student_id: str) -> Optiona
     if role == ROLE_ADMIN:
         return None
     tenant_id = str(_learning_payload().get("tenant_id") or PILOT_TENANT_ID)
-    if role == ROLE_THERAPIST:
+    if role in {ROLE_THERAPIST, ROLE_TEACHER}:
         return _learning_class_guard(user, _learning_student_class_id(student_id, tenant_id))
     if role in LEARNING_LEARNER_ROLES and student_id in _learning_student_ids_for_user(user):
         return None
@@ -1394,6 +1393,8 @@ def _learning_admin_endpoint(path: str, method: str) -> bool:
 def _learning_teacher_endpoint(path: str) -> bool:
     return (
         path == "/api/learning/class/mastery"
+        or path == "/api/learning/class/groups"
+        or path == "/api/learning/class/follow-up"
         or path.startswith("/api/learning/approvals")
         or path == "/api/learning/intent"
         or path.endswith("/override") and path.startswith("/api/learning/students/")
@@ -1446,7 +1447,7 @@ def _enforce_learning_api_policy() -> Optional[Tuple[Any, int]]:
         return _learning_student_guard(user, student_id)
 
     if _learning_teacher_endpoint(path):
-        user, guard_response = _require_role(ROLE_THERAPIST, ROLE_ADMIN)
+        user, guard_response = _require_role(ROLE_THERAPIST, ROLE_TEACHER, ROLE_ADMIN)
         if guard_response is not None or user is None:
             return guard_response
         return _learning_class_guard(user, class_id)
@@ -1458,7 +1459,7 @@ def _enforce_learning_api_policy() -> Optional[Tuple[Any, int]]:
     role = str(user.get("role") or "")
     if role == ROLE_PENDING_THERAPIST:
         return jsonify({"error": THERAPIST_ROLE_REQUIRED}), HTTP_FORBIDDEN
-    if role in {ROLE_THERAPIST, ROLE_ADMIN}:
+    if role in {ROLE_THERAPIST, ROLE_TEACHER, ROLE_ADMIN}:
         return _learning_class_guard(user, class_id)
     if role in LEARNING_LEARNER_ROLES:
         payload_student_id = str(payload.get("student_id") or payload.get("actor_id") or "").strip()
@@ -1957,7 +1958,7 @@ def choose_role():
     elif intent == "parent":
         target_role = ROLE_PARENT
     elif intent == "teacher":
-        target_role = ROLE_PENDING_THERAPIST
+        target_role = ROLE_TEACHER
     else:
         return jsonify({"error": "intent must be one of: learner, parent, teacher"}), HTTP_BAD_REQUEST
 
@@ -5316,7 +5317,7 @@ def update_user_role(user_id: str):
 
     data = cast(Dict[str, Any], request.get_json(silent=True) or {})
     role = str(data.get("role") or "").strip().lower()
-    if role not in {ROLE_THERAPIST, ROLE_PARENT, ROLE_ADMIN, ROLE_LEARNER}:
+    if role not in {ROLE_THERAPIST, ROLE_TEACHER, ROLE_PARENT, ROLE_ADMIN, ROLE_LEARNER}:
         return jsonify({"error": INVALID_ROLE}), HTTP_BAD_REQUEST
 
     acting_role = str(cast(Dict[str, Any], acting_user).get("role") or "")

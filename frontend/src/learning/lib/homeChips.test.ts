@@ -14,7 +14,6 @@ const base: HomeChipInputs = {
   weakTopics: [{ skillId: 'ratio', label: 'Ratio and proportion' }],
   planItems: [{ skillId: 'linear-equations', label: 'Linear equations' }],
   askAvailable: true,
-  voiceAvailable: true,
 }
 
 describe('deriveHomeChips', () => {
@@ -24,7 +23,6 @@ describe('deriveHomeChips', () => {
       'study-with-wulo',
       'how-am-i-doing',
       'ask-wulo',
-      'talk-it-through',
     ])
     expect(chips[0].label).toBe('Study Ratio and proportion with Wulo')
     expect(chips[0].action).toEqual({
@@ -67,7 +65,6 @@ describe('deriveHomeChips', () => {
       weakTopics: [],
       planItems: [],
       askAvailable: true,
-      voiceAvailable: false,
     })
     expect(chips.map(c => c.id)).toEqual([
       'study-with-wulo',
@@ -87,16 +84,8 @@ describe('deriveHomeChips', () => {
     const chips = deriveHomeChips({
       ...base,
       askAvailable: false,
-      voiceAvailable: false,
     })
     expect(chips.find(c => c.id === 'ask-wulo')).toBeUndefined()
-    expect(chips.find(c => c.id === 'talk-it-through')).toBeUndefined()
-  })
-
-  it('hides the voice chip when only voice is unavailable', () => {
-    const chips = deriveHomeChips({ ...base, voiceAvailable: false })
-    expect(chips.find(c => c.id === 'ask-wulo')).toBeDefined()
-    expect(chips.find(c => c.id === 'talk-it-through')).toBeUndefined()
   })
 
   it('gives every chip a full-intent aria label', () => {
@@ -110,22 +99,20 @@ describe('deriveHomeChips', () => {
     expect(chips.map(c => c.id)).toEqual([
       'study-with-wulo',
       'how-am-i-doing',
-      'talk-it-through',
     ])
     expect(chips.find(c => c.id === 'ask-wulo')).toBeUndefined()
   })
 
-  it('keeps only study + voice as Wulo entries on a cold start when unified', () => {
+  it('keeps only the contextual study Wulo entry on a cold start when unified', () => {
     const chips = deriveHomeChips({
       stats: null,
       weakTopics: [],
       planItems: [],
       askAvailable: true,
-      voiceAvailable: true,
       unified: true,
     })
     expect(chips.find(c => c.id === 'ask-wulo')).toBeUndefined()
     expect(chips.find(c => c.id === 'study-with-wulo')).toBeDefined()
-    expect(chips.find(c => c.id === 'talk-it-through')).toBeDefined()
+    expect(chips.find(c => c.id === 'talk-it-through')).toBeUndefined()
   })
 })

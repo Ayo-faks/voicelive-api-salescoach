@@ -7,6 +7,7 @@
  * with a manually started backend on baseURL).
  */
 import { expect, request, test } from '@playwright/test'
+import type { APIRequestContext } from '@playwright/test'
 
 test.describe.configure({ mode: 'serial' })
 
@@ -15,6 +16,23 @@ const LEARNER_PERSONA = {
   name: 'Dev Learner',
   email: 'dev-learner@localhost',
 } as const
+
+const PILOT_CLASS_ID = 'class-jss2-a'
+const PRACTICE_SKILL_ID = 'ratio-proportion'
+
+type DiagnosticItem = {
+  item_id: string
+}
+
+type DiagnosticStartResponse = {
+  session_id: string
+  item: DiagnosticItem | null
+}
+
+type DiagnosticAnswerResponse = {
+  completed: boolean
+  next_item: DiagnosticItem | null
+}
 
 function learnerHeaders(): Record<string, string> {
   return {
@@ -25,12 +43,60 @@ function learnerHeaders(): Record<string, string> {
   }
 }
 
+async function completeDiagnosticViaApi(
+  api: APIRequestContext,
+  options: {
+    studentId: string
+    classId: string
+    itemCount?: number
+    skillId?: string
+  }
+): Promise<void> {
+  const startResp = await api.post('/api/learning/diagnostic/start', {
+    data: {
+      student_id: options.studentId,
+      class_id: options.classId,
+      item_count: options.itemCount ?? 1,
+      skill_id: options.skillId,
+    },
+  })
+  expect(startResp.ok()).toBeTruthy()
+  const started = (await startResp.json()) as DiagnosticStartResponse
+  let item = started.item
+  let step = 0
+
+  while (item) {
+    const answerResp = await api.post('/api/learning/diagnostic/answer', {
+      data: {
+        session_id: started.session_id,
+        item_id: item.item_id,
+        response_text: `seed-answer-${step}`,
+      },
+    })
+    expect(answerResp.ok()).toBeTruthy()
+    const answer = (await answerResp.json()) as DiagnosticAnswerResponse
+    if (answer.completed) return
+    item = answer.next_item
+    step += 1
+    if (step > 20) throw new Error('diagnostic API seed did not complete')
+  }
+}
+
+async function seedStableWeakTopic(
+  api: APIRequestContext
+): Promise<string> {
+  await completeDiagnosticViaApi(api, {
+    studentId: LEARNER_PERSONA.userId,
+    classId: PILOT_CLASS_ID,
+    skillId: PRACTICE_SKILL_ID,
+  })
+  return PRACTICE_SKILL_ID
+}
+
 test.describe('Pathfinder · end-to-end learning loop', () => {
-  // The Home hero's `start-checkin` button now launches the short-demo
-  // diagnostic which only persists to localStorage. The backend-wired
-  // DiagnosticPanel is still reachable from the weak-topic profile
-  // ("Practise this topic"), so the end-to-end loop is exercised by
-  // clicking into one of those topic cards instead of the hero CTA.
+  // The Home hero now enters the tutor path. The backend-wired DiagnosticPanel
+  // is reached from the server-backed weak-topic profile, so the test seeds one
+  // mastery event first and then clicks the returned "Practise this topic" card.
   test('student check-in updates teacher heatmap and approval is audited', async ({
     browser,
     baseURL,
@@ -46,6 +112,7 @@ test.describe('Pathfinder · end-to-end learning loop', () => {
       baseURL,
       extraHTTPHeaders: learnerHeaders(),
     })
+    let practiceSkillId = ''
     try {
       const session = await learnerRequest.get('/api/auth/session')
       expect(session.ok()).toBeTruthy()
@@ -63,6 +130,7 @@ test.describe('Pathfinder · end-to-end learning loop', () => {
         },
       })
       expect(uiResp.ok()).toBeTruthy()
+      practiceSkillId = await seedStableWeakTopic(adminRequest)
     } finally {
       await learnerRequest.dispose()
     }
@@ -73,7 +141,7 @@ test.describe('Pathfinder · end-to-end learning loop', () => {
     const page = await learnerContext.newPage()
 
     await page.goto('/home')
-    await page.getByTestId('practise-topic-ratio-proportion').click()
+    await page.getByTestId(`practise-topic-${practiceSkillId}`).click()
 
     const panel = page.getByTestId('diagnostic-panel')
     await expect(panel).toBeVisible()
@@ -118,9 +186,9 @@ test.describe('Pathfinder · end-to-end learning loop', () => {
       }>
       expect(plans.length).toBeGreaterThan(0)
       const planId = plans[0].plan?.plan_id ?? plans[0].id
-      expect(planId).toBeTruthy()
+      if (!planId) throw new Error('pending approval did not include a plan id')
       const approveResp = await adminRequest.post(
-        `/api/learning/approvals/${encodeURIComponent(planId!)}/approve`
+        `/api/learning/approvals/${encodeURIComponent(planId)}/approve`
       )
       expect(approveResp.ok()).toBeTruthy()
 

@@ -39,6 +39,7 @@ from src.learning.diagnostic import (
 )
 from src.learning.errors import LearningApiError
 from src.learning.episodic_memory import build_memory_callback
+from src.learning.grouping import build_differentiation_groups
 from src.learning.lti import (
     JWKSProvider,
     LTIPlatformConfig,
@@ -1149,6 +1150,88 @@ class LearningApi:
             "source": "live_in_memory" if cells else "no_responses_yet",
         }
 
+    def get_class_groups(self, payload: Mapping[str, Any]) -> Dict[str, Any]:
+        mastery = self.get_class_mastery(payload)
+        groups = build_differentiation_groups(mastery["cells"])
+        return {
+            "tenant_id": mastery["tenant_id"],
+            "class_id": mastery["class_id"],
+            "diagnostic_id": mastery["diagnostic_id"],
+            "groups": groups,
+            "count": len(groups),
+            "source": mastery["source"],
+        }
+
+    def get_class_follow_up(self, payload: Mapping[str, Any]) -> Dict[str, Any]:
+        tenant_id = str(payload.get("tenant_id") or PILOT_TENANT_ID)
+        class_id = str(payload.get("class_id") or PILOT_CLASS_ID)
+        labels = self._skill_label_lookup()
+        plans = [
+            record
+            for record in self._pending_plans.values()
+            if record.get("tenant_id") == tenant_id
+            and record.get("class_id", PILOT_CLASS_ID) == class_id
+            and record.get("status") in {"approved", "edited_approved"}
+        ]
+        follow_ups: List[Dict[str, Any]] = []
+        for record in sorted(
+            plans,
+            key=lambda item: str(item.get("updated_at") or item.get("created_at") or ""),
+            reverse=True,
+        ):
+            plan = record.get("plan") or {}
+            skill_ids = [str(value) for value in plan.get("target_skill_ids") or []]
+            student_ids = [str(value) for value in plan.get("target_student_ids") or []]
+            movements: List[Dict[str, Any]] = []
+            for student_index, student_id in enumerate(student_ids):
+                for skill_id in skill_ids:
+                    movement = self._follow_up_movement(
+                        tenant_id=tenant_id,
+                        student_id=student_id,
+                        skill_id=skill_id,
+                        fallback_index=student_index,
+                    )
+                    movements.append(
+                        {
+                            "student_id": student_id,
+                            "skill_id": skill_id,
+                            "skill_label": labels.get(skill_id, skill_id),
+                            **movement,
+                        }
+                    )
+            if not movements:
+                continue
+            avg_before = sum(item["before_mastery"] for item in movements) / len(movements)
+            avg_after = sum(item["after_mastery"] for item in movements) / len(movements)
+            avg_uncertainty = sum(item["after_uncertainty"] for item in movements) / len(movements)
+            follow_ups.append(
+                {
+                    "plan_id": str(record["id"]),
+                    "status": str(record.get("status")),
+                    "target_skill_ids": skill_ids,
+                    "target_student_ids": student_ids,
+                    "follow_up_check": plan.get("follow_up_check")
+                    or "Exit-ticket evidence after teacher-reviewed support.",
+                    "before_mastery": round(avg_before, 3),
+                    "after_mastery": round(avg_after, 3),
+                    "delta_mastery": round(avg_after - avg_before, 3),
+                    "uncertainty": round(avg_uncertainty, 3),
+                    "uncertainty_label": self._uncertainty_label(avg_uncertainty),
+                    "evidence_summary": (
+                        f"{len(movements)} learner-skill follow-up signal"
+                        f"{'s' if len(movements) != 1 else ''}; movement is reviewed, not automatic."
+                    ),
+                    "movements": movements,
+                }
+            )
+        return {
+            "tenant_id": tenant_id,
+            "class_id": class_id,
+            "follow_ups": follow_ups,
+            "count": len(follow_ups),
+            "source": "mastery_events_or_mock_follow_up" if follow_ups else "no_approved_plans_yet",
+        }
+
     # ------------------------------------------------------------------
     # Student drilldown (HITL teacher surface)
     # ------------------------------------------------------------------
@@ -1792,6 +1875,11 @@ class LearningApi:
 
     def reject_plan(self, plan_id: str, payload: Mapping[str, Any]) -> Dict[str, Any]:
         return self._decide_plan(plan_id, payload, action="rejected")
+
+    def defer_plan(self, plan_id: str, payload: Mapping[str, Any]) -> Dict[str, Any]:
+        if not str(payload.get("reason") or "").strip():
+            raise LearningApiError("defer reason is required", status_code=400)
+        return self._decide_plan(plan_id, payload, action="deferred")
 
     def edit_and_approve_plan(
         self, plan_id: str, payload: Mapping[str, Any]
@@ -4623,6 +4711,69 @@ class LearningApi:
             )
         )
 
+    def _follow_up_movement(
+        self,
+        *,
+        tenant_id: str,
+        student_id: str,
+        skill_id: str,
+        fallback_index: int,
+    ) -> Dict[str, Any]:
+        events = [
+            event
+            for event in self.repository.list_mastery_events_for_student(tenant_id, student_id, limit=20)
+            if str(event.get("skill_id") or "") == skill_id
+        ]
+        probabilities: List[float] = []
+        uncertainties: List[float] = []
+        for event in events:
+            raw_estimate = event.get("estimate")
+            if not isinstance(raw_estimate, Mapping):
+                continue
+            probability = raw_estimate.get("probability")
+            uncertainty = raw_estimate.get("uncertainty")
+            if isinstance(probability, (int, float)):
+                probabilities.append(float(probability))
+            if isinstance(uncertainty, (int, float)):
+                uncertainties.append(float(uncertainty))
+        if len(probabilities) >= 2:
+            after = max(0.0, min(1.0, probabilities[0]))
+            before = max(0.0, min(1.0, probabilities[-1]))
+            after_uncertainty = max(0.0, min(1.0, uncertainties[0] if uncertainties else 0.32))
+            before_uncertainty = max(0.0, min(1.0, uncertainties[-1] if uncertainties else 0.4))
+            source = "mastery_events"
+        else:
+            estimate = self._student_estimates.get((tenant_id, student_id), {}).get(skill_id)
+            if estimate is not None:
+                after = max(0.0, min(1.0, estimate.probability))
+                before = max(0.0, min(1.0, after - 0.08))
+                after_uncertainty = max(0.0, min(1.0, estimate.uncertainty))
+                before_uncertainty = max(0.0, min(1.0, after_uncertainty + 0.08))
+                source = "current_mastery_with_mock_baseline"
+            else:
+                before = min(0.62, 0.42 + fallback_index * 0.025)
+                after = min(0.82, before + 0.08)
+                before_uncertainty = 0.42
+                after_uncertainty = 0.34
+                source = "mock_follow_up"
+        return {
+            "before_mastery": round(before, 3),
+            "after_mastery": round(after, 3),
+            "delta_mastery": round(after - before, 3),
+            "before_uncertainty": round(before_uncertainty, 3),
+            "after_uncertainty": round(after_uncertainty, 3),
+            "uncertainty_label": self._uncertainty_label(after_uncertainty),
+            "source": source,
+        }
+
+    @staticmethod
+    def _uncertainty_label(uncertainty: float) -> str:
+        if uncertainty >= 0.42:
+            return "needs_more_evidence"
+        if uncertainty >= 0.28:
+            return "thin_evidence"
+        return "strong_evidence"
+
     def _decide_plan(
         self, plan_id: str, payload: Mapping[str, Any], *, action: str
     ) -> Dict[str, Any]:
@@ -5041,6 +5192,16 @@ def register_learning_api(app: Flask, api: Optional[LearningApi] = None) -> Lear
     def _class_mastery(payload: Dict[str, Any]) -> Dict[str, Any]:
         return learning_api.get_class_mastery(payload)
 
+    @app.route("/api/learning/class/groups", methods=["GET"])
+    @_wrap
+    def _class_groups(payload: Dict[str, Any]) -> Dict[str, Any]:
+        return learning_api.get_class_groups(payload)
+
+    @app.route("/api/learning/class/follow-up", methods=["GET"])
+    @_wrap
+    def _class_follow_up(payload: Dict[str, Any]) -> Dict[str, Any]:
+        return learning_api.get_class_follow_up(payload)
+
     @app.route("/api/learning/approvals/pending", methods=["GET"])
     @_wrap
     def _pending_approvals(payload: Dict[str, Any]) -> Dict[str, Any]:
@@ -5055,6 +5216,11 @@ def register_learning_api(app: Flask, api: Optional[LearningApi] = None) -> Lear
     @_wrap
     def _reject_plan(plan_id: str, payload: Dict[str, Any]) -> Dict[str, Any]:
         return learning_api.reject_plan(plan_id, payload)
+
+    @app.route("/api/learning/approvals/<plan_id>/defer", methods=["POST"])
+    @_wrap
+    def _defer_plan(plan_id: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+        return learning_api.defer_plan(plan_id, payload)
 
     @app.route("/api/learning/approvals/<plan_id>/edit-approve", methods=["POST"])
     @_wrap

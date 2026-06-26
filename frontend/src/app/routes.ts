@@ -29,6 +29,7 @@ type DefaultRouteArgs = {
   onboardingComplete: boolean
   role:
     | 'therapist'
+    | 'teacher'
     | 'parent'
     | 'admin'
     | 'pending_therapist'
@@ -49,7 +50,7 @@ export function getDefaultAuthenticatedRoute({
   onboardingComplete,
   role,
 }: DefaultRouteArgs): AppRoute {
-  const requiresOnboarding = role === 'therapist' || role === 'admin'
+  const requiresOnboarding = role === 'therapist' || role === 'teacher' || role === 'admin'
 
   if (requiresOnboarding && !onboardingComplete) {
     return APP_ROUTES.onboarding

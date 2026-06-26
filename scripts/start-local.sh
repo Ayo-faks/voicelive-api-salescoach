@@ -53,6 +53,11 @@ case "$LOCAL_DEV_USER_ROLE" in
     DEFAULT_LOCAL_DEV_USER_NAME="Dev Admin"
     DEFAULT_LOCAL_DEV_USER_EMAIL="admin@localhost"
     ;;
+  teacher)
+    DEFAULT_LOCAL_DEV_USER_ID="dev-teacher-001"
+    DEFAULT_LOCAL_DEV_USER_NAME="Dev Teacher"
+    DEFAULT_LOCAL_DEV_USER_EMAIL="teacher@localhost"
+    ;;
   parent)
     DEFAULT_LOCAL_DEV_USER_ID="dev-parent-001"
     DEFAULT_LOCAL_DEV_USER_NAME="Dev Parent"
