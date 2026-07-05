@@ -1558,7 +1558,13 @@ export default function TeacherMasteryDashboard() {
               <Text size={200}>
                 {selectedClass.learnerCount} students across {skillIds.length}{' '}
                 maths sub-skills. Each cell shows mastery % (large) and
-                uncertainty % (small).
+                uncertainty % (small).{' '}
+                <span
+                  className={styles.headerMetaChip}
+                  data-testid="heatmap-source-badge"
+                >
+                  {liveCells.length > 0 ? 'Live' : 'Sample data'}
+                </span>
               </Text>
             }
           />

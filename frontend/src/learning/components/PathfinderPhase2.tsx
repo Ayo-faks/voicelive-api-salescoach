@@ -15,7 +15,7 @@ import {
   PencilSquareIcon,
   XCircleIcon,
 } from '@heroicons/react/24/outline'
-import { useEffect, useId, useState, type FormEvent } from 'react'
+import { useEffect, useId, useRef, useState, type FormEvent } from 'react'
 import { pathfinderTokens as t } from '../theme/pathfinder-tokens'
 
 export type ProvenanceView = {
@@ -559,8 +559,14 @@ export function PendingApprovalCard({
   const [submittingEdit, setSubmittingEdit] = useState(false)
   const [deferReason, setDeferReason] = useState('Need one more evidence check before deciding')
   const [draft, setDraft] = useState(() => formFromPlan(plan))
+  const lastPlanIdRef = useRef(plan.planId)
 
+  // Reset review state only when a genuinely different plan arrives.
+  // `plan` is rebuilt on every dashboard poll, so resetting on object
+  // identity would collapse an open review/edit panel every few seconds.
   useEffect(() => {
+    if (lastPlanIdRef.current === plan.planId) return
+    lastPlanIdRef.current = plan.planId
     setDraft(formFromPlan(plan))
     setReviewing(false)
     setEditing(false)
