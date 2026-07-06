@@ -36,8 +36,9 @@ REVIEWERS
   bank's own correct option. This makes the pipeline fully runnable and
   testable without any network or cost.
 * online: three persistent Azure AI Foundry agents pinned to
-  ``gpt-5`` / ``gpt-5`` / ``gpt-4o`` via the staging project endpoint, using
-  ``DefaultAzureCredential`` (managed identity, **no api key**).
+  ``gpt-4o`` / ``gpt-5.2-chat`` / ``gpt-5.3-chat`` (plus a ``gpt-4o`` critic)
+  via the staging project endpoint, using ``DefaultAzureCredential``
+  (managed identity, **no api key**).
 
 A cheap auth probe runs against the Foundry endpoint BEFORE any cost-incurring
 review when ``--online`` is requested; if it fails the run aborts early.
